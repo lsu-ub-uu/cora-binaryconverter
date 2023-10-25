@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -30,7 +31,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageMagickAdapaterImp;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IdentifyCmdSpy;
@@ -56,14 +56,17 @@ public class ImageMagickAdapterTest {
 		ArrayList<String> returnedOutput = new ArrayList<>(List.of("72x72 2560 1440"));
 		outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
 
+	}
+
+	private void setUpSpies() {
 		imageMagick.onlyForTestSetIdentifyCmd(identifyCmd);
 		imageMagick.onlyForTestSetIMOperation(imOperation);
 		imageMagick.onlyForTestSetArrayListOutputConsumer(outputConsumer);
-
 	}
 
 	@Test
 	public void testAnalyzeImage() throws Exception {
+		setUpSpies();
 
 		ImageData imageData = imageMagick.analyze(SOME_TEMP_PATH);
 
@@ -74,6 +77,7 @@ public class ImageMagickAdapterTest {
 
 	@Test
 	public void tesAnalyzeImageCallsImageMagick() throws Exception {
+		setUpSpies();
 
 		imageMagick.analyze(SOME_TEMP_PATH);
 
@@ -92,7 +96,9 @@ public class ImageMagickAdapterTest {
 
 	@Test
 	public void testAnalyzeThrowImageConverterException() throws Exception {
+		setUpSpies();
 		identifyCmd.MRV.setAlwaysThrowException("run", new RuntimeException("Error from spy"));
+
 		try {
 			imageMagick.analyze(SOME_TEMP_PATH);
 			fail("It failed");
@@ -106,6 +112,7 @@ public class ImageMagickAdapterTest {
 
 	@Test
 	public void testAnalyzeImageMagickReturnLessValuesThanExpected() throws Exception {
+		setUpSpies();
 		ArrayList<String> returnedOutput = new ArrayList<>(List.of("2560 1440"));
 		outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
 
@@ -118,6 +125,13 @@ public class ImageMagickAdapterTest {
 					"Error when analyzing image, with path: " + SOME_TEMP_PATH);
 			assertEquals(e.getCause().getMessage(), "Index 2 out of bounds for length 2");
 		}
+	}
+
+	@Test
+	public void testCheckRealVariablesInitialized() throws Exception {
+		assertNotNull(imageMagick.identifyCmd);
+		assertNotNull(imageMagick.imOperation);
+		assertNotNull(imageMagick.outputConsumer);
 	}
 
 	@Test(enabled = false)

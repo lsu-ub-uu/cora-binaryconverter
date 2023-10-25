@@ -23,9 +23,10 @@
 	<name>Binary Converter</name>
 
 	<properties>
+		<im4java.version>1.4.0</im4java.version>
+		<messaging.version>3.0-SNAPSHOT</messaging.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>
-		<im4java.version>1.4.0</im4java.version>
 	</properties>
 
 	<scm>
@@ -37,6 +38,21 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>org.im4java</groupId>
+			<artifactId>im4java</artifactId>
+			<version>${im4java.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>messaging</artifactId>
+			<version>${messaging.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger</artifactId>
+			<version>${logger.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<version>${testng.version}</version>
@@ -44,20 +60,9 @@
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
-			<artifactId>logger</artifactId>
-			<version>${logger.version}</version>
-			<scope>provided</scope>
-		</dependency>
-		<dependency>
-			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>testutils</artifactId>
 			<version>${testutils.version}</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.im4java</groupId>
-			<artifactId>im4java</artifactId>
-			<version>${im4java.version}</version>
 		</dependency>
 	</dependencies>
 </project>

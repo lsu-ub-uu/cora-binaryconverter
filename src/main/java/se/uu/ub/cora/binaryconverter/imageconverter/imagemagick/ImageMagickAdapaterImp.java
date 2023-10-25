@@ -36,9 +36,9 @@ public class ImageMagickAdapaterImp implements ImageMagickAdapter {
 	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
 	private static final String SPLIT_REGEX = " ";
 
-	private IdentifyCmd identifyCmd = new IdentifyCmd();
-	private IMOperation imOperation = new IMOperation();
-	private ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
+	IdentifyCmd identifyCmd = new IdentifyCmd();
+	IMOperation imOperation = new IMOperation();
+	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
 
 	private String imagePath;
 
