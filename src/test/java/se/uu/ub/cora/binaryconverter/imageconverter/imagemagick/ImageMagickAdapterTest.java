@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -28,6 +28,9 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageMagickAdapaterImp;
 import se.uu.ub.cora.binaryconverter.imageconverter.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imageconverter.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imageconverter.spy.IdentifyCmdSpy;

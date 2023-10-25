@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -26,6 +26,10 @@ import org.im4java.core.IMOperation;
 import org.im4java.core.IMOps;
 import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
+
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageMagickAdapter;
 
 public class ImageMagickAdapaterImp implements ImageMagickAdapter {
 
