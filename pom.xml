@@ -25,6 +25,7 @@
 	<properties>
 		<im4java.version>1.4.0</im4java.version>
 		<messaging.version>3.0-SNAPSHOT</messaging.version>
+		<rabbitmq.version>3.0-SNAPSHOT</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>
 	</properties>
@@ -46,6 +47,11 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>messaging</artifactId>
 			<version>${messaging.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>rabbitmq</artifactId>
+			<version>${rabbitmq.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
