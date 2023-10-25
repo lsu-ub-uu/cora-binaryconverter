@@ -23,41 +23,71 @@ import java.util.ArrayList;
 
 import org.im4java.core.IM4JavaException;
 import org.im4java.core.IMOperation;
+import org.im4java.core.IMOps;
 import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
 
 public class ImageMagickAdapaterImp implements ImageMagickAdapter {
 
-	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%x,%w,%h";
-	private IdentifyCmd identifyCmd;
-	private IMOperation imOperation;
-	private ArrayListOutputConsumer outputConsumer;
+	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
+	private static final String SPLIT_REGEX = " ";
 
-	public ImageMagickAdapaterImp(IdentifyCmd identifyCmd, IMOperation imOperation,
-			ArrayListOutputConsumer outputConsumer) {
-		this.identifyCmd = identifyCmd;
-		this.imOperation = imOperation;
-		this.outputConsumer = outputConsumer;
+	private IdentifyCmd identifyCmd = new IdentifyCmd();
+	private IMOperation imOperation = new IMOperation();
+	private ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
 
-	}
+	private String imagePath;
 
 	@Override
 	public ImageData analyze(String imagePath) {
-		System.out.println("Path: " + imagePath);
-		imOperation.addImage(imagePath);
+		this.imagePath = imagePath;
 
-		imOperation.format(FORMAT_DPI_WIDTH_HEIGHT);
-		try {
-			identifyCmd.setOutputConsumer(outputConsumer);
-
-			identifyCmd.run(imOperation);
-
-			ArrayList<String> result = outputConsumer.getOutput();
-			System.out.println(result);
-		} catch (IOException | InterruptedException | IM4JavaException e) {
-			e.printStackTrace();
-		}
-		return new ImageData("200", "1920", "1080");
+		IMOps format = addImageAndSetFormat(imagePath);
+		return tryToAnalyzeImageUsingImageMagick(format);
 	}
 
+	private ImageData tryToAnalyzeImageUsingImageMagick(IMOps format) {
+		try {
+			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
+			return parseImageData(output);
+
+		} catch (Exception e) {
+			throw ImageConverterException.withMessageAndException(
+					"Error when analyzing image, with path: " + imagePath, e);
+		}
+	}
+
+	private ArrayList<String> executeAnalyzeCommandInImageMagick(IMOps format)
+			throws IOException, InterruptedException, IM4JavaException {
+		identifyCmd.setOutputConsumer(outputConsumer);
+		identifyCmd.run(format);
+		return outputConsumer.getOutput();
+	}
+
+	private IMOps addImageAndSetFormat(String imagePath) {
+		imOperation.addImage(imagePath);
+		return imOperation.format(FORMAT_DPI_WIDTH_HEIGHT);
+	}
+
+	private ImageData parseImageData(ArrayList<String> result) {
+		String[] imageData = prepareOutputFromImageMagick(result);
+		return new ImageData(imageData[0], imageData[1], imageData[2]);
+	}
+
+	private String[] prepareOutputFromImageMagick(ArrayList<String> result) {
+		String rawOutput = result.get(0);
+		return rawOutput.split(SPLIT_REGEX);
+	}
+
+	public void onlyForTestSetIdentifyCmd(IdentifyCmd identifyCmd) {
+		this.identifyCmd = identifyCmd;
+	}
+
+	public void onlyForTestSetIMOperation(IMOperation imOperation) {
+		this.imOperation = imOperation;
+	}
+
+	public void onlyForTestSetArrayListOutputConsumer(ArrayListOutputConsumer outputConsumer) {
+		this.outputConsumer = outputConsumer;
+	}
 }
