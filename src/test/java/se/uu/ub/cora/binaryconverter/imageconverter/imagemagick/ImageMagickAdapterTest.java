@@ -31,9 +31,9 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageMagickAdapaterImp;
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.ArrayListOutputConsumerSpy;
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.IMOperationSpy;
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.IdentifyCmdSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IMOperationSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IdentifyCmdSpy;
 
 public class ImageMagickAdapterTest {
 

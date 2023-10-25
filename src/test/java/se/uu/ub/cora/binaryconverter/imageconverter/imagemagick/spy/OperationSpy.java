@@ -1,4 +1,4 @@
-package se.uu.ub.cora.binaryconverter.imageconverter.spy;
+package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy;
 
 import org.im4java.core.Operation;
 
