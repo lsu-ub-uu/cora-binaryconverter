@@ -29,23 +29,24 @@ import org.im4java.process.ArrayListOutputConsumer;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageMagickAdapter;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
 
-public class ImageMagickAdapaterImp implements ImageMagickAdapter {
+public class ImageAnalyzerImp implements ImageAnalyzer {
 
 	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
 	private static final String SPLIT_REGEX = " ";
+	private String imagePath;
 
 	IdentifyCmd identifyCmd = new IdentifyCmd();
 	IMOperation imOperation = new IMOperation();
 	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
 
-	private String imagePath;
+	public ImageAnalyzerImp(String imagePath) {
+		this.imagePath = imagePath;
+	}
 
 	@Override
-	public ImageData analyze(String imagePath) {
-		this.imagePath = imagePath;
-
+	public ImageData analyze() {
 		IMOps format = addImageAndSetFormat(imagePath);
 		return tryToAnalyzeImageUsingImageMagick(format);
 	}
@@ -54,7 +55,6 @@ public class ImageMagickAdapaterImp implements ImageMagickAdapter {
 		try {
 			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
 			return parseImageData(output);
-
 		} catch (Exception e) {
 			throw ImageConverterException.withMessageAndException(
 					"Error when analyzing image, with path: " + imagePath, e);
@@ -93,5 +93,9 @@ public class ImageMagickAdapaterImp implements ImageMagickAdapter {
 
 	public void onlyForTestSetArrayListOutputConsumer(ArrayListOutputConsumer outputConsumer) {
 		this.outputConsumer = outputConsumer;
+	}
+
+	public String onlyForTestGetImagePath() {
+		return imagePath;
 	}
 }

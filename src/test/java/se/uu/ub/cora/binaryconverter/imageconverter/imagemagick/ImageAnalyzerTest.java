@@ -35,11 +35,11 @@ import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ArrayListOut
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IdentifyCmdSpy;
 
-public class ImageMagickAdapterTest {
+public class ImageAnalyzerTest {
 
 	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
 	private static final String SOME_TEMP_PATH = "/someTempPath";
-	ImageMagickAdapaterImp imageMagick;
+	ImageAnalyzerImp imageMagick;
 
 	private IdentifyCmdSpy identifyCmd;
 	private IMOperationSpy imOperation;
@@ -47,7 +47,7 @@ public class ImageMagickAdapterTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
-		imageMagick = new ImageMagickAdapaterImp();
+		imageMagick = new ImageAnalyzerImp(SOME_TEMP_PATH);
 
 		identifyCmd = new IdentifyCmdSpy();
 		imOperation = new IMOperationSpy();
@@ -68,7 +68,7 @@ public class ImageMagickAdapterTest {
 	public void testAnalyzeImage() throws Exception {
 		setUpSpies();
 
-		ImageData imageData = imageMagick.analyze(SOME_TEMP_PATH);
+		ImageData imageData = imageMagick.analyze();
 
 		assertEquals(imageData.resolution(), "72x72");
 		assertEquals(imageData.width(), "2560");
@@ -79,7 +79,7 @@ public class ImageMagickAdapterTest {
 	public void tesAnalyzeImageCallsImageMagick() throws Exception {
 		setUpSpies();
 
-		imageMagick.analyze(SOME_TEMP_PATH);
+		imageMagick.analyze();
 
 		String[] pathAsArray = (String[]) imOperation.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("addImage", 0, "arg0");
@@ -100,7 +100,7 @@ public class ImageMagickAdapterTest {
 		identifyCmd.MRV.setAlwaysThrowException("run", new RuntimeException("Error from spy"));
 
 		try {
-			imageMagick.analyze(SOME_TEMP_PATH);
+			imageMagick.analyze();
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof ImageConverterException);
@@ -117,7 +117,7 @@ public class ImageMagickAdapterTest {
 		outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
 
 		try {
-			imageMagick.analyze(SOME_TEMP_PATH);
+			imageMagick.analyze();
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof ImageConverterException);
@@ -136,9 +136,9 @@ public class ImageMagickAdapterTest {
 
 	@Test(enabled = false)
 	public void testRealAnalyze() throws Exception {
-		ImageMagickAdapaterImp imageMagickReal = new ImageMagickAdapaterImp();
+		ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp("/home/pere/workspace/gokuForever.jpg");
 
-		ImageData analyze = imageMagickReal.analyze("/home/pere/workspace/gokuForever.jpg");
+		ImageData analyze = imageMagickReal.analyze();
 
 		System.out.println("ImageData" + analyze);
 	}

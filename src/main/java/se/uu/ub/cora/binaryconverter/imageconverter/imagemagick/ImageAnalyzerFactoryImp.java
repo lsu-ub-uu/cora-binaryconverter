@@ -16,10 +16,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
-public interface ImageMagickAdapter {
+public class ImageAnalyzerFactoryImp implements ImageAnalyzerFactory {
 
-	ImageData analyze(String imagePath);
+	public ImageAnalyzerImp factor(String someTempPath) {
+		return new ImageAnalyzerImp(someTempPath);
+	}
 
 }

@@ -46,7 +46,7 @@ public class BinaryConverterStarter {
 
 	private static MessageReceiver createReceiver(String queuName) {
 		if (queuName.equals("smallConverterQueue")) {
-			return new ImageSmallConverter();
+			return new ImageSmallConverter("OCFL_HOME");
 			// new ImageSmallConverter();
 		}
 		// if (queuName.equals("bigConverterQueue")) {

@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -26,29 +27,72 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.ImageMagickAdapterSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ImageSmallConverterTest {
 
+	private static final String SOME_TYPE = "someType";
+	private static final String SOME_ID = "someId";
+	private static final String SOME_CHECKSUM = "d9f28c8b153ee8916c7f8faaa9d94bb04d06da7616034a4"
+			+ "cd7e03102e30fa67cfa8eee1e7afbc7d3a5909285e41b24b16e08b2f7338d15398554407cf7025b45";
 	private static final String SOME_MESSAGE = "someMessage";
+	private static final String SOME_OCFL_HOME = "/someOcflRootHome";
+
 	private ImageSmallConverter imageSmallConverter;
 	private Map<String, String> some_headers = new HashMap<>();
-	private ImageMagickAdapterSpy imageMagick;
+	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		imageSmallConverter = new ImageSmallConverter();
-		imageMagick = new ImageMagickAdapterSpy();
+		imageSmallConverter = new ImageSmallConverter(SOME_OCFL_HOME);
+		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
+		
+		ClientDataF
+
+		setMessageHeaders();
+	}
+
+	private void setMessageHeaders() {
+		some_headers.put("type", SOME_TYPE);
+		some_headers.put("id", SOME_ID);
+		some_headers.put("checksum512", SOME_CHECKSUM);
 	}
 
 	@Test
-	public void testCallRecievMessage() throws Exception {
+	public void testImageAnalyzerFactoryInitialized() throws Exception {
 		assertTrue(imageSmallConverter instanceof MessageReceiver);
+		ImageAnalyzerFactory factory = imageSmallConverter.onlyForTestGetImageAnalyzerFactory();
+		assertNotNull(factory);
+
+	}
+
+	@Test
+	public void testCallFactoryWithCorrectPath() throws Exception {
+		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
 
 		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageMagick.MCR.assertParameters("analyze", 0, "/somePath");
+		imageAnalyzerFactory.MCR.assertParameters("factor", 0, SOME_OCFL_HOME
+				+ "/d9f/28c/8b1/53ee8916c7f8faaa9d94bb04d06da7616034a4cd7e03102e30fa67cfa8eee1e"
+				+ "7afbc7d3a5909285e41b24b16e08b2f7338d15398554407cf7025b45/v1/content/"
+				+ "someType:someId-master");
+	}
+
+	@Test
+	public void testCallAnlayze() throws Exception {
+
+		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
+
+		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
+				.getReturnValue("factor", 0);
+
+		analyzer.MCR.assertParameters("analyze", 0);
+
 	}
 
 }
