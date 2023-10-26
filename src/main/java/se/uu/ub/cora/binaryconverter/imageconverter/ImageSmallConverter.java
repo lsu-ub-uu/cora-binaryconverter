@@ -36,6 +36,8 @@ public class ImageSmallConverter implements MessageReceiver {
 		// create and call converter for large
 
 		// update binaryRecord call api
+
+		// ack message
 	}
 
 	@Override
