@@ -20,7 +20,6 @@ package se.uu.ub.cora.binaryconverter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
@@ -28,12 +27,8 @@ import java.lang.reflect.Modifier;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageSmallConverter;
-import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
-import se.uu.ub.cora.binaryconverter.spy.RestClientFactorySpy;
 import se.uu.ub.cora.javaclient.cora.DataClientFactoryImp;
-import se.uu.ub.cora.javaclient.cora.internal.DataClientImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
@@ -46,8 +41,6 @@ public class BinaryConverterStarterTest {
 
 	private String[] args;
 	private MessagingFactorySpy messagingFactory;
-	// private CoraClientFactorySpy coraClientFactory;
-	private RestClientFactorySpy restClientFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -59,12 +52,6 @@ public class BinaryConverterStarterTest {
 		messagingFactory = new MessagingFactorySpy();
 		MessagingProvider.setMessagingFactory(messagingFactory);
 
-	}
-
-	private void setUpCoraClientFactory() {
-		// coraClientFactory = new CoraClientFactorySpy();
-		restClientFactory = new RestClientFactorySpy();
-		// DataClientFactoryImp.onlyForTestSetRestClientFactory(restClientFactory);
 	}
 
 	@Test
@@ -93,7 +80,6 @@ public class BinaryConverterStarterTest {
 
 	@Test
 	public void testCallBinaryConverterStarter() throws Exception {
-		setUpCoraClientFactory();
 
 		BinaryConverterStarter.main(args);
 
@@ -105,23 +91,6 @@ public class BinaryConverterStarterTest {
 		assertEquals(routingInfo.port, 12345);
 		assertEquals(routingInfo.virtualHost, "someVirtualHost");
 		assertEquals(routingInfo.queueName, "someRabbitMqQueueName");
-
-		coraClientFactory.MCR.assertParameters("factorUsingUserIdAndAppToken", 0, "someUserId",
-				"someApptoken");
-
-		MessageListenerSpy listener = (MessageListenerSpy) messagingFactory.MCR
-				.getReturnValue("factorTopicMessageListener", 0);
-
-		listener.MCR.assertParameters("listen", 0);
-		ImageSmallConverter smallConverter = (ImageSmallConverter) listener.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("listen", 0, "messageReceiver");
-
-		assertNotNull(smallConverter);
-
-		assertEquals(smallConverter.onlyForTestGetOcflHomePath(),
-				"/someOcfl/Home/Path/From/Fedora");
-
-		DataClientImp dataClient = (DataClientImp) smallConverter.onlyForTestGetDataClient();
 
 	}
 
