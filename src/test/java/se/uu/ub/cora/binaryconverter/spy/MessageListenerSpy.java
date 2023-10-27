@@ -16,26 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.spy;
 
-/**
- * ImageAnalyzer is intended to be used to extract metadata from an image.
- * <p>
- * Implementations of this interface are not thread safe.
- *
- */
-public interface ImageAnalyzer {
+import se.uu.ub.cora.messaging.MessageListener;
+import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-	/**
-	 * Analyze method extracts following metadata from an image:
-	 * <ul>
-	 * <li>height in pixels</li>
-	 * <li>width in pixels</li>
-	 * <li>resolution in dpi</li>
-	 * </ul>
-	 * 
-	 * @return the extracted metadata inside a Record {@link ImageData}
-	 */
-	ImageData analyze();
+public class MessageListenerSpy implements MessageListener {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
+	public MessageListenerSpy() {
+		MCR.useMRV(MRV);
+	}
+
+	@Override
+	public void listen(MessageReceiver messageReceiver) {
+		MCR.addCall("messageReceiver", messageReceiver);
+	}
 }

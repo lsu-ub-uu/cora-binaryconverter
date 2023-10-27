@@ -1,8 +1,8 @@
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.ImageAnalyzerSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

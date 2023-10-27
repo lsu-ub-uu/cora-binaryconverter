@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
@@ -27,9 +28,14 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
-import se.uu.ub.cora.binaryconverter.imageconverter.spy.ImageAnalyzerSpy;
+import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
+import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
+import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
+import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
+import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
+import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ImageSmallConverterTest {
@@ -44,15 +50,19 @@ public class ImageSmallConverterTest {
 	private ImageSmallConverter imageSmallConverter;
 	private Map<String, String> some_headers = new HashMap<>();
 	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
+	private DataClientSpy dataClient;
+	private ClientDataFactorySpy clientDataFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		imageSmallConverter = new ImageSmallConverter(SOME_OCFL_HOME);
+		dataClient = new DataClientSpy();
+
+		imageSmallConverter = new ImageSmallConverter(dataClient, SOME_OCFL_HOME);
 		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
-		
-		ClientDataF
 
 		setMessageHeaders();
+		clientDataFactory = new ClientDataFactorySpy();
+		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 	}
 
 	private void setMessageHeaders() {
@@ -66,7 +76,16 @@ public class ImageSmallConverterTest {
 		assertTrue(imageSmallConverter instanceof MessageReceiver);
 		ImageAnalyzerFactory factory = imageSmallConverter.onlyForTestGetImageAnalyzerFactory();
 		assertNotNull(factory);
+	}
 
+	@Test
+	public void testOnlyForTestGetOcflHomePath() throws Exception {
+		assertEquals(imageSmallConverter.onlyForTestGetOcflHomePath(), SOME_OCFL_HOME);
+	}
+
+	@Test
+	public void testOnlyForTestGetClientData() throws Exception {
+		assertEquals(imageSmallConverter.onlyForTestGetDataClient(), dataClient);
 	}
 
 	@Test
@@ -92,7 +111,64 @@ public class ImageSmallConverterTest {
 				.getReturnValue("factor", 0);
 
 		analyzer.MCR.assertParameters("analyze", 0);
+	}
 
+	@Test
+	public void testUpdateRecordAfterAnalyzing() throws Exception {
+		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
+
+		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
+		ClientDataRecordSpy dataRecord = (ClientDataRecordSpy) dataClient.MCR.getReturnValue("read",
+				0);
+		ClientDataRecordGroupSpy binaryRecordGroup = assertUpdateRecordAfterAnalyze(dataRecord);
+
+		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
+
+	}
+
+	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze(
+			ClientDataRecordSpy dataRecord) {
+		dataRecord.MCR.assertParameters("getDataRecordGroup", 0);
+		ClientDataRecordGroupSpy binaryRecordGroup = (ClientDataRecordGroupSpy) dataRecord.MCR
+				.getReturnValue("getDataRecordGroup", 0);
+		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
+
+		ClientDataGroupSpy groupMaster = getGroupMasterFromBinary(binaryRecordGroup);
+
+		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
+				.getReturnValue("factor", 0);
+		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
+
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "height",
+				imageData.height());
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "width",
+				imageData.width());
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2,
+				"resolution", imageData.resolution());
+
+		var atomicHeight = clientDataFactory.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		var atomicWidth = clientDataFactory.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
+		var atomicResolution = clientDataFactory.MCR
+				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
+
+		groupMaster.MCR.assertParameters("addChild", 0, atomicHeight);
+		groupMaster.MCR.assertParameters("addChild", 1, atomicWidth);
+		groupMaster.MCR.assertParameters("addChild", 2, atomicResolution);
+
+		return binaryRecordGroup;
+	}
+
+	private ClientDataGroupSpy getGroupMasterFromBinary(ClientDataRecordGroupSpy dataRecordGroup) {
+		ClientDataGroupSpy groupResourceInfo = (ClientDataGroupSpy) dataRecordGroup.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		groupResourceInfo.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
+		ClientDataGroupSpy groupMaster = (ClientDataGroupSpy) groupResourceInfo.MCR
+				.getReturnValue("getFirstGroupWithNameInData", 0);
+		return groupMaster;
 	}
 
 }

@@ -20,16 +20,22 @@ package se.uu.ub.cora.binaryconverter.imageconverter;
 
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerFactoryImp;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
+import se.uu.ub.cora.clientdata.ClientDataRecord;
+import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
+import se.uu.ub.cora.javaclient.cora.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ImageSmallConverter implements MessageReceiver {
 
 	ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
 	private String ocflHomePath;
+	private DataClient dataClient;
 
-	public ImageSmallConverter(String ocflHomePath) {
+	public ImageSmallConverter(DataClient dataClient, String ocflHomePath) {
+		this.dataClient = dataClient;
 		this.ocflHomePath = ocflHomePath;
 	}
 
@@ -37,7 +43,8 @@ public class ImageSmallConverter implements MessageReceiver {
 	public void receiveMessage(Map<String, String> headers, String message) {
 
 		String pathToImage = buildImagePath(headers);
-		analyzeImage(pathToImage);
+		ImageData imageData = analyzeImage(pathToImage);
+		updateRecord(headers, imageData);
 
 		// Read binary record
 		// Get checksum256 or checksum512
@@ -55,13 +62,6 @@ public class ImageSmallConverter implements MessageReceiver {
 		// create and call converter for large
 
 		// update binaryRecord call api
-
-		// ack message
-	}
-
-	private void analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
-		analyzer.analyze();
 	}
 
 	private String buildImagePath(Map<String, String> headers) {
@@ -79,10 +79,47 @@ public class ImageSmallConverter implements MessageReceiver {
 				+ "/v1/content/" + type + ":" + id + "-master";
 	}
 
+	private ImageData analyzeImage(String pathToImage) {
+		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
+		return analyzer.analyze();
+	}
+
+	private void updateRecord(Map<String, String> headers, ImageData imageData) {
+		String recordType = headers.get("type");
+		String recordId = headers.get("id");
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+
+		updateMasterGroupFromResourceInfo(binaryRecordGroup, imageData);
+
+		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
+		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
+		return binaryRecord.getDataRecordGroup();
+	}
+
+	private void updateMasterGroupFromResourceInfo(ClientDataRecordGroup binaryRecordGroup,
+			ImageData imageData) {
+		ClientDataGroup resourceInfoGroup = binaryRecordGroup
+				.getFirstGroupWithNameInData("resourceInfo");
+		ClientDataGroup masterGroup = resourceInfoGroup.getFirstGroupWithNameInData("master");
+
+		ClientDataAtomic atomicHeight = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("height", imageData.height());
+		ClientDataAtomic atomicWidth = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("width", imageData.width());
+		ClientDataAtomic atomicResolution = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
+
+		masterGroup.addChild(atomicHeight);
+		masterGroup.addChild(atomicWidth);
+		masterGroup.addChild(atomicResolution);
+	}
+
 	@Override
 	public void topicClosed() {
 		// TODO Auto-generated method stub
-
 	}
 
 	public void onlyForTestSetImageAnalyzerFactory(ImageAnalyzerFactory imageAnalyzerFactory) {
@@ -92,6 +129,14 @@ public class ImageSmallConverter implements MessageReceiver {
 	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
 		return imageAnalyzerFactory;
 
+	}
+
+	public String onlyForTestGetOcflHomePath() {
+		return ocflHomePath;
+	}
+
+	public DataClient onlyForTestGetDataClient() {
+		return dataClient;
 	}
 
 }

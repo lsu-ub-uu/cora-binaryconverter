@@ -16,30 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNotNull;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerImp;
 
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+public class ImageAnalyzerFactoryImp implements ImageAnalyzerFactory {
 
-public class ImageAnalyzerFactoryTest {
-
-	private ImageAnalyzerFactoryImp factory;
-	private static final String SOME_TEMP_PATH = "/someTempPath";
-
-	@BeforeMethod
-	private void beforeMethod() {
-		factory = new ImageAnalyzerFactoryImp();
-
+	public ImageAnalyzerImp factor(String someTempPath) {
+		return new ImageAnalyzerImp(someTempPath);
 	}
 
-	@Test
-	public void testFactor() throws Exception {
-		ImageAnalyzerImp imageAnalyzer = factory.factor(SOME_TEMP_PATH);
-
-		assertNotNull(imageAnalyzer);
-		assertEquals(imageAnalyzer.onlyForTestGetImagePath(), SOME_TEMP_PATH);
-	}
 }

@@ -18,40 +18,55 @@
  */
 package se.uu.ub.cora.binaryconverter;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageBigConverter;
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageSmallConverter;
+import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
+import se.uu.ub.cora.javaclient.cora.DataClient;
+import se.uu.ub.cora.javaclient.cora.DataClientFactoryImp;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
 import se.uu.ub.cora.messaging.MessageListener;
-import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.messaging.MessageRoutingInfo;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverterStarter {
 
+	private static CoraClientFactory dataClientFactory;
+
+	BinaryConverterStarter() {
+	}
+
 	public static void main(String[] args) {
 		// HOST, PORT, QUEUNAME
 		// SPIKE STARTS
-		String hostName = args[0];
-		int port = Integer.parseInt(args[1]);
-		String virtualHost = "/";
-		String queuName = args[2];
-		MessageRoutingInfo routingInfo = new AmqpMessageListenerRoutingInfo(hostName, port,
-				virtualHost, queuName);
-		MessageListener listener = MessagingProvider.getTopicMessageListener(routingInfo);
-		MessageReceiver messageReceiver = createReceiver(queuName);
-		listener.listen(messageReceiver);
+		String coraUrl = args[0];
+		String appTokenUrl = args[1];
+		String userId = args[2];
+		String appToken = args[3];
+		String hostName = args[5];
+		int port = Integer.parseInt(args[6]);
+		String virtualHost = args[7];
+		String queueName = args[8];
+		String ocflHome = args[9];
 
-		// SPIKE ENDS
+		// new MellanClass(recordSettings)
+
+		MessageRoutingInfo routingInfo = new AmqpMessageListenerRoutingInfo(hostName, port,
+				virtualHost, queueName);
+		MessageListener listener = MessagingProvider.getTopicMessageListener(routingInfo);
+
+		dataClientFactory = DataClientFactoryImp.usingAppTokenVerifierUrlAndBaseUrl(appTokenUrl,
+				coraUrl);
+		// SPIKE starts here
+		MellanClass mc = new MellanClass(dataClientFactory, listener, userId, appToken, ocflHome);
+		mc.listen();
+		// SPIKE ends here
+
 	}
 
-	private static MessageReceiver createReceiver(String queuName) {
-		if (queuName.equals("smallConverterQueue")) {
-			return new ImageSmallConverter("OCFL_HOME");
-			// new ImageSmallConverter();
-		}
-		// if (queuName.equals("bigConverterQueue")) {
-		return new ImageBigConverter();
-		// }
+	static DataClient createDataClient(String userId, String appToken) {
+		return dataClientFactory.factorUsingUserIdAndAppToken(userId, appToken);
+	}
+
+	public static DataClientFactoryImp onlyForTestGetDataClientFactory() {
+		return (DataClientFactoryImp) dataClientFactory;
 	}
 
 }

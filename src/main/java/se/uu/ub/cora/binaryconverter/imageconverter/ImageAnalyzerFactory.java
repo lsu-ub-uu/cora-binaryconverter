@@ -1,6 +1,4 @@
-package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
-
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
+package se.uu.ub.cora.binaryconverter.imageconverter;
 
 public interface ImageAnalyzerFactory {
 
@@ -9,7 +7,7 @@ public interface ImageAnalyzerFactory {
 	 * 
 	 * @param path
 	 *            is a String with the absolute path to an image to analyze.
-	 * @return an ImageAnalyzer is an object that can be use to analyze pictures.
+	 * @return an {@link ImageAnalyzer} is an object that can be use to analyze pictures.
 	 */
 	public ImageAnalyzer factor(String path);
 

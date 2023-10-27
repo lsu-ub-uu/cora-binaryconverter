@@ -16,28 +16,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter.spy;
+package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
+import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
+import se.uu.ub.cora.javaclient.cora.DataClient;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+public class CoraClientFactorySpy implements CoraClientFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight");
-
-	public ImageAnalyzerSpy() {
+	public CoraClientFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
+		MRV.setDefaultReturnValuesSupplier("factorUsingUserIdAndAppToken", DataClientSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorUsingAuthToken", DataClientSpy::new);
 	}
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public DataClient factorUsingUserIdAndAppToken(String userId, String appToken) {
+		return (DataClient) MCR.addCallAndReturnFromMRV("userId", userId, "appToken", appToken);
+	}
+
+	@Override
+	public DataClient factorUsingAuthToken(String authToken) {
+		return (DataClient) MCR.addCallAndReturnFromMRV("authToken", authToken);
 	}
 
 }

@@ -18,24 +18,31 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-/**
- * ImageAnalyzer is intended to be used to extract metadata from an image.
- * <p>
- * Implementations of this interface are not thread safe.
- *
- */
-public interface ImageAnalyzer {
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 
-	/**
-	 * Analyze method extracts following metadata from an image:
-	 * <ul>
-	 * <li>height in pixels</li>
-	 * <li>width in pixels</li>
-	 * <li>resolution in dpi</li>
-	 * </ul>
-	 * 
-	 * @return the extracted metadata inside a Record {@link ImageData}
-	 */
-	ImageData analyze();
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzerFactoryImp;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerImp;
+
+public class ImageAnalyzerFactoryTest {
+
+	private ImageAnalyzerFactoryImp factory;
+	private static final String SOME_TEMP_PATH = "/someTempPath";
+
+	@BeforeMethod
+	private void beforeMethod() {
+		factory = new ImageAnalyzerFactoryImp();
+
+	}
+
+	@Test
+	public void testFactor() throws Exception {
+		ImageAnalyzerImp imageAnalyzer = factory.factor(SOME_TEMP_PATH);
+
+		assertNotNull(imageAnalyzer);
+		assertEquals(imageAnalyzer.onlyForTestGetImagePath(), SOME_TEMP_PATH);
+	}
 }
