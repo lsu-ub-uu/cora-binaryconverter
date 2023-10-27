@@ -19,7 +19,6 @@
 package se.uu.ub.cora.binaryconverter;
 
 import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
-import se.uu.ub.cora.javaclient.cora.DataClient;
 import se.uu.ub.cora.javaclient.cora.DataClientFactoryImp;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
 import se.uu.ub.cora.messaging.MessageListener;
@@ -29,6 +28,8 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 public class BinaryConverterStarter {
 
 	private static CoraClientFactory dataClientFactory;
+	// private static Logger logger =
+	// LoggerProvider.getLoggerForClass(BinaryConverterStarter.class);
 
 	BinaryConverterStarter() {
 	}
@@ -59,10 +60,6 @@ public class BinaryConverterStarter {
 		mc.listen();
 		// SPIKE ends here
 
-	}
-
-	static DataClient createDataClient(String userId, String appToken) {
-		return dataClientFactory.factorUsingUserIdAndAppToken(userId, appToken);
 	}
 
 	public static DataClientFactoryImp onlyForTestGetDataClientFactory() {
