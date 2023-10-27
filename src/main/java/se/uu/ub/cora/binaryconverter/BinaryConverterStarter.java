@@ -35,8 +35,6 @@ public class BinaryConverterStarter {
 	}
 
 	public static void main(String[] args) {
-		// HOST, PORT, QUEUNAME
-		// SPIKE STARTS
 		String coraUrl = args[0];
 		String appTokenUrl = args[1];
 		String userId = args[2];
@@ -46,8 +44,6 @@ public class BinaryConverterStarter {
 		String virtualHost = args[7];
 		String queueName = args[8];
 		String ocflHome = args[9];
-
-		// new MellanClass(recordSettings)
 
 		MessageRoutingInfo routingInfo = new AmqpMessageListenerRoutingInfo(hostName, port,
 				virtualHost, queueName);
