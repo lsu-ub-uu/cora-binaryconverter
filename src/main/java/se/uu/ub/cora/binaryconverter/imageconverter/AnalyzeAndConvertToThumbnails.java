@@ -28,13 +28,13 @@ import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.cora.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class ImageSmallConverter implements MessageReceiver {
+public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
 	ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
 	private String ocflHomePath;
 	private DataClient dataClient;
 
-	public ImageSmallConverter(DataClient dataClient, String ocflHomePath) {
+	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String ocflHomePath) {
 		this.dataClient = dataClient;
 		this.ocflHomePath = ocflHomePath;
 	}

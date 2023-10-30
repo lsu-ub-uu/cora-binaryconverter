@@ -38,7 +38,7 @@ import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class ImageSmallConverterTest {
+public class AnalyzeAndConvertToThumbnailsTest {
 
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
@@ -47,7 +47,7 @@ public class ImageSmallConverterTest {
 	private static final String SOME_MESSAGE = "someMessage";
 	private static final String SOME_OCFL_HOME = "/someOcflRootHome";
 
-	private ImageSmallConverter imageSmallConverter;
+	private AnalyzeAndConvertToThumbnails imageSmallConverter;
 	private Map<String, String> some_headers = new HashMap<>();
 	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 	private DataClientSpy dataClient;
@@ -57,7 +57,7 @@ public class ImageSmallConverterTest {
 	public void beforeMethod() {
 		dataClient = new DataClientSpy();
 
-		imageSmallConverter = new ImageSmallConverter(dataClient, SOME_OCFL_HOME);
+		imageSmallConverter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_OCFL_HOME);
 		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
 
 		setMessageHeaders();

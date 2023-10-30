@@ -22,7 +22,7 @@ import java.util.Map;
 
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class ImageBigConverter implements MessageReceiver {
+public class ConvertToJpeg2000 implements MessageReceiver {
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {

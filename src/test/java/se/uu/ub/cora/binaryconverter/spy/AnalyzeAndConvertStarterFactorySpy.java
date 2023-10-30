@@ -1,5 +1,5 @@
 /*
- * Copyright 2018, 2020, 2023 Uppsala University Library
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,29 +18,29 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.javaclient.rest.RestClient;
-import se.uu.ub.cora.javaclient.rest.RestClientFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
+import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
+import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
+import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class RestClientFactorySpy implements RestClientFactory {
+public class AnalyzeAndConvertStarterFactorySpy implements AnalyzeAndConvertStarterFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public RestClientFactorySpy() {
+	public AnalyzeAndConvertStarterFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factorUsingAuthToken", RestClientSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorUsingUserIdAndAppToken", RestClientSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", AnalyzeAndConvertStarterSpy::new);
 	}
 
 	@Override
-	public RestClient factorUsingAuthToken(String authToken) {
-		return (RestClient) MCR.addCallAndReturnFromMRV("authToken", authToken);
-	}
-
-	@Override
-	public RestClient factorUsingUserIdAndAppToken(String userId, String appToken) {
-		return (RestClient) MCR.addCallAndReturnFromMRV("userId", userId, "appToken", appToken);
+	public AnalyzeAndConvertStarter factor(CoraClientFactory coraClientFactory,
+			MessageListener messageListener, String someUserId, String someApptoken,
+			String someOcflHome) {
+		return (AnalyzeAndConvertStarter) MCR.addCallAndReturnFromMRV("coraClientFactory",
+				coraClientFactory, "messageListener", messageListener, "someUserId", someUserId,
+				"someApptoken", someApptoken, "someOcflHome", someOcflHome);
 	}
 
 }
