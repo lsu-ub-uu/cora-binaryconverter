@@ -158,7 +158,7 @@ public class BinaryConverterTest {
 
 		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, virtualHost: {2} and queueName: {3}.";
 		String logCoraClientFactory = "Start CoraClientFactory with cora url: {0} and appTokenUrl: {1}.";
-		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, appToken: {1} and ocflHome: {1}.";
+		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, appToken: {1} and ocflHome: {2}.";
 
 		logger.MCR.assertParameters("logInfoUsingMessage", 0, "BinaryConverter starting...");
 		logger.MCR.assertParameters("logInfoUsingMessage", 1,
