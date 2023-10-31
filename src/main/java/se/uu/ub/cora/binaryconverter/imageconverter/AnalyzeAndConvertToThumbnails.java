@@ -18,6 +18,10 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.text.MessageFormat;
 import java.util.Map;
 
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
@@ -33,6 +37,7 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
 	private String ocflHomePath;
 	private DataClient dataClient;
+	private String hashAlgorithm = "SHA-256";
 
 	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String ocflHomePath) {
 		this.dataClient = dataClient;
@@ -65,18 +70,66 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	}
 
 	private String buildImagePath(Map<String, String> headers) {
-		String cheksum = headers.get("checksum512");
+		String dataDivider = headers.get("dataDivider");
 		String type = headers.get("type");
 		String id = headers.get("id");
 
-		String checkSumLoweCase = cheksum.toLowerCase();
-		String folder1 = checkSumLoweCase.substring(0, 3);
-		String folder2 = checkSumLoweCase.substring(3, 6);
-		String folder3 = checkSumLoweCase.substring(6, 9);
-		String folder4 = checkSumLoweCase.substring(9, checkSumLoweCase.length());
+		String sha256Path = generateSha256Path(dataDivider, type, id);
+		return buildImagePathFromSha256Path(type, id, sha256Path);
+	}
+
+	private String buildImagePathFromSha256Path(String type, String id, String sha256Path) {
+		String sha256PathLowerCase = sha256Path.toLowerCase();
+		String folder1 = sha256PathLowerCase.substring(0, 3);
+		String folder2 = sha256PathLowerCase.substring(3, 6);
+		String folder3 = sha256PathLowerCase.substring(6, 9);
+		String folder4 = sha256PathLowerCase;
 
 		return ocflHomePath + "/" + folder1 + "/" + folder2 + "/" + folder3 + "/" + folder4
 				+ "/v1/content/" + type + ":" + id + "-master";
+	}
+
+	private String generateSha256Path(String dataDivider, String type, String id) {
+		String objectIdentifier = generateObjectIdentifier(dataDivider, type, id);
+		return generateSha256(objectIdentifier);
+	}
+
+	private String generateObjectIdentifier(String dataDivider, String type, String id) {
+		String ocflPathLayout = "info:fedora/{0}/resource/{1}:{2}-master";
+		return MessageFormat.format(ocflPathLayout, dataDivider, type, id);
+	}
+
+	private String generateSha256(String fedoraId) {
+		MessageDigest digest;
+		digest = tryToGetDigestAlgorithm();
+
+		final byte[] hashbytes = digest.digest(fedoraId.getBytes(StandardCharsets.UTF_8));
+		return bytesToHex(hashbytes);
+	}
+
+	private MessageDigest tryToGetDigestAlgorithm() {
+		try {
+			return MessageDigest.getInstance(hashAlgorithm);
+		} catch (NoSuchAlgorithmException e) {
+			throw ImageConverterException.withMessageAndException("Error while analyzing image.",
+					e);
+		}
+	}
+
+	private static String bytesToHex(byte[] hash) {
+		StringBuilder hexString = new StringBuilder(2 * hash.length);
+		forEach(hash, hexString);
+		return hexString.toString();
+	}
+
+	private static void forEach(byte[] hash, StringBuilder hexString) {
+		for (int i = 0; i < hash.length; i++) {
+			String hex = Integer.toHexString(0xff & hash[i]);
+			if (hex.length() == 1) {
+				hexString.append('0');
+			}
+			hexString.append(hex);
+		}
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
@@ -137,6 +190,10 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
 	public DataClient onlyForTestGetDataClient() {
 		return dataClient;
+	}
+
+	public void onlyForTestSetHashAlgorithm(String hashAlgorithm) {
+		this.hashAlgorithm = hashAlgorithm;
 	}
 
 }
