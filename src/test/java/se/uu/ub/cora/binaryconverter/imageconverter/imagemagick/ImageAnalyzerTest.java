@@ -76,7 +76,16 @@ public class ImageAnalyzerTest {
 	}
 
 	@Test
-	public void tesAnalyzeImageCallsImageMagick() throws Exception {
+	public void testMakeSureCallsToImOperationAreDoneInCorrectOrderAsItIsVital() throws Exception {
+		setUpSpies();
+
+		imageMagick.analyze();
+
+		assertEquals(imOperation.callsInOrder.toString(), "[%xx%y %w %h, /someTempPath]");
+	}
+
+	@Test
+	public void testAnalyzeImageCallsImageMagick() throws Exception {
 		setUpSpies();
 
 		imageMagick.analyze();
@@ -86,10 +95,9 @@ public class ImageAnalyzerTest {
 
 		assertEquals(pathAsArray[0], SOME_TEMP_PATH);
 		imOperation.MCR.assertParameters("format", 0, FORMAT_DPI_WIDTH_HEIGHT);
-		var formatIMOps = imOperation.MCR.getReturnValue("format", 0);
 
 		identifyCmd.MCR.assertParameters("setOutputConsumer", 0, outputConsumer);
-		identifyCmd.MCR.assertParameters("run", 0, formatIMOps);
+		identifyCmd.MCR.assertParameters("run", 0, imOperation);
 		outputConsumer.MCR.methodWasCalled("getOutput");
 
 	}
@@ -134,13 +142,34 @@ public class ImageAnalyzerTest {
 		assertNotNull(imageMagick.outputConsumer);
 	}
 
-	@Test(enabled = false)
-	public void testRealAnalyze() throws Exception {
-		ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp("/home/pere/workspace/gokuForever.jpg");
-
-		ImageData analyze = imageMagickReal.analyze();
-
-		System.out.println("ImageData" + analyze);
-	}
+	// @Test(enabled = true)
+	// public void testRealAnalyze() throws Exception {
+	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+	// "/home/olov/workspace/IMG_20161005_130203.jpg");
+	//
+	// ImageData analyze = imageMagickReal.analyze();
+	//
+	// System.out.println("ImageData" + analyze);
+	// }
+	//
+	// @Test(enabled = true)
+	// public void testRealAnalyze2() throws Exception {
+	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+	// "/home/olov/workspace/th-1561237634.jpg");
+	//
+	// ImageData analyze = imageMagickReal.analyze();
+	//
+	// System.out.println("ImageData" + analyze);
+	// }
+	//
+	// @Test(enabled = true)
+	// public void testRealAnalyze3() throws Exception {
+	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+	// "/home/olov/workspace/KKH_D_002.tif");
+	//
+	// ImageData analyze = imageMagickReal.analyze();
+	//
+	// System.out.println("ImageData" + analyze);
+	// }
 
 }

@@ -18,6 +18,9 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.im4java.core.IMOperation;
 import org.im4java.core.IMOps;
 import org.im4java.core.Operation;
@@ -28,6 +31,7 @@ import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 public class IMOperationSpy extends IMOperation {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
+	public ArrayList<String> callsInOrder = new ArrayList<>();
 
 	public IMOperationSpy() {
 		MCR.useMRV(MRV);
@@ -37,11 +41,13 @@ public class IMOperationSpy extends IMOperation {
 
 	@Override
 	public Operation addImage(String... arg0) {
+		callsInOrder.addAll(Arrays.asList(arg0));
 		return (Operation) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
 
 	@Override
 	public IMOps format(String arg0) {
+		callsInOrder.add(arg0);
 		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
 

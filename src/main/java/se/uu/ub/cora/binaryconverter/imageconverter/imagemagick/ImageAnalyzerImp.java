@@ -27,9 +27,9 @@ import org.im4java.core.IMOps;
 import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
 
 public class ImageAnalyzerImp implements ImageAnalyzer {
 
@@ -54,6 +54,7 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 	private ImageData tryToAnalyzeImageUsingImageMagick(IMOps format) {
 		try {
 			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
+			System.out.println(output);
 			return parseImageData(output);
 		} catch (Exception e) {
 			throw ImageConverterException.withMessageAndException(
@@ -69,8 +70,9 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 	}
 
 	private IMOps addImageAndSetFormat(String imagePath) {
+		imOperation.format(FORMAT_DPI_WIDTH_HEIGHT);
 		imOperation.addImage(imagePath);
-		return imOperation.format(FORMAT_DPI_WIDTH_HEIGHT);
+		return imOperation;
 	}
 
 	private ImageData parseImageData(ArrayList<String> result) {
