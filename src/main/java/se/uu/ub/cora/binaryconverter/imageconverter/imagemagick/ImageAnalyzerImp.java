@@ -54,7 +54,6 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 	private ImageData tryToAnalyzeImageUsingImageMagick(IMOps format) {
 		try {
 			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
-			System.out.println(output);
 			return parseImageData(output);
 		} catch (Exception e) {
 			throw ImageConverterException.withMessageAndException(

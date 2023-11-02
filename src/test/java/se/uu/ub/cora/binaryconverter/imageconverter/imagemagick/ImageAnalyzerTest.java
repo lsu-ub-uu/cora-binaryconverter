@@ -142,34 +142,33 @@ public class ImageAnalyzerTest {
 		assertNotNull(imageMagick.outputConsumer);
 	}
 
-	// @Test(enabled = true)
-	// public void testRealAnalyze() throws Exception {
-	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
-	// "/home/olov/workspace/IMG_20161005_130203.jpg");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
-	//
-	// @Test(enabled = true)
-	// public void testRealAnalyze2() throws Exception {
-	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
-	// "/home/olov/workspace/th-1561237634.jpg");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
-	//
-	// @Test(enabled = true)
-	// public void testRealAnalyze3() throws Exception {
-	// ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
-	// "/home/olov/workspace/KKH_D_002.tif");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
+	@Test(enabled = false)
+	public void testRealAnalyze() throws Exception {
+		ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+				"/home/olov/workspace/IMG_20161005_130203.jpg");
 
+		ImageData analyze = imageMagickReal.analyze();
+
+		System.out.println("ImageData" + analyze);
+	}
+
+	@Test(enabled = false)
+	public void testRealAnalyze2() throws Exception {
+		ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+				"/home/olov/workspace/th-1561237634.jpg");
+
+		ImageData analyze = imageMagickReal.analyze();
+
+		System.out.println("ImageData" + analyze);
+	}
+
+	@Test(enabled = false)
+	public void testRealAnalyze3() throws Exception {
+		ImageAnalyzerImp imageMagickReal = new ImageAnalyzerImp(
+				"/home/olov/workspace/KKH_D_002.tif");
+
+		ImageData analyze = imageMagickReal.analyze();
+
+		System.out.println("ImageData" + analyze);
+	}
 }
