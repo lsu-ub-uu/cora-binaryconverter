@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -18,9 +19,9 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.CoraClientInfo;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -36,9 +37,9 @@ public class AnalyzeAndConvertStarterFactorySpy implements AnalyzeAndConvertStar
 
 	@Override
 	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
-			CoraClientInfo coraClientInfo, String ocflHome) {
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
 		return (AnalyzeAndConvertStarter) MCR.addCallAndReturnFromMRV("messageListener",
-				messageListener, "coraClientInfo", coraClientInfo, "ocflHome", ocflHome);
+				messageListener, "appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome);
 	}
 
 }

@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -18,7 +19,7 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import se.uu.ub.cora.binaryconverter.CoraClientInfo;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageListener;
@@ -28,21 +29,19 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
 	private MessageListener listener;
 	private String ocflHome;
-	private CoraClientInfo coraClientInfo;
+	private JavaClientAppTokenCredentials appTokenCredentials;
 
-	public AnalyzeAndConvertStarterImp(MessageListener listener, CoraClientInfo coraClientInfo,
-			String ocflHome) {
+	public AnalyzeAndConvertStarterImp(MessageListener listener,
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
 		this.listener = listener;
-		this.coraClientInfo = coraClientInfo;
+		this.appTokenCredentials = appTokenCredentials;
 		this.ocflHome = ocflHome;
 	}
 
 	@Override
 	public void listen() {
 		DataClient dataClient = JavaClientProvider
-				.getDataClientUsingBaseUrlAndApptokenUrlAndUserIdAndAppToken(
-						coraClientInfo.baseUrl(), coraClientInfo.appTokenUrl(),
-						coraClientInfo.userId(), coraClientInfo.appToken());
+				.getDataClientUsingAppTokenCredentials(appTokenCredentials);
 
 		String queueName = "smallConverterQueue";
 		MessageReceiver messageReceiver = createReceiver(queueName, dataClient);
@@ -60,8 +59,8 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 		return listener;
 	}
 
-	public Object onlyForTestGetCoraClientInfo() {
-		return coraClientInfo;
+	public Object onlyForTestGetAppTokenCredentials() {
+		return appTokenCredentials;
 	}
 
 	public String onlyForTestGetOcflHome() {

@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -24,11 +25,10 @@ import static org.testng.Assert.assertSame;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.CoraClientInfo;
-import se.uu.ub.cora.binaryconverter.spy.DataClientFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
+import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
-import se.uu.ub.cora.binaryconverter.spy.RestClientFactorySpy;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 
 public class AnalyzeAndConvertStarterImpTest {
@@ -38,40 +38,35 @@ public class AnalyzeAndConvertStarterImpTest {
 	private static final String SOME_APP_TOKEN = "someAppToken";
 	private static final String SOME_USER_ID = "someUserId";
 	private AnalyzeAndConvertStarter starter;
-	private RestClientFactorySpy restClientFactory;
-	private DataClientFactorySpy dataClientFactory;
+	private JavaClientFactorySpy javaClientFactory;
 	private MessageListenerSpy listener;
-	private CoraClientInfo coraClientInfo;
+	private JavaClientAppTokenCredentials appTokenCredentials;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		restClientFactory = new RestClientFactorySpy();
-		dataClientFactory = new DataClientFactorySpy();
-		JavaClientProvider.onlyForTestSetRestClientFactory(restClientFactory);
-		JavaClientProvider.onlyForTestSetDataClientFactory(dataClientFactory);
+		javaClientFactory = new JavaClientFactorySpy();
+		JavaClientProvider.onlyForTestSetJavaClientFactory(javaClientFactory);
 
-		coraClientInfo = new CoraClientInfo(SOME_BASE_URL, SOME_APP_TOKEN_URL, SOME_USER_ID,
-				SOME_APP_TOKEN);
+		appTokenCredentials = new JavaClientAppTokenCredentials(SOME_BASE_URL, SOME_APP_TOKEN_URL,
+				SOME_USER_ID, SOME_APP_TOKEN);
 
 		listener = new MessageListenerSpy();
 	}
 
 	@Test
 	public void testListen() throws Exception {
-		starter = new AnalyzeAndConvertStarterImp(listener, coraClientInfo, SOME_OCFL_HOME_PATH);
+		starter = new AnalyzeAndConvertStarterImp(listener, appTokenCredentials,
+				SOME_OCFL_HOME_PATH);
 
 		starter.listen();
 
-		dataClientFactory.MCR.assertMethodWasCalled("factorUsingRestClient");
+		javaClientFactory.MCR.assertMethodWasCalled("factorDataClientUsingAppTokenCredentials");
 
-		restClientFactory.MCR.assertParameters(
-				"factorUsingBaseUrlAndAppTokenUrlAndUserIdAndAppToken", 0, SOME_BASE_URL,
-				SOME_APP_TOKEN_URL, SOME_USER_ID, SOME_APP_TOKEN);
-		dataClientFactory.MCR.assertParameters("factorUsingRestClient", 0, restClientFactory.MCR
-				.getReturnValue("factorUsingBaseUrlAndAppTokenUrlAndUserIdAndAppToken", 0));
+		javaClientFactory.MCR.assertParameters("factorDataClientUsingAppTokenCredentials", 0,
+				appTokenCredentials);
 
-		DataClientSpy dataClientSpyFromFactory = (DataClientSpy) dataClientFactory.MCR
-				.getReturnValue("factorUsingRestClient", 0);
+		DataClientSpy dataClientSpyFromFactory = (DataClientSpy) javaClientFactory.MCR
+				.getReturnValue("factorDataClientUsingAppTokenCredentials", 0);
 
 		AnalyzeAndConvertToThumbnails converter = getCreatedConverterFromListenCall();
 		assertConverterStartedWithOcflPathAndDataClient(converter, SOME_OCFL_HOME_PATH,
@@ -93,10 +88,10 @@ public class AnalyzeAndConvertStarterImpTest {
 	@Test
 	public void testOnlyForTestGet() throws Exception {
 		AnalyzeAndConvertStarterImp starter = new AnalyzeAndConvertStarterImp(listener,
-				coraClientInfo, SOME_OCFL_HOME_PATH);
+				appTokenCredentials, SOME_OCFL_HOME_PATH);
 
 		assertSame(starter.onlyForTestGetMessageListener(), listener);
-		assertSame(starter.onlyForTestGetCoraClientInfo(), coraClientInfo);
+		assertSame(starter.onlyForTestGetAppTokenCredentials(), appTokenCredentials);
 		assertSame(starter.onlyForTestGetOcflHome(), SOME_OCFL_HOME_PATH);
 	}
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -22,8 +23,8 @@ import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.CoraClientInfo;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 
 public class AnalyzeAndConvertStarterFactoryImpTest {
 
@@ -35,16 +36,17 @@ public class AnalyzeAndConvertStarterFactoryImpTest {
 
 	@Test
 	public void testFactorAnalyzeAndConverterStarter() throws Exception {
-		CoraClientInfo coraClientInfo = new CoraClientInfo(SOME_BASE_URL, SOME_APP_TOKEN_URL,
-				SOME_USER_ID, SOME_APP_TOKEN);
+		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
+				SOME_BASE_URL, SOME_APP_TOKEN_URL, SOME_USER_ID, SOME_APP_TOKEN);
 		MessageListenerSpy messageListener = new MessageListenerSpy();
 
 		AnalyzeAndConvertStarterFactoryImp factory = new AnalyzeAndConvertStarterFactoryImp();
 		AnalyzeAndConvertStarterImp analyzeAndConvertThumbnail = (AnalyzeAndConvertStarterImp) factory
-				.factor(messageListener, coraClientInfo, SOME_OCFL_HOME);
+				.factor(messageListener, appTokenCredentials, SOME_OCFL_HOME);
 
 		assertSame(analyzeAndConvertThumbnail.onlyForTestGetMessageListener(), messageListener);
-		assertSame(analyzeAndConvertThumbnail.onlyForTestGetCoraClientInfo(), coraClientInfo);
+		assertSame(analyzeAndConvertThumbnail.onlyForTestGetAppTokenCredentials(),
+				appTokenCredentials);
 		assertSame(analyzeAndConvertThumbnail.onlyForTestGetOcflHome(), SOME_OCFL_HOME);
 	}
 }

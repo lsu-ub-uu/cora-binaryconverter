@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -18,14 +19,14 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import se.uu.ub.cora.binaryconverter.CoraClientInfo;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.messaging.MessageListener;
 
 public class AnalyzeAndConvertStarterFactoryImp implements AnalyzeAndConvertStarterFactory {
 
 	@Override
 	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
-			CoraClientInfo coraClientInfo, String ocflHome) {
-		return new AnalyzeAndConvertStarterImp(messageListener, coraClientInfo, ocflHome);
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
+		return new AnalyzeAndConvertStarterImp(messageListener, appTokenCredentials, ocflHome);
 	}
 }

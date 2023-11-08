@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -23,6 +24,7 @@ import java.text.MessageFormat;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactoryImp;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
@@ -43,7 +45,7 @@ public class BinaryConverter {
 	private static String virtualHost;
 	private static String queueName;
 	private static String ocflHome;
-	private static CoraClientInfo coraClientInfo;
+	private static JavaClientAppTokenCredentials appTokenCredentials;
 
 	BinaryConverter() {
 
@@ -65,7 +67,8 @@ public class BinaryConverter {
 		queueName = args[7];
 		ocflHome = args[8];
 
-		coraClientInfo = new CoraClientInfo(coraUrl, appTokenUrl, userId, appToken);
+		appTokenCredentials = new JavaClientAppTokenCredentials(coraUrl, appTokenUrl, userId,
+				appToken);
 
 		logCoraClientFactory();
 
@@ -85,7 +88,7 @@ public class BinaryConverter {
 	private static void startListeningForConvertMessages(MessageListener listener) {
 
 		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(listener,
-				coraClientInfo, ocflHome);
+				appTokenCredentials, ocflHome);
 		starter.listen();
 	}
 

@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -31,6 +32,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterSpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
@@ -105,13 +107,13 @@ public class BinaryConverterTest {
 		MessageListener listener = (MessageListener) messagingFactory.MCR
 				.getReturnValue("factorTopicMessageListener", 0);
 
-		CoraClientInfo coraClientInfo = new CoraClientInfo(SOME_CORA_URL, SOME_APPTOKEN_URL,
-				SOME_USER_ID, SOME_APPTOKEN);
+		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
+				SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN);
 
 		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
 				listener);
-		analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0, "coraClientInfo",
-				coraClientInfo);
+		analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
+				"appTokenCredentials", appTokenCredentials);
 		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
 				SOME_OCFL_HOME);
 
