@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterSpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
-import se.uu.ub.cora.javaclient.data.DataClientFactoryImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
@@ -81,19 +80,7 @@ public class BinaryConverterTest {
 	}
 
 	@Test
-	public void testDefaultDataClientFactory() throws Exception {
-		BinaryConverter.main(args);
-
-		DataClientFactoryImp coraClientFactory = (DataClientFactoryImp) BinaryConverter
-				.onlyForTestGetDataClientFactory();
-
-		assertEquals(coraClientFactory.onlyForTestGetAppTokenVerifierUrl(), SOME_APPTOKEN_URL);
-		assertEquals(coraClientFactory.onlyForTestGetBaseUrl(), SOME_CORA_URL);
-	}
-
-	@Test
 	public void testCallBinaryConverterStarter() throws Exception {
-
 		BinaryConverter.main(args);
 
 		AmqpMessageListenerRoutingInfo routingInfo = (AmqpMessageListenerRoutingInfo) messagingFactory.MCR
@@ -115,13 +102,18 @@ public class BinaryConverterTest {
 
 		BinaryConverter.main(args);
 
-		DataClientFactoryImp coraClientFactory = (DataClientFactoryImp) BinaryConverter
-				.onlyForTestGetDataClientFactory();
 		MessageListener listener = (MessageListener) messagingFactory.MCR
 				.getReturnValue("factorTopicMessageListener", 0);
 
-		analyzeAndConvertStarterFactory.MCR.assertParameters("factor", 0, coraClientFactory,
-				listener, SOME_USER_ID, SOME_APPTOKEN, SOME_OCFL_HOME);
+		CoraClientInfo coraClientInfo = new CoraClientInfo(SOME_CORA_URL, SOME_APPTOKEN_URL,
+				SOME_USER_ID, SOME_APPTOKEN);
+
+		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
+				listener);
+		analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0, "coraClientInfo",
+				coraClientInfo);
+		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
+				SOME_OCFL_HOME);
 
 		AnalyzeAndConvertStarterSpy analyzerConverter = (AnalyzeAndConvertStarterSpy) analyzeAndConvertStarterFactory.MCR
 				.getReturnValue("factor", 0);

@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -40,22 +41,23 @@ public class AnalyzeAndConvertStarterImpTest {
 	private RestClientFactorySpy restClientFactory;
 	private DataClientFactorySpy dataClientFactory;
 	private MessageListenerSpy listener;
+	private CoraClientInfo coraClientInfo;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		restClientFactory = new RestClientFactorySpy();
 		dataClientFactory = new DataClientFactorySpy();
+		JavaClientProvider.onlyForTestSetRestClientFactory(restClientFactory);
+		JavaClientProvider.onlyForTestSetDataClientFactory(dataClientFactory);
+
+		coraClientInfo = new CoraClientInfo(SOME_BASE_URL, SOME_APP_TOKEN_URL, SOME_USER_ID,
+				SOME_APP_TOKEN);
 
 		listener = new MessageListenerSpy();
 	}
 
 	@Test
 	public void testListen() throws Exception {
-		CoraClientInfo coraClientInfo = new CoraClientInfo(SOME_BASE_URL, SOME_APP_TOKEN_URL,
-				SOME_USER_ID, SOME_APP_TOKEN);
-		JavaClientProvider.onlyForTestSetRestClientFactory(restClientFactory);
-		JavaClientProvider.onlyForTestSetDataClientFactory(dataClientFactory);
-
 		starter = new AnalyzeAndConvertStarterImp(listener, coraClientInfo, SOME_OCFL_HOME_PATH);
 
 		starter.listen();
@@ -87,4 +89,15 @@ public class AnalyzeAndConvertStarterImpTest {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClientSpyFromFactory);
 		assertEquals(converter.onlyForTestGetOcflHomePath(), ocflHomePath);
 	}
+
+	@Test
+	public void testOnlyForTestGet() throws Exception {
+		AnalyzeAndConvertStarterImp starter = new AnalyzeAndConvertStarterImp(listener,
+				coraClientInfo, SOME_OCFL_HOME_PATH);
+
+		assertSame(starter.onlyForTestGetMessageListener(), listener);
+		assertSame(starter.onlyForTestGetCoraClientInfo(), coraClientInfo);
+		assertSame(starter.onlyForTestGetOcflHome(), SOME_OCFL_HOME_PATH);
+	}
+
 }

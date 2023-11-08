@@ -21,27 +21,14 @@ package se.uu.ub.cora.binaryconverter.imageconverter;
 import se.uu.ub.cora.binaryconverter.CoraClientInfo;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
-import se.uu.ub.cora.javaclient.data.DataClientFactory;
 import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
-	private DataClientFactory dataClientFactory;
 	private MessageListener listener;
-	private String userId;
-	private String appToken;
 	private String ocflHome;
 	private CoraClientInfo coraClientInfo;
-
-	public AnalyzeAndConvertStarterImp(DataClientFactory dataClientFactory,
-			MessageListener listener, String userId, String appToken, String ocflHome) {
-		this.dataClientFactory = dataClientFactory;
-		this.listener = listener;
-		this.userId = userId;
-		this.appToken = appToken;
-		this.ocflHome = ocflHome;
-	}
 
 	public AnalyzeAndConvertStarterImp(MessageListener listener, CoraClientInfo coraClientInfo,
 			String ocflHome) {
@@ -69,20 +56,12 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 		return new ConvertToJpeg2000();
 	}
 
-	public DataClientFactory onlyForTestGetCoraClientFactory() {
-		return dataClientFactory;
-	}
-
 	public MessageListener onlyForTestGetMessageListener() {
 		return listener;
 	}
 
-	public String onlyForTestGetUserId() {
-		return userId;
-	}
-
-	public String onlyForTestGetAppToken() {
-		return appToken;
+	public Object onlyForTestGetCoraClientInfo() {
+		return coraClientInfo;
 	}
 
 	public String onlyForTestGetOcflHome() {

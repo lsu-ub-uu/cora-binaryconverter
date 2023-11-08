@@ -23,9 +23,6 @@ import java.text.MessageFormat;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactoryImp;
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterImp;
-import se.uu.ub.cora.javaclient.data.DataClientFactory;
-import se.uu.ub.cora.javaclient.data.internal.DataClientFactoryImp;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
@@ -35,9 +32,7 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverter {
 
-	private static DataClientFactory coraClientFactory;
 	private static Logger logger = LoggerProvider.getLoggerForClass(BinaryConverter.class);
-	private static AnalyzeAndConvertStarterImp analyzeAndConvertThumbnail;
 	private static AnalyzeAndConvertStarterFactory analyzeAndConvertStarterFactory = new AnalyzeAndConvertStarterFactoryImp();
 	private static String coraUrl;
 	private static String appTokenUrl;
@@ -73,14 +68,12 @@ public class BinaryConverter {
 		coraClientInfo = new CoraClientInfo(coraUrl, appTokenUrl, userId, appToken);
 
 		logCoraClientFactory();
-		coraClientFactory = DataClientFactoryImp.usingAppTokenVerifierUrlAndBaseUrl(appTokenUrl,
-				coraUrl);
 
 		logMessagingLister();
 		MessageListener listener = getMessageListener();
 
 		logAnalyzeAndConverterStarter();
-		startListeningForConvertMessages(coraClientFactory, listener);
+		startListeningForConvertMessages(listener);
 	}
 
 	private static MessageListener getMessageListener() {
@@ -89,16 +82,16 @@ public class BinaryConverter {
 		return MessagingProvider.getTopicMessageListener(routingInfo);
 	}
 
-	private static void startListeningForConvertMessages(DataClientFactory coraClientFactory,
-			MessageListener listener) {
+	private static void startListeningForConvertMessages(MessageListener listener) {
 
-		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(coraClientFactory,
-				listener, userId, appToken, ocflHome);
+		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(listener,
+				coraClientInfo, ocflHome);
 		starter.listen();
 	}
 
 	private static void logMessagingLister() {
-		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, virtualHost: {2} and queueName: {3}.";
+		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
+				+ "virtualHost: {2} and queueName: {3}.";
 		logger.logInfoUsingMessage(MessageFormat.format(logMessagingListener, hostName,
 				String.valueOf(port), virtualHost, queueName));
 	}
@@ -110,17 +103,10 @@ public class BinaryConverter {
 	}
 
 	private static void logAnalyzeAndConverterStarter() {
-		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, appToken: {1} and ocflHome: {2}.";
+		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
+				+ "appToken: {1} and ocflHome: {2}.";
 		logger.logInfoUsingMessage(
 				MessageFormat.format(logAnalyzeAndConvertStarter, userId, appToken, ocflHome));
-	}
-
-	public static DataClientFactory onlyForTestGetDataClientFactory() {
-		return coraClientFactory;
-	}
-
-	public static AnalyzeAndConvertStarterImp onlyForTestGetAnalyzeAndConvertStarter() {
-		return analyzeAndConvertThumbnail;
 	}
 
 	public static void onlyForTestSetAnalyzeAndConvertStarterFactory(

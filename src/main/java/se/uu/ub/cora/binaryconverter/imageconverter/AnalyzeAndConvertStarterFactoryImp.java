@@ -18,16 +18,14 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import se.uu.ub.cora.javaclient.data.DataClientFactory;
+import se.uu.ub.cora.binaryconverter.CoraClientInfo;
 import se.uu.ub.cora.messaging.MessageListener;
 
 public class AnalyzeAndConvertStarterFactoryImp implements AnalyzeAndConvertStarterFactory {
 
 	@Override
-	public AnalyzeAndConvertStarter factor(DataClientFactory coraClientFactory,
-			MessageListener messageListener, String someUserId, String someApptoken,
-			String someOcflHome) {
-		return new AnalyzeAndConvertStarterImp(coraClientFactory, messageListener, someUserId,
-				someApptoken, someOcflHome);
+	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
+			CoraClientInfo coraClientInfo, String ocflHome) {
+		return new AnalyzeAndConvertStarterImp(messageListener, coraClientInfo, ocflHome);
 	}
 }

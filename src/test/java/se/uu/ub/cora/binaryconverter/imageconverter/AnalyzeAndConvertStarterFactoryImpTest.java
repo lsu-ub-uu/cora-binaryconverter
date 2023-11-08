@@ -18,34 +18,33 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.spy.DataClientFactorySpy;
+import se.uu.ub.cora.binaryconverter.CoraClientInfo;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 
 public class AnalyzeAndConvertStarterFactoryImpTest {
 
-	private static final String SOME_USER_ID = "someUserId";
-	private static final String SOME_APPTOKEN = "someAppToken";
 	private static final String SOME_OCFL_HOME = "/someOcfl/Home/Path/From/Fedora";
+	private static final String SOME_APP_TOKEN_URL = "someAppTokenUrl";
+	private static final String SOME_BASE_URL = "someBaseUrl";
+	private static final String SOME_APP_TOKEN = "someAppToken";
+	private static final String SOME_USER_ID = "someUserId";
 
 	@Test
 	public void testFactorAnalyzeAndConverterStarter() throws Exception {
-		DataClientFactorySpy coraClientFactory = new DataClientFactorySpy();
+		CoraClientInfo coraClientInfo = new CoraClientInfo(SOME_BASE_URL, SOME_APP_TOKEN_URL,
+				SOME_USER_ID, SOME_APP_TOKEN);
 		MessageListenerSpy messageListener = new MessageListenerSpy();
 
 		AnalyzeAndConvertStarterFactoryImp factory = new AnalyzeAndConvertStarterFactoryImp();
 		AnalyzeAndConvertStarterImp analyzeAndConvertThumbnail = (AnalyzeAndConvertStarterImp) factory
-				.factor(coraClientFactory, messageListener, SOME_USER_ID, SOME_APPTOKEN,
-						SOME_OCFL_HOME);
+				.factor(messageListener, coraClientInfo, SOME_OCFL_HOME);
 
-		assertEquals(analyzeAndConvertThumbnail.onlyForTestGetCoraClientFactory(),
-				coraClientFactory);
-		assertEquals(analyzeAndConvertThumbnail.onlyForTestGetMessageListener(), messageListener);
-		assertEquals(analyzeAndConvertThumbnail.onlyForTestGetUserId(), SOME_USER_ID);
-		assertEquals(analyzeAndConvertThumbnail.onlyForTestGetAppToken(), SOME_APPTOKEN);
-		assertEquals(analyzeAndConvertThumbnail.onlyForTestGetOcflHome(), SOME_OCFL_HOME);
+		assertSame(analyzeAndConvertThumbnail.onlyForTestGetMessageListener(), messageListener);
+		assertSame(analyzeAndConvertThumbnail.onlyForTestGetCoraClientInfo(), coraClientInfo);
+		assertSame(analyzeAndConvertThumbnail.onlyForTestGetOcflHome(), SOME_OCFL_HOME);
 	}
 }
