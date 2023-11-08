@@ -24,8 +24,8 @@ import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactoryImp;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterImp;
-import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
-import se.uu.ub.cora.javaclient.cora.DataClientFactoryImp;
+import se.uu.ub.cora.javaclient.data.DataClientFactory;
+import se.uu.ub.cora.javaclient.data.DataClientFactoryImp;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
@@ -35,7 +35,7 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverter {
 
-	private static CoraClientFactory coraClientFactory;
+	private static DataClientFactory coraClientFactory;
 	private static Logger logger = LoggerProvider.getLoggerForClass(BinaryConverter.class);
 	private static AnalyzeAndConvertStarterImp analyzeAndConvertThumbnail;
 	private static AnalyzeAndConvertStarterFactory analyzeAndConvertStarterFactory = new AnalyzeAndConvertStarterFactoryImp();
@@ -86,7 +86,7 @@ public class BinaryConverter {
 		return MessagingProvider.getTopicMessageListener(routingInfo);
 	}
 
-	private static void startListeningForConvertMessages(CoraClientFactory coraClientFactory,
+	private static void startListeningForConvertMessages(DataClientFactory coraClientFactory,
 			MessageListener listener) {
 		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(coraClientFactory,
 				listener, userId, appToken, ocflHome);
@@ -111,7 +111,7 @@ public class BinaryConverter {
 				MessageFormat.format(logAnalyzeAndConvertStarter, userId, appToken, ocflHome));
 	}
 
-	public static CoraClientFactory onlyForTestGetDataClientFactory() {
+	public static DataClientFactory onlyForTestGetDataClientFactory() {
 		return coraClientFactory;
 	}
 

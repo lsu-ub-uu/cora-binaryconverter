@@ -34,12 +34,12 @@ public class RestClientFactorySpy implements RestClientFactory {
 	}
 
 	@Override
-	public RestClient factorUsingAuthToken(String authToken) {
+	public RestClient factorUsingBaseUrlAndAppTokenVerifierUrlAndAuthToken(String baseUrl, String appTokenUrl, String authToken) {
 		return (RestClient) MCR.addCallAndReturnFromMRV("authToken", authToken);
 	}
 
 	@Override
-	public RestClient factorUsingUserIdAndAppToken(String userId, String appToken) {
+	public RestClient factorUsingBaseUrlAndAppTokenUrlAndUserIdAndAppToken(String baseUrl, String appTokenUrl, String userId, String appToken) {
 		return (RestClient) MCR.addCallAndReturnFromMRV("userId", userId, "appToken", appToken);
 	}
 

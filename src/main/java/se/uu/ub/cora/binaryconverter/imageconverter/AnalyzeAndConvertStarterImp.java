@@ -18,20 +18,20 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
-import se.uu.ub.cora.javaclient.cora.DataClient;
+import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.javaclient.data.DataClientFactory;
 import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
-	private CoraClientFactory dataClientFactory;
+	private DataClientFactory dataClientFactory;
 	private MessageListener listener;
 	private String userId;
 	private String appToken;
 	private String ocflHome;
 
-	public AnalyzeAndConvertStarterImp(CoraClientFactory dataClientFactory,
+	public AnalyzeAndConvertStarterImp(DataClientFactory dataClientFactory,
 			MessageListener listener, String userId, String appToken, String ocflHome) {
 		this.dataClientFactory = dataClientFactory;
 		this.listener = listener;
@@ -42,7 +42,7 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
 	@Override
 	public void listen() {
-		DataClient dataClient = dataClientFactory.factorUsingUserIdAndAppToken(userId, appToken);
+		DataClient dataClient = dataClientFactory.factorUsingBaseUrlAndAppTokenUrlAndUserIdAndAppToken(null, null, userId, appToken);
 
 		String queueName = "smallConverterQueue";
 		MessageReceiver messageReceiver = createReceiver(queueName, dataClient);
@@ -56,7 +56,7 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 		return new ConvertToJpeg2000();
 	}
 
-	public CoraClientFactory onlyForTestGetCoraClientFactory() {
+	public DataClientFactory onlyForTestGetCoraClientFactory() {
 		return dataClientFactory;
 	}
 

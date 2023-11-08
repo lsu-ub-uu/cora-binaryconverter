@@ -18,30 +18,25 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
-import se.uu.ub.cora.javaclient.cora.DataClient;
+import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.javaclient.data.DataClientFactory;
+import se.uu.ub.cora.javaclient.rest.RestClient;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class CoraClientFactorySpy implements CoraClientFactory {
+public class CoraClientFactorySpy implements DataClientFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
 	public CoraClientFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factorUsingUserIdAndAppToken", DataClientSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorUsingAuthToken", DataClientSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorUsingRestClient", DataClientSpy::new);
 	}
 
 	@Override
-	public DataClient factorUsingUserIdAndAppToken(String userId, String appToken) {
-		return (DataClient) MCR.addCallAndReturnFromMRV("userId", userId, "appToken", appToken);
-	}
-
-	@Override
-	public DataClient factorUsingAuthToken(String authToken) {
-		return (DataClient) MCR.addCallAndReturnFromMRV("authToken", authToken);
+	public DataClient factorUsingRestClient(RestClient restClient) {
+		return (DataClient) MCR.addCallAndReturnFromMRV("restClient", restClient);
 	}
 
 }

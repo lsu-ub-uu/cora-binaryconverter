@@ -96,10 +96,4 @@ public class RestClientSpy implements RestClient {
 		return (RestResponse) MCR.addCallAndReturnFromMRV("recordType", recordType,
 				"indexSettingsAsJson", indexSettingsAsJson);
 	}
-
-	@Override
-	public String getBaseUrl() {
-		return (String) MCR.addCallAndReturnFromMRV();
-	}
-
 }

@@ -20,7 +20,7 @@ package se.uu.ub.cora.binaryconverter.spy;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
 import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
-import se.uu.ub.cora.javaclient.cora.CoraClientFactory;
+import se.uu.ub.cora.javaclient.data.DataClientFactory;
 import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -35,7 +35,7 @@ public class AnalyzeAndConvertStarterFactorySpy implements AnalyzeAndConvertStar
 	}
 
 	@Override
-	public AnalyzeAndConvertStarter factor(CoraClientFactory coraClientFactory,
+	public AnalyzeAndConvertStarter factor(DataClientFactory coraClientFactory,
 			MessageListener messageListener, String someUserId, String someApptoken,
 			String someOcflHome) {
 		return (AnalyzeAndConvertStarter) MCR.addCallAndReturnFromMRV("coraClientFactory",

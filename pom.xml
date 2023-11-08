@@ -26,7 +26,7 @@
 		<coralog4j.version>2.15.0</coralog4j.version>
 		<im4java.version>1.4.0</im4java.version>
 		<messaging.version>3.0-SNAPSHOT</messaging.version>
-		<javaclient.version>2.5-SNAPSHOT</javaclient.version>
+		<javaclient.version>3.0-SNAPSHOT</javaclient.version>
 		<rabbitmq.version>3.0-SNAPSHOT</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>

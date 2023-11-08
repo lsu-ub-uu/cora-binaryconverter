@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterSpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
-import se.uu.ub.cora.javaclient.cora.DataClientFactoryImp;
+import se.uu.ub.cora.javaclient.data.DataClientFactoryImp;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
