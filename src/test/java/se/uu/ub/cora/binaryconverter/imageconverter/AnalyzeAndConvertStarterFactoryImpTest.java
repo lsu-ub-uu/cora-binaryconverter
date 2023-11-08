@@ -22,7 +22,7 @@ import static org.testng.Assert.assertEquals;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.spy.CoraClientFactorySpy;
+import se.uu.ub.cora.binaryconverter.spy.DataClientFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 
 public class AnalyzeAndConvertStarterFactoryImpTest {
@@ -33,7 +33,7 @@ public class AnalyzeAndConvertStarterFactoryImpTest {
 
 	@Test
 	public void testFactorAnalyzeAndConverterStarter() throws Exception {
-		CoraClientFactorySpy coraClientFactory = new CoraClientFactorySpy();
+		DataClientFactorySpy coraClientFactory = new DataClientFactorySpy();
 		MessageListenerSpy messageListener = new MessageListenerSpy();
 
 		AnalyzeAndConvertStarterFactoryImp factory = new AnalyzeAndConvertStarterFactoryImp();

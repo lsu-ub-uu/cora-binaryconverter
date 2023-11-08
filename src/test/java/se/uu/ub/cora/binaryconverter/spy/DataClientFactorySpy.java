@@ -24,12 +24,12 @@ import se.uu.ub.cora.javaclient.rest.RestClient;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class CoraClientFactorySpy implements DataClientFactory {
+public class DataClientFactorySpy implements DataClientFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public CoraClientFactorySpy() {
+	public DataClientFactorySpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("factorUsingRestClient", DataClientSpy::new);
 	}

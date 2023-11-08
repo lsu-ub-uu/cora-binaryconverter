@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
+import se.uu.ub.cora.binaryconverter.CoraClientInfo;
+import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.javaclient.data.DataClientFactory;
 import se.uu.ub.cora.messaging.MessageListener;
@@ -30,6 +32,7 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 	private String userId;
 	private String appToken;
 	private String ocflHome;
+	private CoraClientInfo coraClientInfo;
 
 	public AnalyzeAndConvertStarterImp(DataClientFactory dataClientFactory,
 			MessageListener listener, String userId, String appToken, String ocflHome) {
@@ -40,9 +43,19 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 		this.ocflHome = ocflHome;
 	}
 
+	public AnalyzeAndConvertStarterImp(MessageListener listener, CoraClientInfo coraClientInfo,
+			String ocflHome) {
+		this.listener = listener;
+		this.coraClientInfo = coraClientInfo;
+		this.ocflHome = ocflHome;
+	}
+
 	@Override
 	public void listen() {
-		DataClient dataClient = dataClientFactory.factorUsingBaseUrlAndAppTokenUrlAndUserIdAndAppToken(null, null, userId, appToken);
+		DataClient dataClient = JavaClientProvider
+				.getDataClientUsingBaseUrlAndApptokenUrlAndUserIdAndAppToken(
+						coraClientInfo.baseUrl(), coraClientInfo.appTokenUrl(),
+						coraClientInfo.userId(), coraClientInfo.appToken());
 
 		String queueName = "smallConverterQueue";
 		MessageReceiver messageReceiver = createReceiver(queueName, dataClient);
