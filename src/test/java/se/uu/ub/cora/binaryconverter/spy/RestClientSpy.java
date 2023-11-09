@@ -18,7 +18,6 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Optional;
 
 import se.uu.ub.cora.javaclient.rest.RestClient;
@@ -41,6 +40,9 @@ public class RestClientSpy implements RestClient {
 		MRV.setDefaultReturnValuesSupplier("readRecordListWithFilterAsJson",
 				() -> createRestResponse());
 		MRV.setDefaultReturnValuesSupplier("readIncomingLinksAsJson", () -> createRestResponse());
+		MRV.setDefaultReturnValuesSupplier("validateRecordAsJson", () -> createRestResponse());
+		MRV.setDefaultReturnValuesSupplier("searchRecordWithSearchCriteriaAsJson",
+				() -> createRestResponse());
 		MRV.setDefaultReturnValuesSupplier("batchIndexWithFilterAsJson",
 				() -> createRestResponse());
 		MRV.setDefaultReturnValuesSupplier("getBaseUrl", String::new);
@@ -85,8 +87,7 @@ public class RestClientSpy implements RestClient {
 	}
 
 	@Override
-	public RestResponse readRecordListWithFilterAsJson(String recordType, String filter)
-			throws UnsupportedEncodingException {
+	public RestResponse readRecordListWithFilterAsJson(String recordType, String filter) {
 		return (RestResponse) MCR.addCallAndReturnFromMRV("recordType", recordType, "filter",
 				filter);
 	}
@@ -95,5 +96,15 @@ public class RestClientSpy implements RestClient {
 	public RestResponse batchIndexWithFilterAsJson(String recordType, String indexSettingsAsJson) {
 		return (RestResponse) MCR.addCallAndReturnFromMRV("recordType", recordType,
 				"indexSettingsAsJson", indexSettingsAsJson);
+	}
+
+	@Override
+	public RestResponse searchRecordWithSearchCriteriaAsJson(String searchId, String json) {
+		return (RestResponse) MCR.addCallAndReturnFromMRV("searchId", searchId, "json", json);
+	}
+
+	@Override
+	public RestResponse validateRecordAsJson(String json) {
+		return (RestResponse) MCR.addCallAndReturnFromMRV("json", json);
 	}
 }
