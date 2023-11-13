@@ -60,13 +60,14 @@ public class AnalyzeAndConvertStarterImpTest {
 
 		starter.listen();
 
-		javaClientFactory.MCR.assertMethodWasCalled("factorDataClientUsingAppTokenCredentials");
+		javaClientFactory.MCR
+				.assertMethodWasCalled("factorDataClientUsingJavaClientAppTokenCredentials");
 
-		javaClientFactory.MCR.assertParameters("factorDataClientUsingAppTokenCredentials", 0,
-				appTokenCredentials);
+		javaClientFactory.MCR.assertParameters("factorDataClientUsingJavaClientAppTokenCredentials",
+				0, appTokenCredentials);
 
 		DataClientSpy dataClientSpyFromFactory = (DataClientSpy) javaClientFactory.MCR
-				.getReturnValue("factorDataClientUsingAppTokenCredentials", 0);
+				.getReturnValue("factorDataClientUsingJavaClientAppTokenCredentials", 0);
 
 		AnalyzeAndConvertToThumbnails converter = getCreatedConverterFromListenCall();
 		assertConverterStartedWithOcflPathAndDataClient(converter, SOME_OCFL_HOME_PATH,

@@ -41,7 +41,7 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 	@Override
 	public void listen() {
 		DataClient dataClient = JavaClientProvider
-				.createDataClientUsingAppTokenCredentials(appTokenCredentials);
+				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
 
 		String queueName = "smallConverterQueue";
 		MessageReceiver messageReceiver = createReceiver(queueName, dataClient);
