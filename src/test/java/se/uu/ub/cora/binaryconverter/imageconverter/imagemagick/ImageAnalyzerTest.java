@@ -171,4 +171,5 @@ public class ImageAnalyzerTest {
 
 		System.out.println("ImageData" + analyze);
 	}
+
 }

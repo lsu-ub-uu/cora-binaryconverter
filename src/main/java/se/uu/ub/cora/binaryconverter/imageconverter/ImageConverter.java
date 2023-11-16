@@ -19,22 +19,17 @@
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
 /**
- * ImageAnalyzer is intended to be used to extract metadata from an image.
+ * ImageConverter is intended to be used to convert images to other formats.
  * <p>
  * Implementations of this interface are not thread safe.
  *
  */
-public interface ImageAnalyzer {
+public interface ImageConverter {
 
 	/**
-	 * Analyze method extracts following metadata from an image:
-	 * <ul>
-	 * <li>height in pixels</li>
-	 * <li>width in pixels</li>
-	 * <li>resolution in dpi</li>
-	 * </ul>
+	 * convertToThumbnail converts a master image to a small image in jpg format. Fixed width 100px
+	 * and height relative to the original.
 	 * 
-	 * @return the extracted metadata inside a Record {@link ImageData}
 	 */
-	ImageData analyze();
+	void convertToThumbnail();
 }
