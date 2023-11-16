@@ -40,6 +40,8 @@ public class PdfConverterImp {
 
 	@Override
 	public void convertToPDF() {
+		// convert -thumbnail x200 input.pdf[0] output_thumbnail.png
+
 		// Replace these paths with the actual paths of ImageMagick's convert, your input PDF, and
 		// the output thumbnail
 		String convertPath = "/path/to/convert";
