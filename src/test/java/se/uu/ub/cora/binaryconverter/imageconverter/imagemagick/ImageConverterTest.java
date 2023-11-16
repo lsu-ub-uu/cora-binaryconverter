@@ -30,7 +30,6 @@ import se.uu.ub.cora.binaryconverter.spy.ConvertCmdSpy;
 
 public class ImageConverterTest {
 
-	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
 	private static final String SOME_TEMP_INPUT_PATH = "/someTempInputPath";
 	private static final String SOME_TEMP_OUTPUT_PATH = "/someTempOutputPath";
 	ImageConverterImp converter;
@@ -93,7 +92,7 @@ public class ImageConverterTest {
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", quality);
 	}
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	public void testRealAnalyze2() throws Exception {
 		ImageConverterImp imageMagickReal = new ImageConverterImp(
 				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
