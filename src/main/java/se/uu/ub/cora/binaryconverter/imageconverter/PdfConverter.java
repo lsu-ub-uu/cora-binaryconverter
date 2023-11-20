@@ -19,22 +19,24 @@
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
 /**
- * ImageConverter is intended to be used to convert images to other formats.
+ * PdfConverter is intended to be used to convert the first page of an pdf to other formats.
  * <p>
  * Implementations of this interface are not thread safe.
  *
  */
-public interface ImageConverter {
-
+public interface PdfConverter {
 	/**
-	 * convertUsingWidth converts a master image to a jpg image. The supplied width is used and
-	 * height is relative to the original.
+	 * convertUsingWidth converts the first page of a pdf to an jpg image. The supplied width is
+	 * used and height is relative to the original.
 	 * 
+	 * @param inputPath
+	 * @param outputPath
 	 * @param width
 	 *            An int with wanted width in pixels
 	 * 
 	 * @throws ImageConverterException
 	 *             if the conversion fails
 	 */
-	void convertToThumbnail();
+	void convertUsingWidth(String inputPath, String outputPath, int width);
+
 }

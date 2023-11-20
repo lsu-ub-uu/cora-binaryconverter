@@ -39,6 +39,8 @@ public class IMOperationSpy extends IMOperation {
 		MRV.setDefaultReturnValuesSupplier("format", IMOpsSpy::new);
 		MRV.setDefaultReturnValuesSupplier("resize", IMOpsSpy::new);
 		MRV.setDefaultReturnValuesSupplier("quality", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("thumbnail", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("alpha", IMOpsSpy::new);
 	}
 
 	@Override
@@ -61,6 +63,16 @@ public class IMOperationSpy extends IMOperation {
 	@Override
 	public IMOps quality(Double var1) {
 		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
+	}
+
+	@Override
+	public IMOps thumbnail(Integer arg0) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
+	}
+
+	@Override
+	public IMOps alpha(String arg0) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
 
 }

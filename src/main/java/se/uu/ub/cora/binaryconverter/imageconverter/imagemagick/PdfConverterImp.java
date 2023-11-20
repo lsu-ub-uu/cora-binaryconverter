@@ -18,73 +18,40 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
+import java.text.MessageFormat;
+
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
-import org.im4java.core.IdentifyCmd;
-import org.im4java.process.ArrayListOutputConsumer;
 
-public class PdfConverterImp {
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.imageconverter.PdfConverter;
 
-	private String inputPath;
+public class PdfConverterImp implements PdfConverter {
 
-	private ConvertCmd convertCmd = new ConvertCmd();
-	IdentifyCmd identifyCmd = new IdentifyCmd();
-	private IMOperation imOperation = new IMOperation();
-	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
-	private String outputPath;
+	private ConvertCmd convertCmd;
+	private IMOperationFactory imOperationFactory;
 
-	public PdfConverterImp(String inputPath, String outputPath) {
-		this.inputPath = inputPath;
-		this.outputPath = outputPath;
+	public PdfConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
+		this.imOperationFactory = imOperationFactory;
+		this.convertCmd = convertCmd;
 	}
 
 	@Override
-	public void convertToPDF() {
-		// convert -thumbnail x200 input.pdf[0] output_thumbnail.png
+	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+		IMOperation imOperation = imOperationFactory.factor();
 
-		// Replace these paths with the actual paths of ImageMagick's convert, your input PDF, and
-		// the output thumbnail
-		String convertPath = "/path/to/convert";
-		String inputPdfPath = "/path/to/input.pdf";
-		String outputThumbnailPath = "/path/to/output_thumbnail.png";
+		imOperation.addImage(inputPath + "[0]");
+		imOperation.thumbnail(width);
+		imOperation.alpha("remove");
 
-		// Create a new ConvertCmd
-		ConvertCmd cmd = new ConvertCmd();
-
-		// Create a new IMOperation
-		IMOperation op = new IMOperation();
-
-		// Specify the input PDF and the page (0 for the first page)
-		op.addImage(inputPdfPath + "[0]");
-
-		// Resize the image to a width of 200 pixels while maintaining the aspect ratio
-		op.thumbnail(200);
-
-		// Specify the output thumbnail file
-		op.addImage(outputThumbnailPath);
+		imOperation.addImage(outputPath);
 
 		try {
-			// Execute the operation
-			cmd.run(op);
+			convertCmd.run(imOperation);
 		} catch (Exception e) {
-			e.printStackTrace();
+			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
+			String message = MessageFormat.format(errorMsg, inputPath, width);
+			throw ImageConverterException.withMessageAndException(message, e);
 		}
-	}
-
-	void onlyForTestSetConvertCmd(ConvertCmd convertCmd) {
-		this.convertCmd = convertCmd;
-
-	}
-
-	void onlyForTestSetIMOperation(IMOperation imOperation) {
-		this.imOperation = imOperation;
-	}
-
-	void onlyForTestSetArrayListOutputConsumer(ArrayListOutputConsumer outputConsumer) {
-		this.outputConsumer = outputConsumer;
-	}
-
-	String onlyForTestGetImagePath() {
-		return inputPath;
 	}
 }
