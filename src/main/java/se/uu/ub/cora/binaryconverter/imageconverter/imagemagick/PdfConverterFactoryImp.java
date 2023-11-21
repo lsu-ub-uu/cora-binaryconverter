@@ -30,5 +30,4 @@ public class PdfConverterFactoryImp implements PdfConverterFactory {
 		ConvertCmd command = new ConvertCmd();
 		return new PdfConverterImp(factory, command);
 	}
-
 }

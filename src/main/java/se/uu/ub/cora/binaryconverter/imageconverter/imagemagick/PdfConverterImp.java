@@ -38,6 +38,8 @@ public class PdfConverterImp implements PdfConverter {
 
 	@Override
 	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+		// ImageMagickCmd magickCmd = new ImageMagickCmd("");
+
 		IMOperation imOperation = imOperationFactory.factor();
 
 		imOperation.addImage(inputPath + "[0]");
@@ -47,6 +49,7 @@ public class PdfConverterImp implements PdfConverter {
 		imOperation.addImage(outputPath);
 
 		try {
+			// magickCmd.run(imOperation, null);
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
 			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";

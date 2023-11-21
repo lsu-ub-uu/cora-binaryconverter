@@ -109,46 +109,42 @@ public class PdfConverterTest {
 		assertSame(convertCmd1, convertCmd);
 	}
 
-	// @Test(enabled = false)
-	// public void testReal() throws Exception {
-	//
-	// String input =
-	// "/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
-	// String oupput =
-	// "/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputSmall.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput, 100);
-	// pdfConverter.convertUsingWidth(100);
-	//
-	// oupput =
-	// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputMedium.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput, 300);
-	// pdfConverter.convertUsingWidth(300);
-	//
-	// oupput =
-	// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputLarge.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput, 600);
-	// pdfConverter.convertUsingWidth(600);
-	// }
-	//
-	// @Test(enabled = false)
-	// public void testRealOlov() throws Exception {
-	//
-	// String input =
-	// "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
-	// String oupput =
-	// "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_100.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput);
-	// pdfConverter.convertUsingWidth(100);
-	//
-	// oupput =
-	// "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_300.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput);
-	// pdfConverter.convertUsingWidth(300);
-	//
-	// oupput =
-	// "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_600.jpg";
-	// pdfConverter = new PdfConverterImp(input, oupput);
-	// pdfConverter.convertUsingWidth(600);
-	// }
+	@Test(enabled = false)
+	public void testRealPere() throws Exception {
+
+		String input = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
+		String output = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputSmall.jpg";
+
+		PdfConverterFactoryImp converterFactory = new PdfConverterFactoryImp();
+		PdfConverter converter = converterFactory.factor();
+		converter.convertUsingWidth(input, output, 600);
+
+		// output =
+		// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputMedium.jpg";
+		// pdfConverter = new PdfConverterImp(input, output, 300);
+		// pdfConverter.convertUsingWidth(300);
+
+		// output =
+		// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputLarge.jpg";
+		// pdfConverter = new PdfConverterImp(input, output, 600);
+		// pdfConverter.convertUsingWidth(600);
+	}
+
+	@Test(enabled = false)
+	public void testRealOlov() throws Exception {
+
+		String input = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
+		String output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_100.jpg";
+
+		PdfConverterFactoryImp converterFactory = new PdfConverterFactoryImp();
+		PdfConverter converter = converterFactory.factor();
+		converter.convertUsingWidth(input, output, 100);
+
+		output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_300.jpg";
+		converter.convertUsingWidth(input, output, 300);
+
+		output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_600.jpg";
+		converter.convertUsingWidth(input, output, 600);
+	}
 
 }
