@@ -18,10 +18,17 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
+import org.im4java.core.ConvertCmd;
+
 import se.uu.ub.cora.binaryconverter.imageconverter.PdfConverter;
 
-public interface PdfConverterFactory {
+public class PdfConverterFactoryImp implements PdfConverterFactory {
 
-	PdfConverter factor();
+	@Override
+	public PdfConverter factor() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new PdfConverterImp(factory, command);
+	}
 
 }

@@ -54,4 +54,12 @@ public class PdfConverterImp implements PdfConverter {
 			throw ImageConverterException.withMessageAndException(message, e);
 		}
 	}
+
+	public IMOperationFactory onlyForTestGetImOperationFactory() {
+		return imOperationFactory;
+	}
+
+	public ConvertCmd onlyForTestGetConvertCmd() {
+		return convertCmd;
+	}
 }
