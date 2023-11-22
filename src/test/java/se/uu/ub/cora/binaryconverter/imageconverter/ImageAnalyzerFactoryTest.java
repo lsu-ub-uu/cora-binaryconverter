@@ -24,7 +24,6 @@ import static org.testng.Assert.assertNotNull;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzerFactoryImp;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageAnalyzerImp;
 
 public class ImageAnalyzerFactoryTest {

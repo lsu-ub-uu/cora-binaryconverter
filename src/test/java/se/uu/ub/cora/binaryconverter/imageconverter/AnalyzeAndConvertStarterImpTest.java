@@ -28,7 +28,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
-import se.uu.ub.cora.binaryconverter.spy.ImageConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
@@ -45,7 +44,6 @@ public class AnalyzeAndConvertStarterImpTest {
 	private JavaClientFactorySpy javaClientFactory;
 	private MessageListenerSpy listener;
 	private JavaClientAppTokenCredentials appTokenCredentials;
-	private ImageConverterFactorySpy imageConverterFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -56,7 +54,6 @@ public class AnalyzeAndConvertStarterImpTest {
 				SOME_USER_ID, SOME_APP_TOKEN);
 
 		listener = new MessageListenerSpy();
-		imageConverterFactory = new ImageConverterFactorySpy();
 	}
 
 	@Test
