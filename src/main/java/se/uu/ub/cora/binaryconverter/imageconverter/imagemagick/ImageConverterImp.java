@@ -18,42 +18,40 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
+import java.text.MessageFormat;
+
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
-import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 
 public class ImageConverterImp implements ImageConverter {
+	private IMOperationFactory imOperationFactory;
+	private ConvertCmd convertCmd;
 
-	private String inputPath;
-
-	private ConvertCmd convertCmd = new ConvertCmd();
-	IdentifyCmd identifyCmd = new IdentifyCmd();
-	private IMOperation imOperation = new IMOperation();
 	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
-	private String outputPath;
 
-	public ImageConverterImp(String inputPath, String outputPath) {
-		this.inputPath = inputPath;
-		this.outputPath = outputPath;
+	public ImageConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
+		this.imOperationFactory = imOperationFactory;
+		this.convertCmd = convertCmd;
 	}
 
 	@Override
-	public void convertToThumbnail() {
-		// Specify the input image
+	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+		IMOperation imOperation = imOperationFactory.factor();
 		imOperation.addImage(inputPath);
-		imOperation.resize(null, 100);
+		imOperation.resize(width, null);
 		imOperation.quality(100.0);
 		// Specify the output image format (JPEG)
 		imOperation.addImage(outputPath);
-		//
 		try {
-			// Execute the operation
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
-			e.printStackTrace();
+			String errorMsg = "Error converting image on path {0} and width {1}";
+			String message = MessageFormat.format(errorMsg, inputPath, width);
+			throw ImageConverterException.withMessageAndException(message, e);
 		}
 	}
 
@@ -62,15 +60,11 @@ public class ImageConverterImp implements ImageConverter {
 
 	}
 
-	void onlyForTestSetIMOperation(IMOperation imOperation) {
-		this.imOperation = imOperation;
+	public IMOperationFactory onlyForTestGetImOperationFactory() {
+		return imOperationFactory;
 	}
 
-	void onlyForTestSetArrayListOutputConsumer(ArrayListOutputConsumer outputConsumer) {
-		this.outputConsumer = outputConsumer;
-	}
-
-	String onlyForTestGetImagePath() {
-		return inputPath;
+	public ConvertCmd onlyForTestGetConvertCmd() {
+		return convertCmd;
 	}
 }

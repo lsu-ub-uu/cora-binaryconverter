@@ -19,203 +19,88 @@
 package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertNull;
+import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.text.MessageFormat;
+
+import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.spy.ConvertCmdSpy;
+import se.uu.ub.cora.binaryconverter.spy.IMOperationFactorySpy;
 
 public class ImageConverterTest {
-
 	private static final String SOME_TEMP_INPUT_PATH = "/someTempInputPath";
 	private static final String SOME_TEMP_OUTPUT_PATH = "/someTempOutputPath";
-	ImageConverterImp converter;
 
-	private IMOperationSpy imOperation;
-	private ArrayListOutputConsumerSpy outputConsumer;
+	private ImageConverterImp imageConverter;
 	private ConvertCmdSpy convertCmd;
+	private IMOperationFactorySpy imOperationFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
-		converter = new ImageConverterImp(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
-
 		convertCmd = new ConvertCmdSpy();
-		imOperation = new IMOperationSpy();
-		// outputConsumer = new ArrayListOutputConsumerSpy();
+		imOperationFactory = new IMOperationFactorySpy();
 
-		// ArrayList<String> returnedOutput = new ArrayList<>(List.of("72x72 2560 1440"));
-		// outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
-
-	}
-
-	private void setUpSpies() {
-		converter.onlyForTestSetConvertCmd(convertCmd);
-		converter.onlyForTestSetIMOperation(imOperation);
-		converter.onlyForTestSetArrayListOutputConsumer(outputConsumer);
+		imageConverter = new ImageConverterImp(imOperationFactory, convertCmd);
 	}
 
 	@Test
 	public void testConvertImage() throws Exception {
-		setUpSpies();
+		int width = 200;
+		imageConverter.convertUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, width);
 
-		converter.convertToThumbnail();
+		imOperationFactory.MCR.assertParameters("factor", 0);
+		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
+				.getReturnValue("factor", 0);
 
-		String[] input = (String[]) imOperation.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addImage", 0, "arg0");
-		assertEquals(input[0], SOME_TEMP_INPUT_PATH);
-
-		assertResizeHeight(100);
-		assertQualitySetTo(100.0);
-
-		String[] output = (String[]) imOperation.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addImage", 1, "arg0");
-		assertEquals(output[0], SOME_TEMP_OUTPUT_PATH);
+		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
+		imOperation.MCR.assertParameters("resize", 0, width, null);
+		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 100.0);
+		assertFirstArgumentAddImage(imOperation, 1, SOME_TEMP_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
-
 	}
 
-	private void assertResizeHeight(int expectedHeight) {
-		var width = imOperation.MCR.getValueForMethodNameAndCallNumberAndParameterName("resize", 0,
-				"var1");
-		var height = imOperation.MCR.getValueForMethodNameAndCallNumberAndParameterName("resize", 0,
-				"var2");
-
-		assertNull(width);
-		assertEquals(height, expectedHeight);
+	private void assertFirstArgumentAddImage(IMOperationSpy imOperation, int callNr, String value) {
+		String[] arg = (String[]) imOperation.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("addImage", callNr, "arg0");
+		assertEquals(arg[0], value);
 	}
 
-	private void assertQualitySetTo(double quality) {
-		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", quality);
+	@Test
+	public void testError() throws Exception {
+		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
+
+		int width = 100;
+
+		try {
+			imageConverter.convertUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, width);
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(e instanceof ImageConverterException);
+			String errorMsg = "Error converting image on path {0} and width {1}";
+			assertEquals(e.getMessage(),
+					MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH, width));
+			assertEquals(e.getCause().getMessage(), "someSpyException");
+		}
 	}
 
-	@Test(enabled = false)
-	public void testRealAnalyze2() throws Exception {
-		ImageConverterImp imageMagickReal = new ImageConverterImp(
-				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
-				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/thumbnail.jpg");
-
-		imageMagickReal.convertToThumbnail();
-
+	@Test
+	public void testOnlyForTestGetImOperationFactory() throws Exception {
+		IMOperationFactory imOperationFactory1 = imageConverter.onlyForTestGetImOperationFactory();
+		assertSame(imOperationFactory1, imOperationFactory);
 	}
 
-	// @Test
-	// public void testAnalyzeImage() throws Exception {
-	// setUpSpies();
-	//
-	// ImageData imageData = converter.analyze();
-	//
-	// assertEquals(imageData.resolution(), "72x72");
-	// assertEquals(imageData.width(), "2560");
-	// assertEquals(imageData.height(), "1440");
-	// }
-	//
-	// @Test
-	// public void testMakeSureCallsToImOperationAreDoneInCorrectOrderAsItIsVital() throws Exception
-	// {
-	// setUpSpies();
-	//
-	// converter.analyze();
-	//
-	// assertEquals(imOperation.callsInOrder.toString(), "[%xx%y %w %h, /someTempPath]");
-	// }
-	//
-	// @Test
-	// public void testAnalyzeImageCallsImageMagick() throws Exception {
-	// setUpSpies();
-	//
-	// converter.analyze();
-	//
-	// String[] pathAsArray = (String[]) imOperation.MCR
-	// .getValueForMethodNameAndCallNumberAndParameterName("addImage", 0, "arg0");
-	//
-	// assertEquals(pathAsArray[0], SOME_TEMP_PATH);
-	// imOperation.MCR.assertParameters("format", 0, FORMAT_DPI_WIDTH_HEIGHT);
-	//
-	// identifyCmd.MCR.assertParameters("setOutputConsumer", 0, outputConsumer);
-	// identifyCmd.MCR.assertParameters("run", 0, imOperation);
-	// outputConsumer.MCR.methodWasCalled("getOutput");
-	//
-	// }
-	//
-	// @Test
-	// public void testAnalyzeThrowImageConverterException() throws Exception {
-	// setUpSpies();
-	// identifyCmd.MRV.setAlwaysThrowException("run", new RuntimeException("Error from spy"));
-	//
-	// try {
-	// converter.analyze();
-	// fail("It failed");
-	// } catch (Exception e) {
-	// assertTrue(e instanceof ImageConverterException);
-	// assertEquals(e.getMessage(),
-	// "Error when analyzing image, with path: " + SOME_TEMP_PATH);
-	// assertEquals(e.getCause().getMessage(), "Error from spy");
-	// }
-	// }
-	//
-	// @Test
-	// public void testAnalyzeImageMagickReturnLessValuesThanExpected() throws Exception {
-	// setUpSpies();
-	// ArrayList<String> returnedOutput = new ArrayList<>(List.of("2560 1440"));
-	// outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
-	//
-	// try {
-	// converter.analyze();
-	// fail("It failed");
-	// } catch (Exception e) {
-	// assertTrue(e instanceof ImageConverterException);
-	// assertEquals(e.getMessage(),
-	// "Error when analyzing image, with path: " + SOME_TEMP_PATH);
-	// assertEquals(e.getCause().getMessage(), "Index 2 out of bounds for length 2");
-	// }
-	// }
-	//
-	// @Test
-	// public void testCheckRealVariablesInitialized() throws Exception {
-	// assertNotNull(converter.identifyCmd);
-	// assertNotNull(converter.imOperation);
-	// assertNotNull(converter.outputConsumer);
-	// }
-	//
-	// @Test
-	// public void testConvertToThumbnail() throws Exception {
-	// // convert space.jpg -resize x100 -quality 100 output.jpg
-	//
-	// converter.convertToThumbnail();
-	// }
-	//
-	// @Test(enabled = false)
-	// public void testRealAnalyze() throws Exception {
-	// ImageConverterImp imageMagickReal = new ImageConverterImp(
-	// "/home/olov/workspace/IMG_20161005_130203.jpg");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
-	//
-	// @Test(enabled = false)
-	// public void testRealAnalyze2() throws Exception {
-	// ImageConverterImp imageMagickReal = new ImageConverterImp(
-	// "/home/olov/workspace/th-1561237634.jpg");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
-	//
-	// @Test(enabled = false)
-	// public void testRealAnalyze3() throws Exception {
-	// ImageConverterImp imageMagickReal = new ImageConverterImp(
-	// "/home/olov/workspace/KKH_D_002.tif");
-	//
-	// ImageData analyze = imageMagickReal.analyze();
-	//
-	// System.out.println("ImageData" + analyze);
-	// }
+	@Test
+	public void testOnlyForTestGetConvertCmd() throws Exception {
+		ConvertCmd convertCmd1 = imageConverter.onlyForTestGetConvertCmd();
+		assertSame(convertCmd1, convertCmd);
+	}
 
 }

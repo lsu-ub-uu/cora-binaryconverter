@@ -16,26 +16,18 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 
-/**
- * ImageConverter is intended to be used to convert images to other formats.
- * <p>
- * Implementations of this interface are not thread safe.
- *
- */
-public interface ImageConverter {
+import org.im4java.core.ConvertCmd;
 
-	/**
-	 * convertUsingWidth converts a master image to a jpg image. The supplied width is used and
-	 * height is relative to the original.
-	 * 
-	 * @param width
-	 *            An int with wanted width in pixels
-	 * 
-	 * @throws ImageConverterException
-	 *             if the conversion fails
-	 */
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
 
-	void convertUsingWidth(String inputPath, String outputPath, int width);
+public class ImageConverterFactoryImp implements ImageConverterFactory {
+
+	@Override
+	public ImageConverter factor() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new ImageConverterImp(factory, command);
+	}
 }
