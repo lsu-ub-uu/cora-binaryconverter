@@ -25,6 +25,6 @@ import se.uu.ub.cora.messaging.MessageListener;
 public interface AnalyzeAndConvertStarterFactory {
 
 	AnalyzeAndConvertStarter factor(MessageListener messageListener, JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome);
+			String ocflHome, String fileStorageBasePath);
 
 }

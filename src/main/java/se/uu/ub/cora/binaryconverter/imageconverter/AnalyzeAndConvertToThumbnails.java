@@ -152,8 +152,7 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	}
 
 	private String generateSha256(String fedoraId) {
-		MessageDigest digest;
-		digest = tryToGetDigestAlgorithm();
+		MessageDigest digest = tryToGetDigestAlgorithm();
 
 		final byte[] hashbytes = digest.digest(fedoraId.getBytes(StandardCharsets.UTF_8));
 		return bytesToHex(hashbytes);
@@ -220,9 +219,12 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		this.imageAnalyzerFactory = imageAnalyzerFactory;
 	}
 
+	public void onlyForTestSetHashAlgorithm(String hashAlgorithm) {
+		this.hashAlgorithm = hashAlgorithm;
+	}
+
 	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
 		return imageAnalyzerFactory;
-
 	}
 
 	public String onlyForTestGetOcflHomePath() {
@@ -233,8 +235,12 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		return dataClient;
 	}
 
-	public void onlyForTestSetHashAlgorithm(String hashAlgorithm) {
-		this.hashAlgorithm = hashAlgorithm;
+	public String onlyForTestGetFileStorageBasePath() {
+		return fileStorageBasePath;
+	}
+
+	public ImageConverterFactory onlyForTestGetImageConverterFactory() {
+		return imageConverterFactory;
 	}
 
 }

@@ -21,17 +21,21 @@ package se.uu.ub.cora.binaryconverter.imageconverter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
+import se.uu.ub.cora.binaryconverter.spy.ImageConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 
 public class AnalyzeAndConvertStarterImpTest {
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
 	private static final String SOME_APP_TOKEN_URL = "someAppTokenUrl";
 	private static final String SOME_BASE_URL = "someBaseUrl";
 	private static final String SOME_OCFL_HOME_PATH = "/someOcfl/Home/Path/From/Fedora";
@@ -41,6 +45,7 @@ public class AnalyzeAndConvertStarterImpTest {
 	private JavaClientFactorySpy javaClientFactory;
 	private MessageListenerSpy listener;
 	private JavaClientAppTokenCredentials appTokenCredentials;
+	private ImageConverterFactorySpy imageConverterFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -51,12 +56,13 @@ public class AnalyzeAndConvertStarterImpTest {
 				SOME_USER_ID, SOME_APP_TOKEN);
 
 		listener = new MessageListenerSpy();
+		imageConverterFactory = new ImageConverterFactorySpy();
 	}
 
 	@Test
 	public void testListen() throws Exception {
 		starter = new AnalyzeAndConvertStarterImp(listener, appTokenCredentials,
-				SOME_OCFL_HOME_PATH);
+				SOME_OCFL_HOME_PATH, SOME_FILE_STORAGE_BASE_PATH);
 
 		starter.listen();
 
@@ -71,7 +77,9 @@ public class AnalyzeAndConvertStarterImpTest {
 
 		AnalyzeAndConvertToThumbnails converter = getCreatedConverterFromListenCall();
 		assertConverterStartedWithOcflPathAndDataClient(converter, SOME_OCFL_HOME_PATH,
-				dataClientSpyFromFactory);
+				dataClientSpyFromFactory, SOME_FILE_STORAGE_BASE_PATH);
+		assertTrue(converter
+				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactoryImp);
 	}
 
 	private AnalyzeAndConvertToThumbnails getCreatedConverterFromListenCall() {
@@ -81,19 +89,21 @@ public class AnalyzeAndConvertStarterImpTest {
 
 	private void assertConverterStartedWithOcflPathAndDataClient(
 			AnalyzeAndConvertToThumbnails converter, String ocflHomePath,
-			DataClientSpy dataClientSpyFromFactory) {
+			DataClientSpy dataClientSpyFromFactory, String someFileStorageBasePath) {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClientSpyFromFactory);
 		assertEquals(converter.onlyForTestGetOcflHomePath(), ocflHomePath);
+		assertEquals(converter.onlyForTestGetFileStorageBasePath(), SOME_FILE_STORAGE_BASE_PATH);
 	}
 
 	@Test
 	public void testOnlyForTestGet() throws Exception {
 		AnalyzeAndConvertStarterImp starter = new AnalyzeAndConvertStarterImp(listener,
-				appTokenCredentials, SOME_OCFL_HOME_PATH);
+				appTokenCredentials, SOME_OCFL_HOME_PATH, SOME_FILE_STORAGE_BASE_PATH);
 
 		assertSame(starter.onlyForTestGetMessageListener(), listener);
 		assertSame(starter.onlyForTestGetAppTokenCredentials(), appTokenCredentials);
 		assertSame(starter.onlyForTestGetOcflHome(), SOME_OCFL_HOME_PATH);
+		assertSame(starter.onlyForTestGetFileStorageBasePath(), SOME_FILE_STORAGE_BASE_PATH);
 	}
 
 }

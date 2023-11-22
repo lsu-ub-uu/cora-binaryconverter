@@ -44,7 +44,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 public class AnalyzeAndConvertToThumbnailsTest {
 
 	private static final String IMAGE_JPEG = "image/jpeg";
-	private static final String FILE_SYSTEM_BASE_PATH = "/someOutputPath/";
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
 	private static final String ARCHIVE_BASE_PATH = "/someOcflRootHome";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
@@ -55,7 +55,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	private static final String ARCHIVE_BASE_MASTER = ARCHIVE_BASE_PATH + "/d8c/887/03e/"
 			+ SHA256_OF_ID + "/v1/content/" + "someType:someId-master";
-	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = FILE_SYSTEM_BASE_PATH + "streams/"
+	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH + "streams/"
 			+ SOME_DATA_DIVIDER + "/" + SOME_ID;
 
 	private AnalyzeAndConvertToThumbnails imageSmallConverter;
@@ -86,7 +86,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		imageConverterFactory = new ImageConverterFactorySpy();
 
 		imageSmallConverter = new AnalyzeAndConvertToThumbnails(dataClient, ARCHIVE_BASE_PATH,
-				FILE_SYSTEM_BASE_PATH, imageConverterFactory);
+				SOME_FILE_STORAGE_BASE_PATH, imageConverterFactory);
 
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
@@ -127,16 +127,6 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		assertTrue(imageSmallConverter instanceof MessageReceiver);
 		ImageAnalyzerFactory factory = imageSmallConverter.onlyForTestGetImageAnalyzerFactory();
 		assertNotNull(factory);
-	}
-
-	@Test
-	public void testOnlyForTestGetOcflHomePath() throws Exception {
-		assertEquals(imageSmallConverter.onlyForTestGetOcflHomePath(), ARCHIVE_BASE_PATH);
-	}
-
-	@Test
-	public void testOnlyForTestGetClientData() throws Exception {
-		assertEquals(imageSmallConverter.onlyForTestGetDataClient(), dataClient);
 	}
 
 	@Test
@@ -318,5 +308,15 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 		return (ClientDataGroupSpy) binaryRecordGroup.MCR
 				.getReturnValue("getFirstGroupWithNameInData", 0);
+	}
+
+	@Test
+	public void testOnlyForTestGet() throws Exception {
+		assertEquals(imageSmallConverter.onlyForTestGetOcflHomePath(), ARCHIVE_BASE_PATH);
+		assertEquals(imageSmallConverter.onlyForTestGetDataClient(), dataClient);
+		assertEquals(imageSmallConverter.onlyForTestGetFileStorageBasePath(),
+				SOME_FILE_STORAGE_BASE_PATH);
+		assertEquals(imageSmallConverter.onlyForTestGetImageConverterFactory(),
+				imageConverterFactory);
 	}
 }

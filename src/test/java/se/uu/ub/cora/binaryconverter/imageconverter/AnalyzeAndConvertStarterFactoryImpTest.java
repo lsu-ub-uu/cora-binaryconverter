@@ -33,6 +33,7 @@ public class AnalyzeAndConvertStarterFactoryImpTest {
 	private static final String SOME_BASE_URL = "someBaseUrl";
 	private static final String SOME_APP_TOKEN = "someAppToken";
 	private static final String SOME_USER_ID = "someUserId";
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
 
 	@Test
 	public void testFactorAnalyzeAndConverterStarter() throws Exception {
@@ -42,11 +43,14 @@ public class AnalyzeAndConvertStarterFactoryImpTest {
 
 		AnalyzeAndConvertStarterFactoryImp factory = new AnalyzeAndConvertStarterFactoryImp();
 		AnalyzeAndConvertStarterImp analyzeAndConvertThumbnail = (AnalyzeAndConvertStarterImp) factory
-				.factor(messageListener, appTokenCredentials, SOME_OCFL_HOME);
+				.factor(messageListener, appTokenCredentials, SOME_OCFL_HOME,
+						SOME_FILE_STORAGE_BASE_PATH);
 
 		assertSame(analyzeAndConvertThumbnail.onlyForTestGetMessageListener(), messageListener);
 		assertSame(analyzeAndConvertThumbnail.onlyForTestGetAppTokenCredentials(),
 				appTokenCredentials);
 		assertSame(analyzeAndConvertThumbnail.onlyForTestGetOcflHome(), SOME_OCFL_HOME);
+		assertSame(analyzeAndConvertThumbnail.onlyForTestGetFileStorageBasePath(),
+				SOME_FILE_STORAGE_BASE_PATH);
 	}
 }

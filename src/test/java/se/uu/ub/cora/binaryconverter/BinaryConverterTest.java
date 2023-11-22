@@ -51,6 +51,7 @@ public class BinaryConverterTest {
 	private static final String SOME_USER_ID = "someUserId";
 	private static final String SOME_APPTOKEN = "someAppToken";
 	private static final String SOME_OCFL_HOME = "/someOcfl/Home/Path/From/Fedora";
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
 	private String[] args;
@@ -61,7 +62,7 @@ public class BinaryConverterTest {
 	public void setUp() {
 		args = new String[] { SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN,
 				SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT, SOME_RABBIT_VIRTUAL_HOST,
-				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME };
+				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH };
 
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
@@ -116,6 +117,8 @@ public class BinaryConverterTest {
 				"appTokenCredentials", appTokenCredentials);
 		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
 				SOME_OCFL_HOME);
+		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
+				SOME_FILE_STORAGE_BASE_PATH);
 
 		AnalyzeAndConvertStarterSpy analyzerConverter = (AnalyzeAndConvertStarterSpy) analyzeAndConvertStarterFactory.MCR
 				.getReturnValue("factor", 0);
@@ -150,9 +153,11 @@ public class BinaryConverterTest {
 
 		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 2);
 
-		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, virtualHost: {2} and queueName: {3}.";
+		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
+				+ "virtualHost: {2} and queueName: {3}.";
 		String logCoraClientFactory = "Start CoraClientFactory with cora url: {0} and appTokenUrl: {1}.";
-		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, appToken: {1} and ocflHome: {2}.";
+		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
+				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath {3}.";
 
 		logger.MCR.assertParameters("logInfoUsingMessage", 0, "BinaryConverter starting...");
 		logger.MCR.assertParameters("logInfoUsingMessage", 1,
@@ -160,8 +165,9 @@ public class BinaryConverterTest {
 		logger.MCR.assertParameters("logInfoUsingMessage", 2,
 				MessageFormat.format(logMessagingListener, SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT,
 						SOME_RABBIT_VIRTUAL_HOST, SOME_RABBIT_MQ_QUEUE_NAME));
-		logger.MCR.assertParameters("logInfoUsingMessage", 3, MessageFormat
-				.format(logAnalyzeAndConvertStarter, SOME_USER_ID, SOME_APPTOKEN, SOME_OCFL_HOME));
+		logger.MCR.assertParameters("logInfoUsingMessage", 3,
+				MessageFormat.format(logAnalyzeAndConvertStarter, SOME_USER_ID, SOME_APPTOKEN,
+						SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH));
 	}
 
 }

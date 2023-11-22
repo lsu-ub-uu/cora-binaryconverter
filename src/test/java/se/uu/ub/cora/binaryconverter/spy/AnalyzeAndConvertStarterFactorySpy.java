@@ -37,9 +37,11 @@ public class AnalyzeAndConvertStarterFactorySpy implements AnalyzeAndConvertStar
 
 	@Override
 	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
-			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath) {
 		return (AnalyzeAndConvertStarter) MCR.addCallAndReturnFromMRV("messageListener",
-				messageListener, "appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome);
+				messageListener, "appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome,
+				"fileStorageBasePath", fileStorageBasePath);
 	}
 
 }

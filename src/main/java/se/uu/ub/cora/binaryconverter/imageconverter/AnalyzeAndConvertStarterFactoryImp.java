@@ -26,7 +26,9 @@ public class AnalyzeAndConvertStarterFactoryImp implements AnalyzeAndConvertStar
 
 	@Override
 	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
-			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
-		return new AnalyzeAndConvertStarterImp(messageListener, appTokenCredentials, ocflHome);
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath) {
+		return new AnalyzeAndConvertStarterImp(messageListener, appTokenCredentials, ocflHome,
+				fileStorageBasePath);
 	}
 }

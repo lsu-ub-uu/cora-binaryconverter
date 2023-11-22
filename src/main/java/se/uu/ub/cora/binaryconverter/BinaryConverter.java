@@ -45,6 +45,8 @@ public class BinaryConverter {
 	private static String virtualHost;
 	private static String queueName;
 	private static String ocflHome;
+	private static String fileStorageBasePath;
+
 	private static JavaClientAppTokenCredentials appTokenCredentials;
 
 	BinaryConverter() {
@@ -66,6 +68,7 @@ public class BinaryConverter {
 		virtualHost = args[6];
 		queueName = args[7];
 		ocflHome = args[8];
+		fileStorageBasePath = args[9];
 
 		appTokenCredentials = new JavaClientAppTokenCredentials(coraUrl, appTokenUrl, userId,
 				appToken);
@@ -88,7 +91,7 @@ public class BinaryConverter {
 	private static void startListeningForConvertMessages(MessageListener listener) {
 
 		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(listener,
-				appTokenCredentials, ocflHome);
+				appTokenCredentials, ocflHome, fileStorageBasePath);
 		starter.listen();
 	}
 
@@ -107,9 +110,9 @@ public class BinaryConverter {
 
 	private static void logAnalyzeAndConverterStarter() {
 		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
-				+ "appToken: {1} and ocflHome: {2}.";
-		logger.logInfoUsingMessage(
-				MessageFormat.format(logAnalyzeAndConvertStarter, userId, appToken, ocflHome));
+				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath {3}.";
+		logger.logInfoUsingMessage(MessageFormat.format(logAnalyzeAndConvertStarter, userId,
+				appToken, ocflHome, fileStorageBasePath));
 	}
 
 	public static void onlyForTestSetAnalyzeAndConvertStarterFactory(

@@ -19,6 +19,8 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactoryImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -30,12 +32,17 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 	private MessageListener listener;
 	private String ocflHome;
 	private JavaClientAppTokenCredentials appTokenCredentials;
+	private String fileStorageBasePath;
+	private ImageConverterFactory imageConverterFactory;
 
 	public AnalyzeAndConvertStarterImp(MessageListener listener,
-			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome) {
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath) {
 		this.listener = listener;
 		this.appTokenCredentials = appTokenCredentials;
 		this.ocflHome = ocflHome;
+		this.fileStorageBasePath = fileStorageBasePath;
+		this.imageConverterFactory = new ImageConverterFactoryImp();
 	}
 
 	@Override
@@ -50,7 +57,8 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
 	private MessageReceiver createReceiver(String queueName, DataClient dataClient) {
 		if (queueName.equals("smallConverterQueue")) {
-			return new AnalyzeAndConvertToThumbnails(dataClient, ocflHome);
+			return new AnalyzeAndConvertToThumbnails(dataClient, ocflHome, fileStorageBasePath,
+					imageConverterFactory);
 		}
 		return new ConvertToJpeg2000();
 	}
@@ -65,6 +73,10 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 
 	public String onlyForTestGetOcflHome() {
 		return ocflHome;
+	}
+
+	public String onlyForTestGetFileStorageBasePath() {
+		return fileStorageBasePath;
 	}
 
 }
