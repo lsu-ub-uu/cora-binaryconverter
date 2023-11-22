@@ -30,7 +30,7 @@
 		<rabbitmq.version>3.0-SNAPSHOT</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>
-		<clientdata-spies.version>1.3.0</clientdata-spies.version>
+		<clientdata-spies.version>1.4-SNAPSHOT</clientdata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 	</properties>
 

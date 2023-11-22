@@ -30,6 +30,10 @@ public interface ImageConverter {
 	 * convertUsingWidth converts a master image to a jpg image. The supplied width is used and
 	 * height is relative to the original.
 	 * 
+	 * @param inputPath
+	 *            Path to the file to convert from.
+	 * @param outputPath
+	 *            Path where to store the converted file.
 	 * @param width
 	 *            An int with wanted width in pixels
 	 * 

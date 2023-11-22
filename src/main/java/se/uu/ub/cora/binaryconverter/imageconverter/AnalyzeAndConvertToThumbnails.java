@@ -24,49 +24,101 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactory;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
+import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
+	private static final String IMAGE_JPEG = "image/jpeg";
 	ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
-	private String ocflHomePath;
+	private String archiveBasePath;
 	private DataClient dataClient;
 	private String hashAlgorithm = "SHA-256";
+	private ImageConverterFactory imageConverterFactory;
+	private String fileStorageBasePath;
 
-	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String ocflHomePath) {
+	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String archiveBasePath,
+			String fileStorageBasePath, ImageConverterFactory imageConverterFactory) {
 		this.dataClient = dataClient;
-		this.ocflHomePath = ocflHomePath;
+		this.archiveBasePath = archiveBasePath;
+		this.fileStorageBasePath = fileStorageBasePath;
+		this.imageConverterFactory = imageConverterFactory;
 	}
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
+		String recordType = headers.get("type");
+		String recordId = headers.get("id");
+		String dataDivider = headers.get("dataDivider");
 
-		String pathToImage = buildImagePath(headers);
-		ImageData imageData = analyzeImage(pathToImage);
-		updateRecord(headers, imageData);
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+		ClientDataGroup resourceInfoGroup = binaryRecordGroup
+				.getFirstGroupWithNameInData("resourceInfo");
 
-		// Read binary record
-		// Get checksum256 or checksum512
-		// If checksum 000111222333333333333333333
-		// Build path {OCFL_ROOT_HOME}/000/111/222/333333333333333333/V_1/content/{type}:{id}-master
+		String inputPath = buildImagePath(headers);
+		ImageData masterImageData = analyzeImage(inputPath);
+		updateMasterGroupFromResourceInfo(resourceInfoGroup, masterImageData);
 
-		// factory in to factor new analyzers (adapter)
+		String outputPath = buildFileStoragePathToAResourceId(recordId, dataDivider);
 
-		// create and call analyzer (adapter)
-		// Update binary record
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
+				outputPath, "thumbnail", 100);
 
-		// CONVERT STEP
-		// create and call converter for thumbnail
-		// create and call converter for small
-		// create and call converter for large
+		// convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
+		// outputPath, "medium", 300);
+		// convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
+		// outputPath, "large", 600);
 
-		// update binaryRecord call api
+		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private String buildFileStoragePathToAResourceId(String recordId, String dataDivider) {
+		return fileStorageBasePath + "streams/" + dataDivider + "/" + recordId;
+	}
+
+	private void convertImageUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
+			String recordId, String pathToImage, String outputPath, String resourceTypeName,
+			int convertToWidth) {
+
+		ImageConverter imageConverter = imageConverterFactory.factor();
+		imageConverter.convertUsingWidth(pathToImage, outputPath + "-" + resourceTypeName,
+				convertToWidth);
+		ImageData imageData = analyzeImage(outputPath + "-" + resourceTypeName);
+
+		ClientDataGroup thumbnailGroup = ClientDataProvider
+				.createGroupUsingNameInData(resourceTypeName);
+
+		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
+				recordId + "-" + resourceTypeName);
+		ClientDataResourceLink resourceLink = ClientDataProvider
+				.createResourceLinkUsingNameInDataAndMimeType(resourceTypeName, IMAGE_JPEG);
+		ClientDataAtomic fileSize = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
+		ClientDataAtomic mimeType = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("mimeType", IMAGE_JPEG);
+		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
+				imageData.height());
+		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
+				imageData.width());
+		ClientDataAtomic resolution = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
+
+		thumbnailGroup.addChild(id);
+		thumbnailGroup.addChild(resourceLink);
+		thumbnailGroup.addChild(fileSize);
+		thumbnailGroup.addChild(mimeType);
+		thumbnailGroup.addChild(height);
+		thumbnailGroup.addChild(width);
+		thumbnailGroup.addChild(resolution);
+
+		resourceInfoGroup.addChild(thumbnailGroup);
 	}
 
 	private String buildImagePath(Map<String, String> headers) {
@@ -85,7 +137,7 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		String folder3 = sha256PathLowerCase.substring(6, 9);
 		String folder4 = sha256PathLowerCase;
 
-		return ocflHomePath + "/" + folder1 + "/" + folder2 + "/" + folder3 + "/" + folder4
+		return archiveBasePath + "/" + folder1 + "/" + folder2 + "/" + folder3 + "/" + folder4
 				+ "/v1/content/" + type + ":" + id + "-master";
 	}
 
@@ -137,25 +189,14 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		return analyzer.analyze();
 	}
 
-	private void updateRecord(Map<String, String> headers, ImageData imageData) {
-		String recordType = headers.get("type");
-		String recordId = headers.get("id");
-		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-
-		updateMasterGroupFromResourceInfo(binaryRecordGroup, imageData);
-
-		dataClient.update(recordType, recordId, binaryRecordGroup);
-	}
-
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
 		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void updateMasterGroupFromResourceInfo(ClientDataRecordGroup binaryRecordGroup,
+	private void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup,
 			ImageData imageData) {
-		ClientDataGroup resourceInfoGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData("resourceInfo");
+
 		ClientDataGroup masterGroup = resourceInfoGroup.getFirstGroupWithNameInData("master");
 
 		ClientDataAtomic atomicHeight = ClientDataProvider
@@ -185,7 +226,7 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	}
 
 	public String onlyForTestGetOcflHomePath() {
-		return ocflHomePath;
+		return archiveBasePath;
 	}
 
 	public DataClient onlyForTestGetDataClient() {

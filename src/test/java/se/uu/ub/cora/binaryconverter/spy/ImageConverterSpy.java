@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -16,8 +17,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.spy;
 
-public record ImageData(String resolution, String width, String height, String size) {
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
+public class ImageConverterSpy implements ImageConverter {
+
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public ImageConverterSpy() {
+		MCR.useMRV(MRV);
+	}
+
+	@Override
+	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "width", width);
+	}
 }

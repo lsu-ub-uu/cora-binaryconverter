@@ -33,7 +33,7 @@ import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
 
 public class ImageAnalyzerImp implements ImageAnalyzer {
 
-	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
+	private static final String FORMAT_DPI_WIDTH_HEIGHT_SIZE = "%xx%y %w %h %B";
 	private static final String SPLIT_REGEX = " ";
 	private String imagePath;
 
@@ -69,14 +69,14 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 	}
 
 	private IMOps addImageAndSetFormat(String imagePath) {
-		imOperation.format(FORMAT_DPI_WIDTH_HEIGHT);
+		imOperation.format(FORMAT_DPI_WIDTH_HEIGHT_SIZE);
 		imOperation.addImage(imagePath);
 		return imOperation;
 	}
 
 	private ImageData parseImageData(ArrayList<String> result) {
 		String[] imageData = prepareOutputFromImageMagick(result);
-		return new ImageData(imageData[0], imageData[1], imageData[2]);
+		return new ImageData(imageData[0], imageData[1], imageData[2], imageData[3]);
 	}
 
 	private String[] prepareOutputFromImageMagick(ArrayList<String> result) {

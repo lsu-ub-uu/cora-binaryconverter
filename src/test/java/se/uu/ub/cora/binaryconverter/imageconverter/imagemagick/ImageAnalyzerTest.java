@@ -37,7 +37,7 @@ import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.IdentifyCmdS
 
 public class ImageAnalyzerTest {
 
-	private static final String FORMAT_DPI_WIDTH_HEIGHT = "%xx%y %w %h";
+	private static final String FORMAT_DPI_WIDTH_HEIGHT_SIZE = "%xx%y %w %h %B";
 	private static final String SOME_TEMP_PATH = "/someTempPath";
 	ImageAnalyzerImp imageMagick;
 
@@ -53,7 +53,7 @@ public class ImageAnalyzerTest {
 		imOperation = new IMOperationSpy();
 		outputConsumer = new ArrayListOutputConsumerSpy();
 
-		ArrayList<String> returnedOutput = new ArrayList<>(List.of("72x72 2560 1440"));
+		ArrayList<String> returnedOutput = new ArrayList<>(List.of("72x72 2560 1440 3000"));
 		outputConsumer.MRV.setDefaultReturnValuesSupplier("getOutput", () -> returnedOutput);
 
 	}
@@ -73,6 +73,7 @@ public class ImageAnalyzerTest {
 		assertEquals(imageData.resolution(), "72x72");
 		assertEquals(imageData.width(), "2560");
 		assertEquals(imageData.height(), "1440");
+		assertEquals(imageData.size(), "3000");
 	}
 
 	@Test
@@ -81,7 +82,7 @@ public class ImageAnalyzerTest {
 
 		imageMagick.analyze();
 
-		assertEquals(imOperation.callsInOrder.toString(), "[%xx%y %w %h, /someTempPath]");
+		assertEquals(imOperation.callsInOrder.toString(), "[%xx%y %w %h %B, /someTempPath]");
 	}
 
 	@Test
@@ -94,7 +95,7 @@ public class ImageAnalyzerTest {
 				.getValueForMethodNameAndCallNumberAndParameterName("addImage", 0, "arg0");
 
 		assertEquals(pathAsArray[0], SOME_TEMP_PATH);
-		imOperation.MCR.assertParameters("format", 0, FORMAT_DPI_WIDTH_HEIGHT);
+		imOperation.MCR.assertParameters("format", 0, FORMAT_DPI_WIDTH_HEIGHT_SIZE);
 
 		identifyCmd.MCR.assertParameters("setOutputConsumer", 0, outputConsumer);
 		identifyCmd.MCR.assertParameters("run", 0, imOperation);
