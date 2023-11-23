@@ -55,8 +55,8 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	private static final String ARCHIVE_BASE_MASTER = ARCHIVE_BASE_PATH + "/d8c/887/03e/"
 			+ SHA256_OF_ID + "/v1/content/" + "someType:someId-master";
-	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH + "streams/"
-			+ SOME_DATA_DIVIDER + "/" + SOME_ID;
+	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH
+			+ "streams/" + SOME_DATA_DIVIDER + "/" + SOME_ID;
 
 	private AnalyzeAndConvertToThumbnails imageSmallConverter;
 	private Map<String, String> some_headers = new HashMap<>();
@@ -229,79 +229,104 @@ public class AnalyzeAndConvertToThumbnailsTest {
 	}
 
 	@Test
-	public void testConvertAndAnalyzeSmallThumbnail() throws Exception {
+	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
 		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
 
 		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageConverterFactory.MCR.assertParameters("factor", 0);
-		ImageConverterSpy imageConverter = (ImageConverterSpy) imageConverterFactory.MCR
-				.getReturnValue("factor", 0);
-		imageConverter.MCR.assertParameters("convertUsingWidth", 0, ARCHIVE_BASE_MASTER,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-thumbnail", 100);
+		assertAnalyzeAndConvertToRepresentation("large", 600, ARCHIVE_BASE_MASTER, 0, 1);
+		assertAnalyzeAndConvertToRepresentation("medium", 300,
+				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 1, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 100,
+				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 2, 3);
 
-		imageAnalyzerFactory.MCR.assertParameters("factor", 1,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "" + "-thumbnail");
+		assertCreateAndUpdateMetadataForRespresentation("large", imageDataLarge, 0, 3);
+		assertCreateAndUpdateMetadataForRespresentation("medium", imageDataMedium, 1, 9);
+		assertCreateAndUpdateMetadataForRespresentation("thumbnail", imageDataThumbnail, 2, 15);
+	}
+
+	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
+			String inputPath, int fImageConverterCallNr, int fAnalyzerCallNr) {
+
+		assertConvertToRepresentation(representation, width, inputPath, fImageConverterCallNr);
+		assertAnalyzeRepresentation(representation, fAnalyzerCallNr);
+	}
+
+	private void assertConvertToRepresentation(String representation, int width, String inputPath,
+			int fImageConverterCallNr) {
+		imageConverterFactory.MCR.assertParameters("factor", fImageConverterCallNr);
+		ImageConverterSpy imageConverter = (ImageConverterSpy) imageConverterFactory.MCR
+				.getReturnValue("factor", fImageConverterCallNr);
+		imageConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath,
+				FILE_SYSTEM_PATH_FOR_RESOURCE + "-" + representation, width);
+	}
+
+	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr) {
+		imageAnalyzerFactory.MCR.assertParameters("factor", fAnalyzerCallNr,
+				FILE_SYSTEM_PATH_FOR_RESOURCE + "-" + representation);
 		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", 1);
+				.getReturnValue("factor", fAnalyzerCallNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
-	@Test
-	public void testUpdateSmallThumbnailMetadata() throws Exception {
-		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
+	private void assertCreateAndUpdateMetadataForRespresentation(String representationName,
+			ImageData imageData, int representationCallNr, int fAtomicCallNr) {
 
-		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
-
-		clientDataFactory.MCR.assertParameters("factorGroupUsingNameInData", 0, "thumbnail");
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
-				"resourceId", SOME_ID + "-thumbnail");
-		clientDataFactory.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType", 0,
-				"thumbnail", IMAGE_JPEG);
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 4, "fileSize",
-				imageDataThumbnail.size());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 5, "mimeType",
-				IMAGE_JPEG);
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 6, "height",
-				imageDataThumbnail.height());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 7, "width",
-				imageDataThumbnail.width());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 8,
-				"resolution", imageDataThumbnail.resolution());
-
+		clientDataFactory.MCR.assertParameters("factorGroupUsingNameInData", representationCallNr,
+				representationName);
 		ClientDataGroupSpy group = (ClientDataGroupSpy) clientDataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", 0);
+				.getReturnValue("factorGroupUsingNameInData", representationCallNr);
 
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"resourceId", SOME_ID + "-" + representationName);
 		var resourceId = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				3);
-		group.MCR.assertParameters("addChild", 0, resourceId);
+				fAtomicCallNr);
+		fAtomicCallNr++;
 
-		var resourceLink = clientDataFactory.MCR
-				.getReturnValue("factorResourceLinkUsingNameInDataAndMimeType", 0);
-		group.MCR.assertParameters("addChild", 1, resourceLink);
+		clientDataFactory.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType",
+				representationCallNr, representationName, IMAGE_JPEG);
+		var resourceLink = clientDataFactory.MCR.getReturnValue(
+				"factorResourceLinkUsingNameInDataAndMimeType", representationCallNr);
 
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"fileSize", imageData.size());
 		var fileSize = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				4);
-		group.MCR.assertParameters("addChild", 2, fileSize);
+				fAtomicCallNr);
+		fAtomicCallNr++;
 
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"mimeType", IMAGE_JPEG);
 		var mimeType = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				5);
-		group.MCR.assertParameters("addChild", 3, mimeType);
+				fAtomicCallNr);
+		fAtomicCallNr++;
 
-		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 6);
-		group.MCR.assertParameters("addChild", 4, height);
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"height", imageData.height());
+		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+				fAtomicCallNr);
+		fAtomicCallNr++;
 
-		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 7);
-		group.MCR.assertParameters("addChild", 5, width);
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"width", imageData.width());
+		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+				fAtomicCallNr);
+		fAtomicCallNr++;
 
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
+				"resolution", imageData.resolution());
 		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				8);
+				fAtomicCallNr);
+
+		group.MCR.assertParameters("addChild", 0, resourceId);
+		group.MCR.assertParameters("addChild", 1, resourceLink);
+		group.MCR.assertParameters("addChild", 2, fileSize);
+		group.MCR.assertParameters("addChild", 3, mimeType);
+		group.MCR.assertParameters("addChild", 4, height);
+		group.MCR.assertParameters("addChild", 5, width);
 		group.MCR.assertParameters("addChild", 6, resolution);
 
 		ClientDataGroupSpy resourceInfo = getResourceInfo();
-		resourceInfo.MCR.assertParameters("addChild", 0, group);
-
+		resourceInfo.MCR.assertParameters("addChild", representationCallNr, group);
 	}
 
 	private ClientDataGroupSpy getResourceInfo() {

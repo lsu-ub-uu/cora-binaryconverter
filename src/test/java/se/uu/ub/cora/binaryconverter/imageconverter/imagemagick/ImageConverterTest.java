@@ -61,7 +61,7 @@ public class ImageConverterTest {
 
 		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
 		imOperation.MCR.assertParameters("resize", 0, width, null);
-		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 100.0);
+		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
 		assertFirstArgumentAddImage(imOperation, 1, SOME_TEMP_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);

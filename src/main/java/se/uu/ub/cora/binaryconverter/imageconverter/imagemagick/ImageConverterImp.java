@@ -28,6 +28,7 @@ import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
 
 public class ImageConverterImp implements ImageConverter {
+	private static final double QUALITY = 90.0;
 	private IMOperationFactory imOperationFactory;
 	private ConvertCmd convertCmd;
 
@@ -43,7 +44,7 @@ public class ImageConverterImp implements ImageConverter {
 		IMOperation imOperation = imOperationFactory.factor();
 		imOperation.addImage(inputPath);
 		imOperation.resize(width, null);
-		imOperation.quality(100.0);
+		imOperation.quality(QUALITY);
 		// Specify the output image format (JPEG)
 		imOperation.addImage(outputPath);
 		try {

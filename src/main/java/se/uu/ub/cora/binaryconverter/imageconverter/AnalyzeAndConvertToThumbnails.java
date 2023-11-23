@@ -56,26 +56,38 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
+		String originalImagePath = buildImagePath(headers);
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		ClientDataGroup resourceInfoGroup = binaryRecordGroup
 				.getFirstGroupWithNameInData("resourceInfo");
 
-		String inputPath = buildImagePath(headers);
-		ImageData masterImageData = analyzeImage(inputPath);
-		updateMasterGroupFromResourceInfo(resourceInfoGroup, masterImageData);
+		analyzeAndUpdateMetadataForMasterRepresentation(originalImagePath, resourceInfoGroup);
 
-		String outputPath = buildFileStoragePathToAResourceId(recordId, dataDivider);
-
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
-				outputPath, "thumbnail", 100);
-
-		// convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
-		// outputPath, "medium", 300);
-		// convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
-		// outputPath, "large", 600);
+		convertAndCreateMetadataForRepresentations(recordId, dataDivider, resourceInfoGroup,
+				originalImagePath);
 
 		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private void analyzeAndUpdateMetadataForMasterRepresentation(String originalImagePath,
+			ClientDataGroup resourceInfoGroup) {
+		ImageData masterImageData = analyzeImage(originalImagePath);
+		updateMasterGroupFromResourceInfo(resourceInfoGroup, masterImageData);
+	}
+
+	private void convertAndCreateMetadataForRepresentations(String recordId, String dataDivider,
+			ClientDataGroup resourceInfoGroup, String inputPath) {
+		String fileStoragePathToAResourceId = buildFileStoragePathToAResourceId(recordId,
+				dataDivider);
+		String largeRepresentationPath = fileStoragePathToAResourceId + "-large";
+
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
+				fileStoragePathToAResourceId, "large", 600);
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId,
+				largeRepresentationPath, fileStoragePathToAResourceId, "medium", 300);
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId,
+				largeRepresentationPath, fileStoragePathToAResourceId, "thumbnail", 100);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
