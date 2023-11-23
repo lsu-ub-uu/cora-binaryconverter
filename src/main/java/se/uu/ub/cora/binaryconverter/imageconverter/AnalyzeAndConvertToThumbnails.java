@@ -24,7 +24,6 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactory;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
@@ -79,6 +78,11 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		dataClient.update(recordType, recordId, binaryRecordGroup);
 	}
 
+	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
+		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
+		return binaryRecord.getDataRecordGroup();
+	}
+
 	private String buildFileStoragePathToAResourceId(String recordId, String dataDivider) {
 		return fileStorageBasePath + "streams/" + dataDivider + "/" + recordId;
 	}
@@ -90,8 +94,14 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		ImageConverter imageConverter = imageConverterFactory.factor();
 		imageConverter.convertUsingWidth(pathToImage, outputPath + "-" + resourceTypeName,
 				convertToWidth);
+
 		ImageData imageData = analyzeImage(outputPath + "-" + resourceTypeName);
 
+		createMetadataForResourceTypeName(resourceTypeName, resourceInfoGroup, recordId, imageData);
+	}
+
+	private void createMetadataForResourceTypeName(String resourceTypeName,
+			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(resourceTypeName);
 
@@ -186,11 +196,6 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	private ImageData analyzeImage(String pathToImage) {
 		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
 		return analyzer.analyze();
-	}
-
-	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
-		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
-		return binaryRecord.getDataRecordGroup();
 	}
 
 	private void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup,

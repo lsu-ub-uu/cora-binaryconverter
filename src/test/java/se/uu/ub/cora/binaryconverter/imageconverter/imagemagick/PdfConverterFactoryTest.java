@@ -25,6 +25,8 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.PdfConverterFactory;
+
 public class PdfConverterFactoryTest {
 
 	private PdfConverterFactory factory;

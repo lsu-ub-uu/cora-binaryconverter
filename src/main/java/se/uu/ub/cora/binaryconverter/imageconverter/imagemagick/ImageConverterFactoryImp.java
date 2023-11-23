@@ -21,6 +21,7 @@ package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 import org.im4java.core.ConvertCmd;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterFactory;
 
 public class ImageConverterFactoryImp implements ImageConverterFactory {
 

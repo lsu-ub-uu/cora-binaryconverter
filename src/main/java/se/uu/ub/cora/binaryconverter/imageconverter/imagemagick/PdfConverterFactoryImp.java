@@ -21,6 +21,7 @@ package se.uu.ub.cora.binaryconverter.imageconverter.imagemagick;
 import org.im4java.core.ConvertCmd;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.PdfConverter;
+import se.uu.ub.cora.binaryconverter.imageconverter.PdfConverterFactory;
 
 public class PdfConverterFactoryImp implements PdfConverterFactory {
 
