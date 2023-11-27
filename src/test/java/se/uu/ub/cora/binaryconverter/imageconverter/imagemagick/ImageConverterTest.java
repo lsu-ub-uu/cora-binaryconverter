@@ -62,7 +62,7 @@ public class ImageConverterTest {
 		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
 		imOperation.MCR.assertParameters("resize", 0, width, null);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
-		assertFirstArgumentAddImage(imOperation, 1, SOME_TEMP_OUTPUT_PATH);
+		assertFirstArgumentAddImage(imOperation, 1, "JPEG:" + SOME_TEMP_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
 	}
@@ -89,6 +89,22 @@ public class ImageConverterTest {
 					MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH, width));
 			assertEquals(e.getCause().getMessage(), "someSpyException");
 		}
+	}
+
+	@Test(enabled = false)
+	public void testRealConvert() throws Exception {
+		IMOperationFactory realImOperationFactory = new IMOperationFactoryImp();
+		ConvertCmd realConvertCmd = new ConvertCmd();
+
+		ImageConverterImp imageMagickReal = new ImageConverterImp(realImOperationFactory,
+				realConvertCmd);
+
+		imageMagickReal.convertUsingWidth(
+				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
+				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b", 600);
+
+		// "/home/pere/workspace/cora-fitnesseIMG_20161005_130203.jpg");
+
 	}
 
 	@Test

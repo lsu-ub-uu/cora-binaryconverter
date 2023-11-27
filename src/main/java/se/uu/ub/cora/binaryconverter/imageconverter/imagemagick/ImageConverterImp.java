@@ -45,8 +45,7 @@ public class ImageConverterImp implements ImageConverter {
 		imOperation.addImage(inputPath);
 		imOperation.resize(width, null);
 		imOperation.quality(QUALITY);
-		// Specify the output image format (JPEG)
-		imOperation.addImage(outputPath);
+		imOperation.addImage("JPEG:" + outputPath);
 		try {
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
