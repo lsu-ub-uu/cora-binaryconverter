@@ -20,41 +20,40 @@
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.ImageConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.messagereciver.AnalyzeAndConvertToThumbnails;
+import se.uu.ub.cora.binaryconverter.messagereciver.ConvertToJpeg2000;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
-import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
+public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
-	private MessageListener listener;
-	private String ocflHome;
-	private JavaClientAppTokenCredentials appTokenCredentials;
-	private String fileStorageBasePath;
+	// private String ocflHome;
+	// private JavaClientAppTokenCredentials appTokenCredentials;
+	// private String fileStorageBasePath;
 	private ImageConverterFactory imageConverterFactory;
 
-	public AnalyzeAndConvertStarterImp(MessageListener listener,
-			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
-			String fileStorageBasePath) {
-		this.listener = listener;
-		this.appTokenCredentials = appTokenCredentials;
-		this.ocflHome = ocflHome;
-		this.fileStorageBasePath = fileStorageBasePath;
+	public MessageReceiverFactoryImp() {
+		// this.appTokenCredentials = appTokenCredentials;
+		// this.ocflHome = ocflHome;
+		// this.fileStorageBasePath = fileStorageBasePath;
 		this.imageConverterFactory = new ImageConverterFactoryImp();
 	}
 
 	@Override
-	public void listen() {
+	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
+			String ocflHome, String fileStorageBasePath) {
 		DataClient dataClient = JavaClientProvider
 				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
 
 		String queueName = "smallConverterQueue";
-		MessageReceiver messageReceiver = createReceiver(queueName, dataClient);
-		listener.listen(messageReceiver);
+		// listener.listen(messageReceiver);
+		return createMessageReceiver(queueName, dataClient, ocflHome, fileStorageBasePath);
 	}
 
-	private MessageReceiver createReceiver(String queueName, DataClient dataClient) {
+	private MessageReceiver createMessageReceiver(String queueName, DataClient dataClient,
+			String ocflHome, String fileStorageBasePath) {
 		if (queueName.equals("smallConverterQueue")) {
 			return new AnalyzeAndConvertToThumbnails(dataClient, ocflHome, fileStorageBasePath,
 					imageConverterFactory);
@@ -62,20 +61,20 @@ public class AnalyzeAndConvertStarterImp implements AnalyzeAndConvertStarter {
 		return new ConvertToJpeg2000();
 	}
 
-	public MessageListener onlyForTestGetMessageListener() {
-		return listener;
-	}
+	// public MessageListener onlyForTestGetMessageListener() {
+	// return listener;
+	// }
 
-	public Object onlyForTestGetAppTokenCredentials() {
-		return appTokenCredentials;
-	}
-
-	public String onlyForTestGetOcflHome() {
-		return ocflHome;
-	}
-
-	public String onlyForTestGetFileStorageBasePath() {
-		return fileStorageBasePath;
-	}
+	// public Object onlyForTestGetAppTokenCredentials() {
+	// return appTokenCredentials;
+	// }
+	//
+	// public String onlyForTestGetOcflHome() {
+	// return ocflHome;
+	// }
+	//
+	// public String onlyForTestGetFileStorageBasePath() {
+	// return fileStorageBasePath;
+	// }
 
 }

@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.messagereciver;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -24,6 +24,13 @@ import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 import java.util.Map;
 
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzer;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageAnalyzerFactoryImp;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.ImageData;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
@@ -43,6 +50,8 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	private ImageConverterFactory imageConverterFactory;
 	private String fileStorageBasePath;
 
+	// TODO: ImageAnaalyzerFactoryImp move to factory
+	// TODO: MessageDiget move to factory
 	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String archiveBasePath,
 			String fileStorageBasePath, ImageConverterFactory imageConverterFactory) {
 		this.dataClient = dataClient;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2019, 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,24 +16,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.spy;
 
 import java.util.Map;
 
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ConvertToJpeg2000 implements MessageReceiver {
+public class MessageReceiverSpy implements MessageReceiver {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public MessageReceiverSpy() {
+		MCR.useMRV(MRV);
+	}
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
-		// TODO Auto-generated method stub
-
+		MCR.addCall("headers", headers, "message", message);
 	}
 
 	@Override
 	public void topicClosed() {
-		// TODO Auto-generated method stub
-
+		MCR.addCall();
 	}
-
 }

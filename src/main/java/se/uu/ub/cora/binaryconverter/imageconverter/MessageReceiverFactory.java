@@ -18,13 +18,21 @@
  */
 package se.uu.ub.cora.binaryconverter.imageconverter;
 
-public interface AnalyzeAndConvertStarter {
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
+import se.uu.ub.cora.messaging.MessageReceiver;
+
+public interface MessageReceiverFactory {
 
 	/**
-	 * listen method listen a rabbitmq queue and starts analyzing and convertering of images and
-	 * pdfs.
-	 * 
+	 * factor method create a new MessageReceiver. The MessageReceiver returned depends on the type
+	 * of the queue that the system is initialized with.
+	 *
+	 * @param appTokenCredentials
+	 * @param ocflHome
+	 * @param fileStorageBasePath
+	 * @return
 	 */
-	void listen();
+	MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath);
 
 }

@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,14 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imageconverter;
+package se.uu.ub.cora.binaryconverter.messagereciver;
 
-import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
-import se.uu.ub.cora.messaging.MessageListener;
+import java.util.Map;
 
-public interface AnalyzeAndConvertStarterFactory {
+import se.uu.ub.cora.messaging.MessageReceiver;
 
-	AnalyzeAndConvertStarter factor(MessageListener messageListener, JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome, String fileStorageBasePath);
+public class ConvertToJpeg2000 implements MessageReceiver {
+
+	@Override
+	public void receiveMessage(Map<String, String> headers, String message) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void topicClosed() {
+		// TODO Auto-generated method stub
+
+	}
 
 }

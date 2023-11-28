@@ -29,15 +29,14 @@ import java.text.MessageFormat;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterFactorySpy;
-import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterSpy;
+import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
+import se.uu.ub.cora.binaryconverter.spy.MessageReceiverFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
-import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverterTest {
@@ -56,7 +55,7 @@ public class BinaryConverterTest {
 
 	private String[] args;
 	private MessagingFactorySpy messagingFactory;
-	private AnalyzeAndConvertStarterFactorySpy analyzeAndConvertStarterFactory;
+	// private NotMessageReceiverFacSpy analyzeAndConvertStarterFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -99,31 +98,42 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testStartListening() throws Exception {
-		analyzeAndConvertStarterFactory = new AnalyzeAndConvertStarterFactorySpy();
-		BinaryConverter
-				.onlyForTestSetAnalyzeAndConvertStarterFactory(analyzeAndConvertStarterFactory);
+		// analyzeAndConvertStarterFactory = new NotMessageReceiverFacSpy();
+		// BinaryConverter
+		// .onlyForTestSetAnalyzeAndConvertStarterFactory(analyzeAndConvertStarterFactory);
+
+		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
+		BinaryConverter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
 
 		BinaryConverter.main(args);
 
-		MessageListener listener = (MessageListener) messagingFactory.MCR
+		MessageListenerSpy listener = (MessageListenerSpy) messagingFactory.MCR
 				.getReturnValue("factorTopicMessageListener", 0);
 
 		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
 				SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN);
 
-		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
-				listener);
-		analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
-				"appTokenCredentials", appTokenCredentials);
-		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
-				SOME_OCFL_HOME);
-		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
+		messageReceiverFactory.MCR.assertParameterAsEqual("factor", 0, "appTokenCredentials",
+				appTokenCredentials);
+		messageReceiverFactory.MCR.assertParameter("factor", 0, "ocflHome", SOME_OCFL_HOME);
+		messageReceiverFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
 				SOME_FILE_STORAGE_BASE_PATH);
 
-		AnalyzeAndConvertStarterSpy analyzerConverter = (AnalyzeAndConvertStarterSpy) analyzeAndConvertStarterFactory.MCR
-				.getReturnValue("factor", 0);
+		var messageReceiver = messageReceiverFactory.MCR.getReturnValue("factor", 0);
+		listener.MCR.assertParameters("listen", 0, messageReceiver);
 
-		analyzerConverter.MCR.assertMethodWasCalled("listen");
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
+		// listener);
+		// analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
+		// "appTokenCredentials", appTokenCredentials);
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
+		// SOME_OCFL_HOME);
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
+		// SOME_FILE_STORAGE_BASE_PATH);
+		//
+		// MessageReceiverFactorySpy messageReceiverFactory = (MessageReceiverFactorySpy)
+		// analyzeAndConvertStarterFactory.MCR
+		// .getReturnValue("factor", 0);
 
 	}
 

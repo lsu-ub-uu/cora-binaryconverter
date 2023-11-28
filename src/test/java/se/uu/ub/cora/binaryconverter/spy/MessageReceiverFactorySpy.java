@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -19,29 +18,26 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactory;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
-import se.uu.ub.cora.messaging.MessageListener;
+import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class AnalyzeAndConvertStarterFactorySpy implements AnalyzeAndConvertStarterFactory {
+public class MessageReceiverFactorySpy implements MessageReceiverFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public AnalyzeAndConvertStarterFactorySpy() {
+	public MessageReceiverFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", AnalyzeAndConvertStarterSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", MessageReceiverSpy::new);
 	}
 
 	@Override
-	public AnalyzeAndConvertStarter factor(MessageListener messageListener,
-			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
-			String fileStorageBasePath) {
-		return (AnalyzeAndConvertStarter) MCR.addCallAndReturnFromMRV("messageListener",
-				messageListener, "appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome,
-				"fileStorageBasePath", fileStorageBasePath);
+	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
+			String ocflHome, String fileStorageBasePath) {
+		return (MessageReceiver) MCR.addCallAndReturnFromMRV("appTokenCredentials",
+				appTokenCredentials, "ocflHome", ocflHome, "fileStorageBasePath",
+				fileStorageBasePath);
 	}
-
 }

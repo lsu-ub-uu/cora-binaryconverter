@@ -1,5 +1,6 @@
 /*
  * Copyright 2023 Uppsala University Library
+ * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -18,20 +19,29 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
+import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.NotMessageReceiverFac;
+import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
+import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class AnalyzeAndConvertStarterSpy implements AnalyzeAndConvertStarter {
+public class NotMessageReceiverFacSpy implements NotMessageReceiverFac {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public AnalyzeAndConvertStarterSpy() {
+	public NotMessageReceiverFacSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("factor", MessageReceiverFactorySpy::new);
 	}
 
 	@Override
-	public void listen() {
-		MCR.addCall();
+	public MessageReceiverFactory factor(MessageListener messageListener,
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath) {
+		return (MessageReceiverFactory) MCR.addCallAndReturnFromMRV("messageListener",
+				messageListener, "appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome,
+				"fileStorageBasePath", fileStorageBasePath);
 	}
+
 }

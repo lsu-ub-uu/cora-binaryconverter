@@ -21,21 +21,21 @@ package se.uu.ub.cora.binaryconverter;
 
 import java.text.MessageFormat;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarter;
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactory;
-import se.uu.ub.cora.binaryconverter.imageconverter.AnalyzeAndConvertStarterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactory;
+import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactoryImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
 import se.uu.ub.cora.messaging.MessageListener;
+import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.messaging.MessageRoutingInfo;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverter {
 
 	private static Logger logger = LoggerProvider.getLoggerForClass(BinaryConverter.class);
-	private static AnalyzeAndConvertStarterFactory analyzeAndConvertStarterFactory = new AnalyzeAndConvertStarterFactoryImp();
+	private static MessageReceiverFactory messageReceiverFactory = new MessageReceiverFactoryImp();
 	private static String coraUrl;
 	private static String appTokenUrl;
 	private static String userId;
@@ -76,10 +76,13 @@ public class BinaryConverter {
 		logCoraClientFactory();
 
 		logMessagingLister();
+		MessageReceiver messageReceiver = messageReceiverFactory.factor(appTokenCredentials,
+				ocflHome, fileStorageBasePath);
 		MessageListener listener = getMessageListener();
+		listener.listen(messageReceiver);
 
 		logAnalyzeAndConverterStarter();
-		startListeningForConvertMessages(listener);
+		// startListeningForConvertMessages(listener);
 	}
 
 	private static MessageListener getMessageListener() {
@@ -88,12 +91,12 @@ public class BinaryConverter {
 		return MessagingProvider.getTopicMessageListener(routingInfo);
 	}
 
-	private static void startListeningForConvertMessages(MessageListener listener) {
-
-		AnalyzeAndConvertStarter starter = analyzeAndConvertStarterFactory.factor(listener,
-				appTokenCredentials, ocflHome, fileStorageBasePath);
-		starter.listen();
-	}
+	// private static void startListeningForConvertMessages(MessageListener listener) {
+	//
+	// MessageReceiverFactory starter = analyzeAndConvertStarterFactory.factor(listener,
+	// appTokenCredentials, ocflHome, fileStorageBasePath);
+	// starter.factor();
+	// }
 
 	private static void logMessagingLister() {
 		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
@@ -115,9 +118,14 @@ public class BinaryConverter {
 				appToken, ocflHome, fileStorageBasePath));
 	}
 
-	public static void onlyForTestSetAnalyzeAndConvertStarterFactory(
-			AnalyzeAndConvertStarterFactory analyzeAndConvertStarterFactorySpy) {
-		analyzeAndConvertStarterFactory = analyzeAndConvertStarterFactorySpy;
+	public static void onlyForTestSetMessageReceiverFactory(
+			MessageReceiverFactory messageReceiverFactorySpy) {
+		messageReceiverFactory = messageReceiverFactorySpy;
 	}
+
+	// public static void onlyForTestSetAnalyzeAndConvertStarterFactory(
+	// NotMessageReceiverFac analyzeAndConvertStarterFactorySpy) {
+	// analyzeAndConvertStarterFactory = analyzeAndConvertStarterFactorySpy;
+	// }
 
 }

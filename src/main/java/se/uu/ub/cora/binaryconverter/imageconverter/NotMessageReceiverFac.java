@@ -22,12 +22,26 @@ package se.uu.ub.cora.binaryconverter.imageconverter;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.messaging.MessageListener;
 
-public class AnalyzeAndConvertStarterFactoryImp implements NotMessageReceiverFac {
+public interface NotMessageReceiverFac {
 
-	@Override
-	public MessageReceiverFactory factor(MessageListener messageListener,
+	MessageReceiverFactory factor(MessageListener messageListener,
 			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
-			String fileStorageBasePath) {
-		return new MessageReceiverFactoryImp();
-	}
+			String fileStorageBasePath);
+
+	// /**
+	// * factor method create a new MessageReceiver. The MessageReceiver returned depends on the
+	// type
+	// * of the queue that the system is initialized with.
+	// *
+	// * @param appTokenCredentials
+	// * @param ocflHome
+	// * @param fileStorageBasePath
+	// * @return
+	// */
+	// MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+	// String fileStorageBasePath);
+
+	// new AnalyzeAndConvertToThumbnails(dataClient, ocflHome, fileStorageBasePath,
+	// imageConverterFactory);
+
 }

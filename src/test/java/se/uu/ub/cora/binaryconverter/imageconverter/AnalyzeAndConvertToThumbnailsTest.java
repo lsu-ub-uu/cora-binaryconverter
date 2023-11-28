@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.imageconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
+import se.uu.ub.cora.binaryconverter.messagereciver.AnalyzeAndConvertToThumbnails;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterFactorySpy;
