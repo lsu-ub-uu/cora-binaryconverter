@@ -47,7 +47,6 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 public class AnalyzeAndConvertToThumbnailsTest {
 
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
-	private static final String ARCHIVE_BASE_PATH = "/someOcflRootHome";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
