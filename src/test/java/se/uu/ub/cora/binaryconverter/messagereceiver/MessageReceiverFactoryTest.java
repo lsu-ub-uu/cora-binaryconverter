@@ -25,10 +25,10 @@ import static org.testng.Assert.assertTrue;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
+import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterFactoryImp;
-import se.uu.ub.cora.binaryconverter.messagereceiver.AnalyzeAndConvertToThumbnails;
-import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactory;
-import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactoryImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
@@ -44,7 +44,6 @@ public class MessageReceiverFactoryTest {
 	private static final String SOME_USER_ID = "someUserId";
 	private MessageReceiverFactory factory;
 	private JavaClientFactorySpy javaClientFactory;
-	// private MessageListenerSpy listener;
 	private JavaClientAppTokenCredentials appTokenCredentials;
 
 	@BeforeMethod
@@ -54,8 +53,6 @@ public class MessageReceiverFactoryTest {
 
 		appTokenCredentials = new JavaClientAppTokenCredentials(SOME_BASE_URL, SOME_APP_TOKEN_URL,
 				SOME_USER_ID, SOME_APP_TOKEN);
-
-		// listener = new MessageListenerSpy();
 	}
 
 	@Test
@@ -70,39 +67,31 @@ public class MessageReceiverFactoryTest {
 		DataClientSpy dataClientSpyFromFactory = (DataClientSpy) javaClientFactory.MCR
 				.getReturnValue("factorDataClientUsingJavaClientAppTokenCredentials", 0);
 
-		// AnalyzeAndConvertToThumbnails converter = getCreatedConverterFromListenCall();
 		assertMessageReceiverStartedWithOcflPathAndDataClient(
 				(AnalyzeAndConvertToThumbnails) messageReceiver, SOME_OCFL_HOME_PATH,
 				dataClientSpyFromFactory, SOME_FILE_STORAGE_BASE_PATH);
-		// assertTrue(converter
-		// .onlyForTestGetImageConverterFactory() instanceof ImageConverterFactoryImp);
 
 		assertTrue(messageReceiver instanceof AnalyzeAndConvertToThumbnails);
 	}
-
-	// private AnalyzeAndConvertToThumbnails getCreatedConverterFromListenCall() {
-	// return (AnalyzeAndConvertToThumbnails) listener.MCR
-	// .getValueForMethodNameAndCallNumberAndParameterName("listen", 0, "messageReceiver");
-	// }
 
 	private void assertMessageReceiverStartedWithOcflPathAndDataClient(
 			AnalyzeAndConvertToThumbnails messageReceiver, String ocflHomePath,
 			DataClientSpy dataClientSpyFromFactory, String someFileStorageBasePath) {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClientSpyFromFactory);
-		assertEquals(messageReceiver.onlyForTestGetOcflHomePath(), ocflHomePath);
 		assertEquals(messageReceiver.onlyForTestGetFileStorageBasePath(),
 				SOME_FILE_STORAGE_BASE_PATH);
 		assertTrue(messageReceiver
+				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactoryImp);
+		assertTrue(messageReceiver
 				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactoryImp);
-	}
 
-	// @Test
-	// public void testOnlyForTestGet() throws Exception {
-	// MessageReceiverFactoryImp starter = new MessageReceiverFactoryImp();
-	//
-	// assertSame(starter.onlyForTestGetAppTokenCredentials(), appTokenCredentials);
-	// assertSame(starter.onlyForTestGetOcflHome(), SOME_OCFL_HOME_PATH);
-	// assertSame(starter.onlyForTestGetFileStorageBasePath(), SOME_FILE_STORAGE_BASE_PATH);
-	// }
+		PathBuilderImp onlyForTestGetPathBuilder = (PathBuilderImp) messageReceiver
+				.onlyForTestGetPathBuilder();
+		assertEquals(onlyForTestGetPathBuilder.onlyForTestGetArchiveBasePath(),
+				SOME_OCFL_HOME_PATH);
+		assertTrue(onlyForTestGetPathBuilder instanceof PathBuilderImp);
+		assertTrue(messageReceiver
+				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
+	}
 
 }

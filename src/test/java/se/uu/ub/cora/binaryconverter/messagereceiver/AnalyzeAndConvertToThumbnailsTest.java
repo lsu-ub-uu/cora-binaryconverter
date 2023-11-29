@@ -21,7 +21,6 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
-import static org.testng.Assert.fail;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -30,14 +29,14 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
-import se.uu.ub.cora.binaryconverter.messagereceiver.AnalyzeAndConvertToThumbnails;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
+import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
+import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
@@ -47,22 +46,16 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertToThumbnailsTest {
 
-	private static final String IMAGE_JPEG = "image/jpeg";
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
 	private static final String ARCHIVE_BASE_PATH = "/someOcflRootHome";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
-	private static final String SHA256_OF_ID = "d8c88703e3133e12b4f9df4ec1df465a86af0e3a"
-			+ "10710fb18db1f55f9ed40622";
 	private static final String SOME_MESSAGE = "someMessage";
-
-	private static final String ARCHIVE_BASE_MASTER = ARCHIVE_BASE_PATH + "/d8c/887/03e/"
-			+ SHA256_OF_ID + "/v1/content/" + "someType:someId-master";
 	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH
 			+ "streams/" + SOME_DATA_DIVIDER + "/" + SOME_ID;
 
-	private AnalyzeAndConvertToThumbnails imageSmallConverter;
+	private AnalyzeAndConvertToThumbnails converter;
 	private Map<String, String> some_headers = new HashMap<>();
 	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 	private DataClientSpy dataClient;
@@ -80,17 +73,19 @@ public class AnalyzeAndConvertToThumbnailsTest {
 			"sizeMedium");
 	private ImageData imageDataLarge = new ImageData("resLarge", "widthLarge", "heightLarge",
 			"sizeLarge");
+	private PathBuilderSpy pathBuilder;
+	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		setUpImageAnalyzerFactory();
-
 		dataClient = new DataClientSpy();
-
 		imageConverterFactory = new ImageConverterFactorySpy();
+		pathBuilder = new PathBuilderSpy();
+		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
-		imageSmallConverter = new AnalyzeAndConvertToThumbnails(dataClient, ARCHIVE_BASE_PATH,
-				SOME_FILE_STORAGE_BASE_PATH, imageConverterFactory);
+		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
 
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
@@ -111,7 +106,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
 
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMaster,
-				ARCHIVE_BASE_MASTER);
+				"somePathToArchive");
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerThumbnail,
 				FILE_SYSTEM_PATH_FOR_RESOURCE + "-thumbnail");
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMedium,
@@ -128,40 +123,38 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testImageAnalyzerFactoryInitialized() throws Exception {
-		assertTrue(imageSmallConverter instanceof MessageReceiver);
-		ImageAnalyzerFactory factory = imageSmallConverter.onlyForTestGetImageAnalyzerFactory();
+		assertTrue(converter instanceof MessageReceiver);
+		ImageAnalyzerFactory factory = converter.onlyForTestGetImageAnalyzerFactory();
 		assertNotNull(factory);
 	}
 
 	@Test
 	public void testCallFactoryWithCorrectPath() throws Exception {
-		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
 
-		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
-		imageAnalyzerFactory.MCR.assertParameters("factor", 0, ARCHIVE_BASE_MASTER);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		String resourceMasterPath = (String) pathBuilder.MCR
+				.getReturnValue("buildPathToAResourceInArchive", 0);
+
+		imageAnalyzerFactory.MCR.assertParameters("factor", 0, resourceMasterPath);
 	}
 
 	@Test
-	public void testWrongAlgorithm() throws Exception {
+	public void testCallPathBuilderBuild() throws Exception {
 
-		imageSmallConverter.onlyForTestSetHashAlgorithm("NonExistingAlgorithm");
-		try {
-			imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
-			fail("It should fail");
-		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
-			assertEquals(e.getMessage(), "Error while analyzing image.");
-			assertEquals(e.getCause().getMessage(),
-					"NonExistingAlgorithm MessageDigest not available");
-		}
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_TYPE, SOME_ID,
+				SOME_DATA_DIVIDER);
 	}
 
 	@Test
 	public void testCallAnlayze() throws Exception {
 
-		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
+		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_TYPE, SOME_ID,
+				SOME_DATA_DIVIDER);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
 				.getReturnValue("factor", 0);
@@ -171,9 +164,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testUpdateRecordAfterAnalyzing() throws Exception {
-		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
-
-		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
 
@@ -187,29 +178,12 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
 
-		ClientDataGroupSpy groupMaster = getGroupMasterFromBinary(binaryRecordGroup);
-
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
 				.getReturnValue("factor", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "height",
-				imageData.height());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "width",
-				imageData.width());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2,
-				"resolution", imageData.resolution());
-
-		var atomicHeight = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		var atomicWidth = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-		var atomicResolution = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
-
-		groupMaster.MCR.assertParameters("addChild", 0, atomicHeight);
-		groupMaster.MCR.assertParameters("addChild", 1, atomicWidth);
-		groupMaster.MCR.assertParameters("addChild", 2, atomicResolution);
+		resourceMetadataCreator.MCR.assertParameters("updateMasterGroupFromResourceInfo", 0,
+				getResourceInfo(), imageData);
 
 		return binaryRecordGroup;
 	}
@@ -223,30 +197,27 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		return binaryRecordGroup;
 	}
 
-	private ClientDataGroupSpy getGroupMasterFromBinary(ClientDataRecordGroupSpy dataRecordGroup) {
-		ClientDataGroupSpy groupResourceInfo = (ClientDataGroupSpy) dataRecordGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
-		groupResourceInfo.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
-		ClientDataGroupSpy groupMaster = (ClientDataGroupSpy) groupResourceInfo.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
-		return groupMaster;
-	}
-
 	@Test
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
-		imageSmallConverter.onlyForTestSetImageAnalyzerFactory(imageAnalyzerFactory);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageSmallConverter.receiveMessage(some_headers, SOME_MESSAGE);
+		String resourceMasterPath = (String) pathBuilder.MCR
+				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, ARCHIVE_BASE_MASTER, 0, 1);
+		imageAnalyzerFactory.MCR.assertNumberOfCallsToMethod("factor", 4);
+
+		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1);
 		assertAnalyzeAndConvertToRepresentation("medium", 300,
 				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 1, 2);
 		assertAnalyzeAndConvertToRepresentation("thumbnail", 100,
 				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 2, 3);
 
-		assertCreateAndUpdateMetadataForRespresentation("large", imageDataLarge, 0, 3);
-		assertCreateAndUpdateMetadataForRespresentation("medium", imageDataMedium, 1, 9);
-		assertCreateAndUpdateMetadataForRespresentation("thumbnail", imageDataThumbnail, 2, 15);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
+				getResourceInfo(), SOME_ID, imageDataLarge);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
+				getResourceInfo(), SOME_ID, imageDataMedium);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
+				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail);
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
@@ -273,66 +244,6 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
-	private void assertCreateAndUpdateMetadataForRespresentation(String representationName,
-			ImageData imageData, int representationCallNr, int fAtomicCallNr) {
-
-		clientDataFactory.MCR.assertParameters("factorGroupUsingNameInData", representationCallNr,
-				representationName);
-		ClientDataGroupSpy group = (ClientDataGroupSpy) clientDataFactory.MCR
-				.getReturnValue("factorGroupUsingNameInData", representationCallNr);
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"resourceId", SOME_ID + "-" + representationName);
-		var resourceId = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-		fAtomicCallNr++;
-
-		clientDataFactory.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType",
-				representationCallNr, representationName, IMAGE_JPEG);
-		var resourceLink = clientDataFactory.MCR.getReturnValue(
-				"factorResourceLinkUsingNameInDataAndMimeType", representationCallNr);
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"fileSize", imageData.size());
-		var fileSize = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-		fAtomicCallNr++;
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"mimeType", IMAGE_JPEG);
-		var mimeType = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-		fAtomicCallNr++;
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"height", imageData.height());
-		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-		fAtomicCallNr++;
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"width", imageData.width());
-		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-		fAtomicCallNr++;
-
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"resolution", imageData.resolution());
-		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
-
-		group.MCR.assertParameters("addChild", 0, resourceId);
-		group.MCR.assertParameters("addChild", 1, resourceLink);
-		group.MCR.assertParameters("addChild", 2, fileSize);
-		group.MCR.assertParameters("addChild", 3, mimeType);
-		group.MCR.assertParameters("addChild", 4, height);
-		group.MCR.assertParameters("addChild", 5, width);
-		group.MCR.assertParameters("addChild", 6, resolution);
-
-		ClientDataGroupSpy resourceInfo = getResourceInfo();
-		resourceInfo.MCR.assertParameters("addChild", representationCallNr, group);
-	}
-
 	private ClientDataGroupSpy getResourceInfo() {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 		return (ClientDataGroupSpy) binaryRecordGroup.MCR
@@ -341,11 +252,11 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testOnlyForTestGet() throws Exception {
-		assertEquals(imageSmallConverter.onlyForTestGetOcflHomePath(), ARCHIVE_BASE_PATH);
-		assertEquals(imageSmallConverter.onlyForTestGetDataClient(), dataClient);
-		assertEquals(imageSmallConverter.onlyForTestGetFileStorageBasePath(),
-				SOME_FILE_STORAGE_BASE_PATH);
-		assertEquals(imageSmallConverter.onlyForTestGetImageConverterFactory(),
-				imageConverterFactory);
+		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
+		assertEquals(converter.onlyForTestGetFileStorageBasePath(), SOME_FILE_STORAGE_BASE_PATH);
+		assertEquals(converter.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
+		assertEquals(converter.onlyForTestGetImageConverterFactory(), imageConverterFactory);
+		assertEquals(converter.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
 	}
 }

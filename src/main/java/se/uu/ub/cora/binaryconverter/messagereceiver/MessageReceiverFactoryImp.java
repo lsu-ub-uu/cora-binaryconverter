@@ -19,6 +19,12 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import se.uu.ub.cora.binaryconverter.common.PathBuilder;
+import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
+import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
+import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactoryImp;
 import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterFactoryImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
@@ -28,15 +34,9 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
-	// private String ocflHome;
-	// private JavaClientAppTokenCredentials appTokenCredentials;
-	// private String fileStorageBasePath;
 	private ImageConverterFactory imageConverterFactory;
 
 	public MessageReceiverFactoryImp() {
-		// this.appTokenCredentials = appTokenCredentials;
-		// this.ocflHome = ocflHome;
-		// this.fileStorageBasePath = fileStorageBasePath;
 		this.imageConverterFactory = new ImageConverterFactoryImp();
 	}
 
@@ -47,15 +47,20 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
 
 		String queueName = "smallConverterQueue";
-		// listener.listen(messageReceiver);
 		return createMessageReceiver(queueName, dataClient, ocflHome, fileStorageBasePath);
 	}
 
 	private MessageReceiver createMessageReceiver(String queueName, DataClient dataClient,
 			String ocflHome, String fileStorageBasePath) {
 		if (queueName.equals("smallConverterQueue")) {
-			return new AnalyzeAndConvertToThumbnails(dataClient, ocflHome, fileStorageBasePath,
-					imageConverterFactory);
+			ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
+			ResourceMetadataCreator resourceMetadataCreator = new ResourceMetadataCreatorImp();
+			PathBuilder pathBuilder = new PathBuilderImp(ocflHome);
+
+			return new AnalyzeAndConvertToThumbnails(dataClient, fileStorageBasePath,
+					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
+					resourceMetadataCreator);
+
 		}
 		return new ConvertToJpeg2000();
 	}
