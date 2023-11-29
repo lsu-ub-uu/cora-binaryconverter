@@ -16,28 +16,25 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
-
+public class ImageAnalyzerFactorySpy implements ImageAnalyzerFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
+	public ImageAnalyzerFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
+		MRV.setDefaultReturnValuesSupplier("factor", ImageAnalyzerSpy::new);
 	}
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public ImageAnalyzer factor(String path) {
+		return (ImageAnalyzer) MCR.addCallAndReturnFromMRV("path", path);
 	}
-
 }

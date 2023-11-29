@@ -16,28 +16,43 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
+import java.io.IOException;
+
+import org.im4java.core.IM4JavaException;
+import org.im4java.core.IdentifyCmd;
+import org.im4java.core.Operation;
+import org.im4java.process.OutputConsumer;
+
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
-
+public class IdentifyCmdSpy extends IdentifyCmd {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
+	public IdentifyCmdSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
 	}
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public void run(Operation arg0, Object... arg1)
+			throws IOException, InterruptedException, IM4JavaException {
+		MCR.addCall("arg0", arg0, "arg1", arg1);
+	}
+
+	@Override
+	public void setOutputConsumer(OutputConsumer arg0) {
+		/**
+		 * IdentifyCmd extends ImageCommand class which in its constructor calls setOutputConsumer.
+		 * When this happens MCR is still null since IndentifyCmdSpy code has not been initialized
+		 * yet. We MITIGATE the problem but initializing MCR in this method.
+		 */
+		if (MCR == null) {
+			MCR = new MethodCallRecorder();
+		}
+		MCR.addCall("arg0", arg0);
 	}
 
 }

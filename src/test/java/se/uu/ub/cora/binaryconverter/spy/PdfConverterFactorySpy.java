@@ -18,26 +18,24 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+public class PdfConverterFactorySpy implements PdfConverterFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
+	public PdfConverterFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
+		MRV.setDefaultReturnValuesSupplier("factor", PdfConverterSpy::new);
 	}
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public PdfConverter factor() {
+		return (PdfConverter) MCR.addCallAndReturnFromMRV();
 	}
 
 }

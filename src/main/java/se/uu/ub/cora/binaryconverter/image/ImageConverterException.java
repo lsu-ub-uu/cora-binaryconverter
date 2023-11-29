@@ -16,28 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.image;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public class ImageConverterException extends RuntimeException {
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+	private static final long serialVersionUID = -255261285196817577L;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
+	private ImageConverterException(String message) {
+		super(message);
 	}
 
-	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	private ImageConverterException(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static ImageConverterException withMessage(String message) {
+		return new ImageConverterException(message);
+	}
+
+	public static ImageConverterException withMessageAndException(String message, Exception e) {
+		return new ImageConverterException(message, e);
 	}
 
 }

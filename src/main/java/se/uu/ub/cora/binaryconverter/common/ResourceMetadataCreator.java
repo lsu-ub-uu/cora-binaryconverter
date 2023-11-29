@@ -16,28 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.common;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+public interface ResourceMetadataCreator {
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+	/**
+	 * 
+	 * @param representation
+	 * @param resourceInfoGroup
+	 * @param recordId
+	 * @param imageData
+	 */
+	void createMetadataForRepresentation(String representation, ClientDataGroup resourceInfoGroup,
+			String recordId, ImageData imageData);
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
-	}
-
-	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
-	}
+	/**
+	 * 
+	 * @param resourceInfoGroup
+	 * @param imageData
+	 */
+	void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup, ImageData imageData);
 
 }

@@ -29,15 +29,14 @@ import java.text.MessageFormat;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterFactorySpy;
-import se.uu.ub.cora.binaryconverter.spy.AnalyzeAndConvertStarterSpy;
+import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
+import se.uu.ub.cora.binaryconverter.spy.MessageReceiverFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
-import se.uu.ub.cora.messaging.MessageListener;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverterTest {
@@ -51,17 +50,18 @@ public class BinaryConverterTest {
 	private static final String SOME_USER_ID = "someUserId";
 	private static final String SOME_APPTOKEN = "someAppToken";
 	private static final String SOME_OCFL_HOME = "/someOcfl/Home/Path/From/Fedora";
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
 	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
 
 	private String[] args;
 	private MessagingFactorySpy messagingFactory;
-	private AnalyzeAndConvertStarterFactorySpy analyzeAndConvertStarterFactory;
+	// private NotMessageReceiverFacSpy analyzeAndConvertStarterFactory;
 
 	@BeforeMethod
 	public void setUp() {
 		args = new String[] { SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN,
 				SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT, SOME_RABBIT_VIRTUAL_HOST,
-				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME };
+				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH };
 
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
@@ -98,29 +98,42 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testStartListening() throws Exception {
-		analyzeAndConvertStarterFactory = new AnalyzeAndConvertStarterFactorySpy();
-		BinaryConverter
-				.onlyForTestSetAnalyzeAndConvertStarterFactory(analyzeAndConvertStarterFactory);
+		// analyzeAndConvertStarterFactory = new NotMessageReceiverFacSpy();
+		// BinaryConverter
+		// .onlyForTestSetAnalyzeAndConvertStarterFactory(analyzeAndConvertStarterFactory);
+
+		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
+		BinaryConverter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
 
 		BinaryConverter.main(args);
 
-		MessageListener listener = (MessageListener) messagingFactory.MCR
+		MessageListenerSpy listener = (MessageListenerSpy) messagingFactory.MCR
 				.getReturnValue("factorTopicMessageListener", 0);
 
 		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
 				SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN);
 
-		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
-				listener);
-		analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
-				"appTokenCredentials", appTokenCredentials);
-		analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
-				SOME_OCFL_HOME);
+		messageReceiverFactory.MCR.assertParameterAsEqual("factor", 0, "appTokenCredentials",
+				appTokenCredentials);
+		messageReceiverFactory.MCR.assertParameter("factor", 0, "ocflHome", SOME_OCFL_HOME);
+		messageReceiverFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
+				SOME_FILE_STORAGE_BASE_PATH);
 
-		AnalyzeAndConvertStarterSpy analyzerConverter = (AnalyzeAndConvertStarterSpy) analyzeAndConvertStarterFactory.MCR
-				.getReturnValue("factor", 0);
+		var messageReceiver = messageReceiverFactory.MCR.getReturnValue("factor", 0);
+		listener.MCR.assertParameters("listen", 0, messageReceiver);
 
-		analyzerConverter.MCR.assertMethodWasCalled("listen");
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
+		// listener);
+		// analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
+		// "appTokenCredentials", appTokenCredentials);
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
+		// SOME_OCFL_HOME);
+		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
+		// SOME_FILE_STORAGE_BASE_PATH);
+		//
+		// MessageReceiverFactorySpy messageReceiverFactory = (MessageReceiverFactorySpy)
+		// analyzeAndConvertStarterFactory.MCR
+		// .getReturnValue("factor", 0);
 
 	}
 
@@ -150,9 +163,11 @@ public class BinaryConverterTest {
 
 		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 2);
 
-		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, virtualHost: {2} and queueName: {3}.";
+		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
+				+ "virtualHost: {2} and queueName: {3}.";
 		String logCoraClientFactory = "Start CoraClientFactory with cora url: {0} and appTokenUrl: {1}.";
-		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, appToken: {1} and ocflHome: {2}.";
+		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
+				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath {3}.";
 
 		logger.MCR.assertParameters("logInfoUsingMessage", 0, "BinaryConverter starting...");
 		logger.MCR.assertParameters("logInfoUsingMessage", 1,
@@ -160,8 +175,9 @@ public class BinaryConverterTest {
 		logger.MCR.assertParameters("logInfoUsingMessage", 2,
 				MessageFormat.format(logMessagingListener, SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT,
 						SOME_RABBIT_VIRTUAL_HOST, SOME_RABBIT_MQ_QUEUE_NAME));
-		logger.MCR.assertParameters("logInfoUsingMessage", 3, MessageFormat
-				.format(logAnalyzeAndConvertStarter, SOME_USER_ID, SOME_APPTOKEN, SOME_OCFL_HOME));
+		logger.MCR.assertParameters("logInfoUsingMessage", 3,
+				MessageFormat.format(logAnalyzeAndConvertStarter, SOME_USER_ID, SOME_APPTOKEN,
+						SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH));
 	}
 
 }

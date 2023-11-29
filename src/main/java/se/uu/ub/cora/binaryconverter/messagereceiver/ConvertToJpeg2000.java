@@ -16,28 +16,24 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.messagereceiver;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import java.util.Map;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+import se.uu.ub.cora.messaging.MessageReceiver;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+public class ConvertToJpeg2000 implements MessageReceiver {
 
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
+	@Override
+	public void receiveMessage(Map<String, String> headers, String message) {
+		// TODO Auto-generated method stub
 
-	public ImageAnalyzerSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
 	}
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public void topicClosed() {
+		// TODO Auto-generated method stub
+
 	}
 
 }

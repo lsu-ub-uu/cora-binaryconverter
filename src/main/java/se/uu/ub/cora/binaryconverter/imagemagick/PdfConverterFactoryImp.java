@@ -16,28 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import org.im4java.core.ConvertCmd;
 
-public class ImageAnalyzerSpy implements ImageAnalyzer {
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	ImageData imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
-
-	public ImageAnalyzerSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("analyze", () -> imageData);
-	}
+public class PdfConverterFactoryImp implements PdfConverterFactory {
 
 	@Override
-	public ImageData analyze() {
-		return (ImageData) MCR.addCallAndReturnFromMRV();
+	public PdfConverter factor() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new PdfConverterImp(factory, command);
 	}
-
 }
