@@ -16,28 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
-import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactory;
-import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
-import se.uu.ub.cora.messaging.MessageReceiver;
+import java.util.ArrayList;
+
+import org.im4java.process.ArrayListOutputConsumer;
+
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class MessageReceiverFactorySpy implements MessageReceiverFactory {
+public class ArrayListOutputConsumerSpy extends ArrayListOutputConsumer {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public MessageReceiverFactorySpy() {
+	public ArrayListOutputConsumerSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", MessageReceiverSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getOutput", ArrayList<String>::new);
 	}
 
 	@Override
-	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome, String fileStorageBasePath) {
-		return (MessageReceiver) MCR.addCallAndReturnFromMRV("appTokenCredentials",
-				appTokenCredentials, "ocflHome", ocflHome, "fileStorageBasePath",
-				fileStorageBasePath);
+	public ArrayList<String> getOutput() {
+		return (ArrayList<String>) MCR.addCallAndReturnFromMRV();
 	}
+
 }

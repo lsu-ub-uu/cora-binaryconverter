@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,26 +16,29 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.document;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 
-public class ImageConverterFactorySpy implements ImageConverterFactory {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ImageConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
-	}
-
-	@Override
-	public ImageConverter factor() {
-		return (ImageConverter) MCR.addCallAndReturnFromMRV();
-	}
+/**
+ * PdfConverter is intended to be used to convert the first page of an pdf to other formats.
+ * <p>
+ * Implementations of this interface are not thread safe.
+ *
+ */
+public interface PdfConverter {
+	/**
+	 * convertUsingWidth converts the first page of a pdf to an jpg image. The supplied width is
+	 * used and height is relative to the original.
+	 * 
+	 * @param inputPath
+	 * @param outputPath
+	 * @param width
+	 *            An int with wanted width in pixels
+	 * 
+	 * @throws ImageConverterException
+	 *             if the conversion fails
+	 */
+	void convertUsingWidth(String inputPath, String outputPath, int width);
 
 }

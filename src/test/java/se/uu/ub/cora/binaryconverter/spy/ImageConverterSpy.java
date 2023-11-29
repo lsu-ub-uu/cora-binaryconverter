@@ -19,7 +19,7 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.ImageConverter;
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

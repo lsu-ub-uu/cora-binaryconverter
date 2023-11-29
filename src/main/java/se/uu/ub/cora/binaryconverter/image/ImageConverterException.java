@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,26 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.image;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public class ImageConverterException extends RuntimeException {
 
-public class ImageConverterFactorySpy implements ImageConverterFactory {
+	private static final long serialVersionUID = -255261285196817577L;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ImageConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
+	private ImageConverterException(String message) {
+		super(message);
 	}
 
-	@Override
-	public ImageConverter factor() {
-		return (ImageConverter) MCR.addCallAndReturnFromMRV();
+	private ImageConverterException(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static ImageConverterException withMessage(String message) {
+		return new ImageConverterException(message);
+	}
+
+	public static ImageConverterException withMessageAndException(String message, Exception e) {
+		return new ImageConverterException(message, e);
 	}
 
 }

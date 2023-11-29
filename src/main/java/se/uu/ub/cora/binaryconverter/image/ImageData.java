@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,26 +16,8 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.image;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
-
-public class ImageConverterFactorySpy implements ImageConverterFactory {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ImageConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
-	}
-
-	@Override
-	public ImageConverter factor() {
-		return (ImageConverter) MCR.addCallAndReturnFromMRV();
-	}
+public record ImageData(String resolution, String width, String height, String size) {
 
 }

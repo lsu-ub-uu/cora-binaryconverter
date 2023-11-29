@@ -16,28 +16,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
-import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactory;
-import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
-import se.uu.ub.cora.messaging.MessageReceiver;
+import java.io.IOException;
+import java.util.ArrayList;
+
+import org.im4java.core.ConvertCmd;
+import org.im4java.core.IM4JavaException;
+import org.im4java.core.Operation;
+
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class MessageReceiverFactorySpy implements MessageReceiverFactory {
+public class ConvertCmdSpy extends ConvertCmd {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
+	public ArrayList<String> callsInOrder = new ArrayList<>();
 
-	public MessageReceiverFactorySpy() {
+	public ConvertCmdSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", MessageReceiverSpy::new);
+		MRV.setDefaultReturnValuesSupplier("addImage", OperationSpy::new);
+		MRV.setDefaultReturnValuesSupplier("format", IMOpsSpy::new);
 	}
 
 	@Override
-	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome, String fileStorageBasePath) {
-		return (MessageReceiver) MCR.addCallAndReturnFromMRV("appTokenCredentials",
-				appTokenCredentials, "ocflHome", ocflHome, "fileStorageBasePath",
-				fileStorageBasePath);
+	public void run(Operation arg0, Object... arg1)
+			throws IOException, InterruptedException, IM4JavaException {
+		MCR.addCall("arg0", arg0, "arg1", arg1);
 	}
 }

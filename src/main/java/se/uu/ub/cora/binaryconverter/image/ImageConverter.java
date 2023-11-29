@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,26 +16,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.image;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+/**
+ * ImageConverter is intended to be used to convert images to other formats.
+ * <p>
+ * Implementations of this interface are not thread safe.
+ *
+ */
+public interface ImageConverter {
 
-public class ImageConverterFactorySpy implements ImageConverterFactory {
+	/**
+	 * convertUsingWidth converts a master image to a jpg image. The supplied width is used and
+	 * height is relative to the original.
+	 * 
+	 * @param inputPath
+	 *            Path to the file to convert from.
+	 * @param outputPath
+	 *            Path where to store the converted file.
+	 * @param width
+	 *            An int with wanted width in pixels
+	 * 
+	 * @throws ImageConverterException
+	 *             if the conversion fails
+	 */
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ImageConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
-	}
-
-	@Override
-	public ImageConverter factor() {
-		return (ImageConverter) MCR.addCallAndReturnFromMRV();
-	}
-
+	void convertUsingWidth(String inputPath, String outputPath, int width);
 }

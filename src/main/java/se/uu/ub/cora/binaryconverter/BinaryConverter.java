@@ -21,8 +21,8 @@ package se.uu.ub.cora.binaryconverter;
 
 import java.text.MessageFormat;
 
-import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactory;
-import se.uu.ub.cora.binaryconverter.imageconverter.MessageReceiverFactoryImp;
+import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactory;
+import se.uu.ub.cora.binaryconverter.messagereceiver.MessageReceiverFactoryImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;

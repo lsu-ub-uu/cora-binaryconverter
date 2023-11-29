@@ -1,6 +1,5 @@
 /*
  * Copyright 2023 Uppsala University Library
- * Copyright 2023 Olov McKie
  *
  * This file is part of Cora.
  *
@@ -17,26 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.imagemagick;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import org.im4java.core.IMOperation;
 
-public class ImageConverterFactorySpy implements ImageConverterFactory {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public ImageConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
-	}
+public class IMOperationFactoryImp implements IMOperationFactory {
 
 	@Override
-	public ImageConverter factor() {
-		return (ImageConverter) MCR.addCallAndReturnFromMRV();
+	public IMOperation factor() {
+		return new IMOperation();
 	}
-
 }
