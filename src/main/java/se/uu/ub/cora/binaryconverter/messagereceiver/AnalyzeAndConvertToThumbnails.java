@@ -18,6 +18,10 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 
 import se.uu.ub.cora.binaryconverter.common.PathBuilder;
@@ -34,6 +38,7 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
+	private static final String CAN_NOT_WRITE_FILES_TO_DISK = "can not write files to disk: ";
 
 	private ImageAnalyzerFactory imageAnalyzerFactory;
 	private DataClient dataClient;
@@ -67,10 +72,32 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
 		analyzeAndUpdateMetadataForMasterRepresentation(originalImagePath, resourceInfoGroup);
 
+		Path pathByDataDivider = Paths.get(fileStorageBasePath, "streams", dataDivider);
+		ensureStorageDirectoryExists(Paths.get(fileStorageBasePath, "streams"));
+		ensureStorageDirectoryExists(pathByDataDivider);
+
 		convertAndCreateMetadataForRepresentations(recordId, dataDivider, resourceInfoGroup,
 				originalImagePath);
 
 		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private void ensureStorageDirectoryExists(Path pathByDataDivider) {
+		if (storageDirectoryDoesNotExist(pathByDataDivider)) {
+			tryToCreateStorageDirectory(pathByDataDivider);
+		}
+	}
+
+	private boolean storageDirectoryDoesNotExist(Path pathByDataDivider) {
+		return !Files.exists(pathByDataDivider);
+	}
+
+	private void tryToCreateStorageDirectory(Path pathByDataDivider) {
+		try {
+			Files.createDirectory(pathByDataDivider);
+		} catch (IOException e) {
+			throw new RuntimeException(CAN_NOT_WRITE_FILES_TO_DISK + e, e);
+		}
 	}
 
 	private void analyzeAndUpdateMetadataForMasterRepresentation(String originalImagePath,

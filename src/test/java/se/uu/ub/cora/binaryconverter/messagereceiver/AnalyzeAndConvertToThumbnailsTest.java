@@ -22,9 +22,17 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -46,7 +54,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertToThumbnailsTest {
 
-	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
+	private static final String SOME_FILE_STORAGE_BASE_PATH = "/tmp/streamStorageOnDiskTempStream/";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
@@ -75,8 +83,11 @@ public class AnalyzeAndConvertToThumbnailsTest {
 	private PathBuilderSpy pathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
+	private String basePath = "/tmp/streamStorageOnDiskTempStream/";
+
 	@BeforeMethod
-	public void beforeMethod() {
+	public void beforeMethod() throws Exception {
+		makeSureBasePathExistsAndIsEmpty();
 		setUpImageAnalyzerFactory();
 		dataClient = new DataClientSpy();
 		imageConverterFactory = new ImageConverterFactorySpy();
@@ -89,6 +100,45 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
+	}
+
+	public void makeSureBasePathExistsAndIsEmpty() throws IOException {
+		File dir = new File(basePath);
+		dir.mkdir();
+		deleteFiles(basePath);
+	}
+
+	private void deleteFiles(String path) throws IOException {
+		Stream<Path> list;
+		list = Files.list(Paths.get(path));
+		list.forEach(p -> {
+			try {
+				deleteFile(p);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+		list.close();
+	}
+
+	private void deleteFile(Path path) throws IOException {
+		if (new File(path.toString()).isDirectory()) {
+			deleteFiles(path.toString());
+		}
+		try {
+			Files.delete(path);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@AfterMethod
+	public void removeTempFiles() throws IOException {
+		if (Files.exists(Paths.get(basePath))) {
+			deleteFiles(basePath);
+			File dir = new File(basePath);
+			dir.delete();
+		}
 	}
 
 	private void setUpImageAnalyzerFactory() {
@@ -121,6 +171,45 @@ public class AnalyzeAndConvertToThumbnailsTest {
 	}
 
 	@Test
+	public void testInitNoPermissionOnPathSentAlongException() throws IOException {
+		Exception caughtException = null;
+		try {
+			removeTempFiles();
+			converter = new AnalyzeAndConvertToThumbnails(dataClient, "/root/streamsDOESNOTEXIST",
+					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
+					resourceMetadataCreator);
+			converter.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			caughtException = e;
+		}
+		assertTrue(caughtException.getCause() instanceof AccessDeniedException);
+		assertEquals(caughtException.getMessage(), "can not write files to disk: "
+				+ "java.nio.file.AccessDeniedException: /root/streamsDOESNOTEXIST/streams");
+	}
+
+	@Test
+	public void testInitMissingPath() throws IOException {
+		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		assertTrue(
+				Files.exists(Paths.get(SOME_FILE_STORAGE_BASE_PATH, "streams", "someDataDivider")));
+	}
+
+	@Test
+	public void testInitPathMoreThanOnce() throws IOException {
+		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		assertTrue(
+				Files.exists(Paths.get(SOME_FILE_STORAGE_BASE_PATH, "streams", "someDataDivider")));
+	}
+
+	@Test
 	public void testImageAnalyzerFactoryInitialized() throws Exception {
 		assertTrue(converter instanceof MessageReceiver);
 		ImageAnalyzerFactory factory = converter.onlyForTestGetImageAnalyzerFactory();
@@ -129,7 +218,6 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testCallFactoryWithCorrectPath() throws Exception {
-
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) pathBuilder.MCR
