@@ -69,7 +69,6 @@ public class Jp2ConverterImp implements Jp2Converter {
 
 	void onlyForTestSetConvertCmd(ConvertCmd convertCmd) {
 		this.convertCmd = convertCmd;
-
 	}
 
 	public IMOperationFactory onlyForTestGetImOperationFactory() {

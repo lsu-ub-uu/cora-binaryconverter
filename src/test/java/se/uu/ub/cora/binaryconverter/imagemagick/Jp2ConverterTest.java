@@ -84,16 +84,13 @@ public class Jp2ConverterTest {
 	public void testError() throws Exception {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
-		int width = 100;
-
 		try {
 			jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof ImageConverterException);
 			String errorMsg = "Error converting to Jpeg2000 image on path {0}";
-			assertEquals(e.getMessage(),
-					MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH, width));
+			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
 			assertEquals(e.getCause().getMessage(), "someSpyException");
 		}
 	}
@@ -108,7 +105,7 @@ public class Jp2ConverterTest {
 
 		imageMagickReal.convert(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
-				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b");
+				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b.jp2");
 	}
 
 	@Test
