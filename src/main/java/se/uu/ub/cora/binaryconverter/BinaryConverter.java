@@ -113,7 +113,7 @@ public class BinaryConverter {
 
 	private static void logAnalyzeAndConverterStarter() {
 		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
-				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath {3}.";
+				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath: {3}";
 		logger.logInfoUsingMessage(MessageFormat.format(logAnalyzeAndConvertStarter, userId,
 				appToken, ocflHome, fileStorageBasePath));
 	}
