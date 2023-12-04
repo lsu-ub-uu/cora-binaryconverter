@@ -52,7 +52,7 @@ import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class AnalyzeAndConvertToThumbnailsTest {
+public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/tmp/streamStorageOnDiskTempStream/";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
@@ -62,7 +62,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH
 			+ "streams/" + SOME_DATA_DIVIDER + "/" + SOME_ID;
 
-	private AnalyzeAndConvertToThumbnails converter;
+	private AnalyzeAndConvertImageToThumbnails converter;
 	private Map<String, String> some_headers = new HashMap<>();
 	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 	private DataClientSpy dataClient;
@@ -94,7 +94,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		pathBuilder = new PathBuilderSpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
-		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
 				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
 
 		setMessageHeaders();
@@ -175,7 +175,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 		Exception caughtException = null;
 		try {
 			removeTempFiles();
-			converter = new AnalyzeAndConvertToThumbnails(dataClient, "/root/streamsDOESNOTEXIST",
+			converter = new AnalyzeAndConvertImageToThumbnails(dataClient, "/root/streamsDOESNOTEXIST",
 					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
 					resourceMetadataCreator);
 			converter.receiveMessage(some_headers, SOME_MESSAGE);
@@ -189,7 +189,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testInitMissingPath() throws IOException {
-		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
 				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
@@ -199,7 +199,7 @@ public class AnalyzeAndConvertToThumbnailsTest {
 
 	@Test
 	public void testInitPathMoreThanOnce() throws IOException {
-		converter = new AnalyzeAndConvertToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
+		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
 				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 		converter.receiveMessage(some_headers, SOME_MESSAGE);

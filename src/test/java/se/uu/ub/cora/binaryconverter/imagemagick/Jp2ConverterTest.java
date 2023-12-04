@@ -29,7 +29,7 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
@@ -88,7 +88,7 @@ public class Jp2ConverterTest {
 			jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			String errorMsg = "Error converting to Jpeg2000 image on path {0}";
 			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
 			assertEquals(e.getCause().getMessage(), "someSpyException");
@@ -116,6 +116,7 @@ public class Jp2ConverterTest {
 
 	@Test
 	public void testOnlyForTestGetConvertCmd() throws Exception {
+		jp2Converter.onlyForTestSetConvertCmd(convertCmd);
 		ConvertCmd convertCmd1 = jp2Converter.onlyForTestGetConvertCmd();
 		assertSame(convertCmd1, convertCmd);
 	}

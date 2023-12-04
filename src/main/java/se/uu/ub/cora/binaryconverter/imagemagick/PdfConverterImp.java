@@ -23,8 +23,8 @@ import java.text.MessageFormat;
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 
 public class PdfConverterImp implements PdfConverter {
 
@@ -38,7 +38,6 @@ public class PdfConverterImp implements PdfConverter {
 
 	@Override
 	public void convertUsingWidth(String inputPath, String outputPath, int width) {
-		// ImageMagickCmd magickCmd = new ImageMagickCmd("");
 
 		IMOperation imOperation = imOperationFactory.factor();
 
@@ -49,12 +48,11 @@ public class PdfConverterImp implements PdfConverter {
 		imOperation.addImage(outputPath);
 
 		try {
-			// magickCmd.run(imOperation, null);
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
 			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
 			String message = MessageFormat.format(errorMsg, inputPath, width);
-			throw ImageConverterException.withMessageAndException(message, e);
+			throw BinaryConverterException.withMessageAndException(message, e);
 		}
 	}
 

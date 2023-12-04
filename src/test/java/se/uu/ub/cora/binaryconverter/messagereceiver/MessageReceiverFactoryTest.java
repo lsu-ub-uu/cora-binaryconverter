@@ -68,14 +68,14 @@ public class MessageReceiverFactoryTest {
 				.getReturnValue("factorDataClientUsingJavaClientAppTokenCredentials", 0);
 
 		assertMessageReceiverStartedWithOcflPathAndDataClient(
-				(AnalyzeAndConvertToThumbnails) messageReceiver, SOME_OCFL_HOME_PATH,
+				(AnalyzeAndConvertImageToThumbnails) messageReceiver, SOME_OCFL_HOME_PATH,
 				dataClientSpyFromFactory, SOME_FILE_STORAGE_BASE_PATH);
 
-		assertTrue(messageReceiver instanceof AnalyzeAndConvertToThumbnails);
+		assertTrue(messageReceiver instanceof AnalyzeAndConvertImageToThumbnails);
 	}
 
 	private void assertMessageReceiverStartedWithOcflPathAndDataClient(
-			AnalyzeAndConvertToThumbnails messageReceiver, String ocflHomePath,
+			AnalyzeAndConvertImageToThumbnails messageReceiver, String ocflHomePath,
 			DataClientSpy dataClientSpyFromFactory, String someFileStorageBasePath) {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClientSpyFromFactory);
 		assertEquals(messageReceiver.onlyForTestGetFileStorageBasePath(),

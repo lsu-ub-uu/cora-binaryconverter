@@ -24,7 +24,7 @@ import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 import org.im4java.process.ArrayListOutputConsumer;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 
 public class Jp2ConverterImp implements Jp2Converter {
@@ -49,7 +49,7 @@ public class Jp2ConverterImp implements Jp2Converter {
 		} catch (Exception e) {
 			String errorMsg = "Error converting to Jpeg2000 image on path {0}";
 			String message = MessageFormat.format(errorMsg, inputPath);
-			throw ImageConverterException.withMessageAndException(message, e);
+			throw BinaryConverterException.withMessageAndException(message, e);
 		}
 	}
 

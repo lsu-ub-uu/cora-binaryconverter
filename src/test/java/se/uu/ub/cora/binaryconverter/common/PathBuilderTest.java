@@ -25,8 +25,6 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
-
 public class PathBuilderTest {
 
 	private static final String SOME_ARCHIVE_PATH = "someArchivePath";
@@ -68,7 +66,7 @@ public class PathBuilderTest {
 
 			fail("It should fail");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			assertEquals(e.getMessage(), "Error while analyzing image.");
 			assertEquals(e.getCause().getMessage(),
 					"NonExistingAlgorithm MessageDigest not available");

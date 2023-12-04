@@ -24,8 +24,8 @@ import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 import org.im4java.process.ArrayListOutputConsumer;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 
 public class ImageConverterImp implements ImageConverter {
 	private static final double QUALITY = 90.0;
@@ -51,7 +51,7 @@ public class ImageConverterImp implements ImageConverter {
 		} catch (Exception e) {
 			String errorMsg = "Error converting image on path {0} and width {1}";
 			String message = MessageFormat.format(errorMsg, inputPath, width);
-			throw ImageConverterException.withMessageAndException(message, e);
+			throw BinaryConverterException.withMessageAndException(message, e);
 		}
 	}
 

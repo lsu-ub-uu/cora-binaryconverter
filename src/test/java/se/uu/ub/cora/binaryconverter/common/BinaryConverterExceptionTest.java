@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 Uppsala University Library
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,20 +16,20 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.image;
+package se.uu.ub.cora.binaryconverter.common;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 
-public class ImageConverterExceptionTest {
+public class BinaryConverterExceptionTest {
 	@Test
 	public void testInit() {
 		String message = "message";
-		ImageConverterException exception = ImageConverterException.withMessage(message);
+		BinaryConverterException exception = BinaryConverterException.withMessage(message);
 		assertEquals(exception.getMessage(), "message");
 		assertTrue(exception instanceof RuntimeException);
 	}
@@ -38,7 +38,7 @@ public class ImageConverterExceptionTest {
 	public void testMessageAndError() throws Exception {
 		String message = "message";
 		Exception exception = new RuntimeException();
-		ImageConverterException storageException = ImageConverterException
+		BinaryConverterException storageException = BinaryConverterException
 				.withMessageAndException(message, exception);
 		assertEquals(storageException.getMessage(), "message");
 		assertEquals(storageException.getCause(), exception);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Olov McKie
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,8 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter;
+package se.uu.ub.cora.binaryconverter.common;
 
-public record CoraClientInfo(String baseUrl, String appTokenUrl, String userId, String appToken) {
+public class BinaryConverterException extends RuntimeException {
+
+	private static final long serialVersionUID = -255261285196817577L;
+
+	private BinaryConverterException(String message) {
+		super(message);
+	}
+
+	private BinaryConverterException(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static BinaryConverterException withMessage(String message) {
+		return new BinaryConverterException(message);
+	}
+
+	public static BinaryConverterException withMessageAndException(String message, Exception e) {
+		return new BinaryConverterException(message, e);
+	}
 
 }

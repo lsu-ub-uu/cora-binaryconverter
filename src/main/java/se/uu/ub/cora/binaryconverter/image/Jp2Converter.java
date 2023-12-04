@@ -1,5 +1,7 @@
 package se.uu.ub.cora.binaryconverter.image;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+
 public interface Jp2Converter {
 
 	/**
@@ -10,7 +12,7 @@ public interface Jp2Converter {
 	 * @param outputPath
 	 *            Path where to store the converted file.
 	 *
-	 * @throws ImageConverterException
+	 * @throws BinaryConverterException
 	 *             if the conversion fails
 	 */
 	void convert(String inputPath, String outputPath);

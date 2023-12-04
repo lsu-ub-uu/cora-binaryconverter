@@ -29,7 +29,7 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterImp;
@@ -86,7 +86,7 @@ public class ImageConverterTest {
 			imageConverter.convertUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, width);
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			String errorMsg = "Error converting image on path {0} and width {1}";
 			assertEquals(e.getMessage(),
 					MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH, width));

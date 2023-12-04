@@ -37,7 +37,7 @@ import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
+public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private static final String CAN_NOT_WRITE_FILES_TO_DISK = "can not write files to disk: ";
 
 	private ImageAnalyzerFactory imageAnalyzerFactory;
@@ -47,7 +47,7 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 	private PathBuilder pathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
 
-	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String fileStorageBasePath,
+	public AnalyzeAndConvertImageToThumbnails(DataClient dataClient, String fileStorageBasePath,
 			ImageAnalyzerFactory imageAnalyzerFactory, ImageConverterFactory imageConverterFactory,
 			PathBuilder pathBuilder, ResourceMetadataCreator resourceMetadataCreator) {
 		this.dataClient = dataClient;

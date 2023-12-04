@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.binaryconverter.image;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+
 /**
  * ImageConverter is intended to be used to convert images to other formats.
  * <p>
@@ -37,7 +39,7 @@ public interface ImageConverter {
 	 * @param width
 	 *            An int with wanted width in pixels
 	 * 
-	 * @throws ImageConverterException
+	 * @throws BinaryConverterException
 	 *             if the conversion fails
 	 */
 

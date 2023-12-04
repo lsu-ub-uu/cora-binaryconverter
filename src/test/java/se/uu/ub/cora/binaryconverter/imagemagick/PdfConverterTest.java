@@ -29,8 +29,8 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.PdfConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.PdfConverterImp;
@@ -93,7 +93,7 @@ public class PdfConverterTest {
 			pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, width);
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
 			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_INPUT_PATH, width));
 			assertEquals(e.getCause().getMessage(), "someSpyException");

@@ -57,7 +57,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 			ResourceMetadataCreator resourceMetadataCreator = new ResourceMetadataCreatorImp();
 			PathBuilder pathBuilder = new PathBuilderImp(ocflHome);
 
-			return new AnalyzeAndConvertToThumbnails(dataClient, fileStorageBasePath,
+			return new AnalyzeAndConvertImageToThumbnails(dataClient, fileStorageBasePath,
 					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
 					resourceMetadataCreator);
 

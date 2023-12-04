@@ -23,8 +23,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
-
 public class PathBuilderImp implements PathBuilder {
 
 	private String hashAlgorithm = "SHA-256";
@@ -72,7 +70,7 @@ public class PathBuilderImp implements PathBuilder {
 		try {
 			return MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			throw ImageConverterException.withMessageAndException("Error while analyzing image.",
+			throw BinaryConverterException.withMessageAndException("Error while analyzing image.",
 					e);
 		}
 	}
