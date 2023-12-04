@@ -77,21 +77,29 @@ public class MessageReceiverFactoryTest {
 	private void assertMessageReceiverStartedWithOcflPathAndDataClient(
 			AnalyzeAndConvertImageToThumbnails messageReceiver, String ocflHomePath,
 			DataClientSpy dataClientSpyFromFactory, String someFileStorageBasePath) {
+		assertMessageReceiver(messageReceiver, dataClientSpyFromFactory);
+		assertPathBuilder(messageReceiver);
+	}
+
+	private void assertMessageReceiver(AnalyzeAndConvertImageToThumbnails messageReceiver,
+			DataClientSpy dataClientSpyFromFactory) {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClientSpyFromFactory);
-		assertEquals(messageReceiver.onlyForTestGetFileStorageBasePath(),
-				SOME_FILE_STORAGE_BASE_PATH);
 		assertTrue(messageReceiver
 				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactoryImp);
 		assertTrue(messageReceiver
 				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactoryImp);
+		assertTrue(messageReceiver
+				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
+	}
 
+	private void assertPathBuilder(AnalyzeAndConvertImageToThumbnails messageReceiver) {
 		PathBuilderImp onlyForTestGetPathBuilder = (PathBuilderImp) messageReceiver
 				.onlyForTestGetPathBuilder();
 		assertEquals(onlyForTestGetPathBuilder.onlyForTestGetArchiveBasePath(),
 				SOME_OCFL_HOME_PATH);
+		assertEquals(onlyForTestGetPathBuilder.onlyForTestGetFileSystemBasePath(),
+				SOME_FILE_STORAGE_BASE_PATH);
 		assertTrue(onlyForTestGetPathBuilder instanceof PathBuilderImp);
-		assertTrue(messageReceiver
-				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
 	}
 
 }

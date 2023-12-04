@@ -55,30 +55,12 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 		if (queueName.equals("smallConverterQueue")) {
 			ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
 			ResourceMetadataCreator resourceMetadataCreator = new ResourceMetadataCreatorImp();
-			PathBuilder pathBuilder = new PathBuilderImp(ocflHome);
+			PathBuilder pathBuilder = new PathBuilderImp(ocflHome, fileStorageBasePath);
 
-			return new AnalyzeAndConvertImageToThumbnails(dataClient, fileStorageBasePath,
-					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
-					resourceMetadataCreator);
+			return new AnalyzeAndConvertImageToThumbnails(dataClient, imageAnalyzerFactory,
+					imageConverterFactory, pathBuilder, resourceMetadataCreator);
 
 		}
 		return new ConvertToJpeg2000();
 	}
-
-	// public MessageListener onlyForTestGetMessageListener() {
-	// return listener;
-	// }
-
-	// public Object onlyForTestGetAppTokenCredentials() {
-	// return appTokenCredentials;
-	// }
-	//
-	// public String onlyForTestGetOcflHome() {
-	// return ocflHome;
-	// }
-	//
-	// public String onlyForTestGetFileStorageBasePath() {
-	// return fileStorageBasePath;
-	// }
-
 }

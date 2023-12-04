@@ -22,17 +22,9 @@ import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.AccessDeniedException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -54,13 +46,10 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertImageToThumbnailsTest {
 
-	private static final String SOME_FILE_STORAGE_BASE_PATH = "/tmp/streamStorageOnDiskTempStream/";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
 	private static final String SOME_MESSAGE = "someMessage";
-	private static final String FILE_SYSTEM_PATH_FOR_RESOURCE = SOME_FILE_STORAGE_BASE_PATH
-			+ "streams/" + SOME_DATA_DIVIDER + "/" + SOME_ID;
 
 	private AnalyzeAndConvertImageToThumbnails converter;
 	private Map<String, String> some_headers = new HashMap<>();
@@ -83,62 +72,19 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	private PathBuilderSpy pathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
-	private String basePath = "/tmp/streamStorageOnDiskTempStream/";
-
 	@BeforeMethod
 	public void beforeMethod() throws Exception {
-		makeSureBasePathExistsAndIsEmpty();
 		setUpImageAnalyzerFactory();
 		dataClient = new DataClientSpy();
 		imageConverterFactory = new ImageConverterFactorySpy();
-		pathBuilder = new PathBuilderSpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
-		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
-				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
+		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, imageAnalyzerFactory,
+				imageConverterFactory, pathBuilder, resourceMetadataCreator);
 
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
-	}
-
-	public void makeSureBasePathExistsAndIsEmpty() throws IOException {
-		File dir = new File(basePath);
-		dir.mkdir();
-		deleteFiles(basePath);
-	}
-
-	private void deleteFiles(String path) throws IOException {
-		Stream<Path> list;
-		list = Files.list(Paths.get(path));
-		list.forEach(p -> {
-			try {
-				deleteFile(p);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		});
-		list.close();
-	}
-
-	private void deleteFile(Path path) throws IOException {
-		if (new File(path.toString()).isDirectory()) {
-			deleteFiles(path.toString());
-		}
-		try {
-			Files.delete(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	@AfterMethod
-	public void removeTempFiles() throws IOException {
-		if (Files.exists(Paths.get(basePath))) {
-			deleteFiles(basePath);
-			File dir = new File(basePath);
-			dir.delete();
-		}
 	}
 
 	private void setUpImageAnalyzerFactory() {
@@ -153,60 +99,28 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		analyzerLarge.MRV.setDefaultReturnValuesSupplier("analyze", () -> imageDataLarge);
 
 		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
-
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMaster,
 				"somePathToArchive");
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerThumbnail,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-thumbnail");
+				"aPath-thumbnail");
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMedium,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-medium");
+				"aPath-medium");
 		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerLarge,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large");
+				"aPath-large");
+
+		pathBuilder = new PathBuilderSpy();
+		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
+				() -> "aPath-thumbnail", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-thumbnail");
+		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
+				() -> "aPath-medium", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-medium");
+		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
+				() -> "aPath-large", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-large");
 	}
 
 	private void setMessageHeaders() {
 		some_headers.put("dataDivider", SOME_DATA_DIVIDER);
 		some_headers.put("type", SOME_TYPE);
 		some_headers.put("id", SOME_ID);
-	}
-
-	@Test
-	public void testInitNoPermissionOnPathSentAlongException() throws IOException {
-		Exception caughtException = null;
-		try {
-			removeTempFiles();
-			converter = new AnalyzeAndConvertImageToThumbnails(dataClient, "/root/streamsDOESNOTEXIST",
-					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
-					resourceMetadataCreator);
-			converter.receiveMessage(some_headers, SOME_MESSAGE);
-		} catch (Exception e) {
-			caughtException = e;
-		}
-		assertTrue(caughtException.getCause() instanceof AccessDeniedException);
-		assertEquals(caughtException.getMessage(), "can not write files to disk: "
-				+ "java.nio.file.AccessDeniedException: /root/streamsDOESNOTEXIST/streams");
-	}
-
-	@Test
-	public void testInitMissingPath() throws IOException {
-		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
-				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
-
-		assertTrue(
-				Files.exists(Paths.get(SOME_FILE_STORAGE_BASE_PATH, "streams", "someDataDivider")));
-	}
-
-	@Test
-	public void testInitPathMoreThanOnce() throws IOException {
-		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, SOME_FILE_STORAGE_BASE_PATH,
-				imageAnalyzerFactory, imageConverterFactory, pathBuilder, resourceMetadataCreator);
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
-
-		assertTrue(
-				Files.exists(Paths.get(SOME_FILE_STORAGE_BASE_PATH, "streams", "someDataDivider")));
 	}
 
 	@Test
@@ -231,17 +145,14 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_TYPE, SOME_ID,
-				SOME_DATA_DIVIDER);
+		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_DATA_DIVIDER,
+				SOME_TYPE, SOME_ID);
 	}
 
 	@Test
-	public void testCallAnlayze() throws Exception {
+	public void testCallAnalyze() throws Exception {
 
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
-
-		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_TYPE, SOME_ID,
-				SOME_DATA_DIVIDER);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
 				.getReturnValue("factor", 0);
@@ -293,11 +204,9 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		imageAnalyzerFactory.MCR.assertNumberOfCallsToMethod("factor", 4);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1);
-		assertAnalyzeAndConvertToRepresentation("medium", 300,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 1, 2);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-large", 2, 3);
+		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1, 0);
+		assertAnalyzeAndConvertToRepresentation("medium", 300, "aPath-large", 1, 2, 1);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "aPath-large", 2, 3, 2);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
 				getResourceInfo(), SOME_ID, imageDataLarge);
@@ -308,24 +217,46 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
-			String inputPath, int fImageConverterCallNr, int fAnalyzerCallNr) {
+			String inputPath, int fImageConverterCallNr, int fAnalyzerCallNr,
+			int pathBuilderCallNr) {
 
-		assertConvertToRepresentation(representation, width, inputPath, fImageConverterCallNr);
-		assertAnalyzeRepresentation(representation, fAnalyzerCallNr);
+		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
+				inputPath, fImageConverterCallNr, pathBuilderCallNr);
+		assertAnalyzeRepresentation(representation, fAnalyzerCallNr, pathToFileRepresentation);
 	}
 
-	private void assertConvertToRepresentation(String representation, int width, String inputPath,
-			int fImageConverterCallNr) {
+	private String assertConvertToRepresentation(String representation, int width, String inputPath,
+			int fImageConverterCallNr, int pathBuilderCallNr) {
+
+		String pathToFileRepresentation = assertPathBuilderBuildFileSystemFilePath(representation,
+				pathBuilderCallNr);
+		assertCallToConvert(width, inputPath, fImageConverterCallNr, pathToFileRepresentation);
+		return pathToFileRepresentation;
+	}
+
+	private void assertCallToConvert(int width, String inputPath, int fImageConverterCallNr,
+			String pathToFileRepresentation) {
 		imageConverterFactory.MCR.assertParameters("factor", fImageConverterCallNr);
 		ImageConverterSpy imageConverter = (ImageConverterSpy) imageConverterFactory.MCR
 				.getReturnValue("factor", fImageConverterCallNr);
 		imageConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-" + representation, width);
+				pathToFileRepresentation, width);
 	}
 
-	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr) {
+	private String assertPathBuilderBuildFileSystemFilePath(String representation,
+			int pathBuilderCallNr) {
+		pathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
+		pathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr,
+				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
+		String pathToFileRepresentation = (String) pathBuilder.MCR
+				.getReturnValue("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr);
+		return pathToFileRepresentation;
+	}
+
+	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr,
+			String pathToFileRepresentation) {
 		imageAnalyzerFactory.MCR.assertParameters("factor", fAnalyzerCallNr,
-				FILE_SYSTEM_PATH_FOR_RESOURCE + "-" + representation);
+				pathToFileRepresentation);
 		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
 				.getReturnValue("factor", fAnalyzerCallNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
@@ -340,7 +271,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	@Test
 	public void testOnlyForTestGet() throws Exception {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
-		assertEquals(converter.onlyForTestGetFileStorageBasePath(), SOME_FILE_STORAGE_BASE_PATH);
 		assertEquals(converter.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
 		assertEquals(converter.onlyForTestGetImageConverterFactory(), imageConverterFactory);
 		assertEquals(converter.onlyForTestGetPathBuilder(), pathBuilder);
