@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -27,8 +27,8 @@ import org.im4java.core.IMOps;
 import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 
 public class ImageAnalyzerImp implements ImageAnalyzer {
@@ -56,7 +56,7 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
 			return parseImageData(output);
 		} catch (Exception e) {
-			throw ImageConverterException.withMessageAndException(
+			throw BinaryConverterException.withMessageAndException(
 					"Error when analyzing image, with path: " + imagePath, e);
 		}
 	}

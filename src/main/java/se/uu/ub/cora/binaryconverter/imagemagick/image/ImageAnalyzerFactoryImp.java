@@ -16,9 +16,9 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.image;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageAnalyzerImp;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 
 public class ImageAnalyzerFactoryImp implements ImageAnalyzerFactory {
 

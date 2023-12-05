@@ -16,46 +16,49 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import java.text.MessageFormat;
 
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
+import org.im4java.process.ArrayListOutputConsumer;
 
-import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 
-public class PdfConverterImp implements PdfConverter {
-
-	private ConvertCmd convertCmd;
+public class ImageConverterImp implements ImageConverter {
+	private static final double QUALITY = 90.0;
 	private IMOperationFactory imOperationFactory;
+	private ConvertCmd convertCmd;
 
-	public PdfConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
+	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
+
+	public ImageConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
 		this.imOperationFactory = imOperationFactory;
 		this.convertCmd = convertCmd;
 	}
 
 	@Override
 	public void convertUsingWidth(String inputPath, String outputPath, int width) {
-		// ImageMagickCmd magickCmd = new ImageMagickCmd("");
-
 		IMOperation imOperation = imOperationFactory.factor();
-
-		imOperation.addImage(inputPath + "[0]");
-		imOperation.thumbnail(width);
-		imOperation.alpha("remove");
-
-		imOperation.addImage(outputPath);
-
+		imOperation.addImage(inputPath);
+		imOperation.resize(width, null);
+		imOperation.quality(QUALITY);
+		imOperation.addImage("JPEG:" + outputPath);
 		try {
-			// magickCmd.run(imOperation, null);
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
-			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
+			String errorMsg = "Error converting image on path {0} and width {1}";
 			String message = MessageFormat.format(errorMsg, inputPath, width);
-			throw ImageConverterException.withMessageAndException(message, e);
+			throw BinaryConverterException.withMessageAndException(message, e);
 		}
+	}
+
+	void onlyForTestSetConvertCmd(ConvertCmd convertCmd) {
+		this.convertCmd = convertCmd;
+
 	}
 
 	public IMOperationFactory onlyForTestGetImOperationFactory() {

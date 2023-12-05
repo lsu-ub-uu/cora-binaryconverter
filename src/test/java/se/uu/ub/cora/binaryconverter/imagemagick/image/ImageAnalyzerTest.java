@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -29,9 +29,9 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageAnalyzerImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IdentifyCmdSpy;
@@ -113,7 +113,7 @@ public class ImageAnalyzerTest {
 			imageMagick.analyze();
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			assertEquals(e.getMessage(),
 					"Error when analyzing image, with path: " + SOME_TEMP_PATH);
 			assertEquals(e.getCause().getMessage(), "Error from spy");
@@ -130,7 +130,7 @@ public class ImageAnalyzerTest {
 			imageMagick.analyze();
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			assertEquals(e.getMessage(),
 					"Error when analyzing image, with path: " + SOME_TEMP_PATH);
 			assertEquals(e.getCause().getMessage(), "Index 2 out of bounds for length 2");

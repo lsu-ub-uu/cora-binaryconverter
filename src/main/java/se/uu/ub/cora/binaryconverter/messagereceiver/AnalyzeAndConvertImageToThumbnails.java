@@ -18,10 +18,6 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map;
 
 import se.uu.ub.cora.binaryconverter.common.PathBuilder;
@@ -37,21 +33,17 @@ import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
-	private static final String CAN_NOT_WRITE_FILES_TO_DISK = "can not write files to disk: ";
-
+public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private ImageAnalyzerFactory imageAnalyzerFactory;
 	private DataClient dataClient;
 	private ImageConverterFactory imageConverterFactory;
-	private String fileStorageBasePath;
 	private PathBuilder pathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
 
-	public AnalyzeAndConvertToThumbnails(DataClient dataClient, String fileStorageBasePath,
+	public AnalyzeAndConvertImageToThumbnails(DataClient dataClient,
 			ImageAnalyzerFactory imageAnalyzerFactory, ImageConverterFactory imageConverterFactory,
 			PathBuilder pathBuilder, ResourceMetadataCreator resourceMetadataCreator) {
 		this.dataClient = dataClient;
-		this.fileStorageBasePath = fileStorageBasePath;
 		this.imageAnalyzerFactory = imageAnalyzerFactory;
 		this.imageConverterFactory = imageConverterFactory;
 		this.pathBuilder = pathBuilder;
@@ -63,8 +55,8 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
-		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(recordType, recordId,
-				dataDivider);
+		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
+				recordType, recordId);
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		ClientDataGroup resourceInfoGroup = binaryRecordGroup
@@ -72,32 +64,15 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
 		analyzeAndUpdateMetadataForMasterRepresentation(originalImagePath, resourceInfoGroup);
 
-		Path pathByDataDivider = Paths.get(fileStorageBasePath, "streams", dataDivider);
-		ensureStorageDirectoryExists(Paths.get(fileStorageBasePath, "streams"));
-		ensureStorageDirectoryExists(pathByDataDivider);
-
-		convertAndCreateMetadataForRepresentations(recordId, dataDivider, resourceInfoGroup,
-				originalImagePath);
+		convertAndCreateMetadataForRepresentations(dataDivider, recordType, recordId,
+				resourceInfoGroup, originalImagePath);
 
 		dataClient.update(recordType, recordId, binaryRecordGroup);
 	}
 
-	private void ensureStorageDirectoryExists(Path pathByDataDivider) {
-		if (storageDirectoryDoesNotExist(pathByDataDivider)) {
-			tryToCreateStorageDirectory(pathByDataDivider);
-		}
-	}
-
-	private boolean storageDirectoryDoesNotExist(Path pathByDataDivider) {
-		return !Files.exists(pathByDataDivider);
-	}
-
-	private void tryToCreateStorageDirectory(Path pathByDataDivider) {
-		try {
-			Files.createDirectory(pathByDataDivider);
-		} catch (IOException e) {
-			throw new RuntimeException(CAN_NOT_WRITE_FILES_TO_DISK + e, e);
-		}
+	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
+		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
+		return binaryRecord.getDataRecordGroup();
 	}
 
 	private void analyzeAndUpdateMetadataForMasterRepresentation(String originalImagePath,
@@ -107,27 +82,30 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 				masterImageData);
 	}
 
-	private void convertAndCreateMetadataForRepresentations(String recordId, String dataDivider,
-			ClientDataGroup resourceInfoGroup, String inputPath) {
-		String fileStoragePathToAResourceId = buildFileStoragePathToAResourceId(recordId,
-				dataDivider);
-		String largeRepresentationPath = fileStoragePathToAResourceId + "-large";
-
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath,
-				fileStoragePathToAResourceId, "large", 600);
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId,
-				largeRepresentationPath, fileStoragePathToAResourceId, "medium", 300);
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId,
-				largeRepresentationPath, fileStoragePathToAResourceId, "thumbnail", 100);
+	private ImageData analyzeImage(String pathToImage) {
+		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
+		return analyzer.analyze();
 	}
 
-	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
-		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
-		return binaryRecord.getDataRecordGroup();
-	}
+	private void convertAndCreateMetadataForRepresentations(String dataDivider, String type,
+			String recordId, ClientDataGroup resourceInfoGroup, String inputPath) {
+		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
+				recordId + "-large");
+		String mediumPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
+				recordId + "-medium");
+		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
+				recordId + "-thumbnail");
 
-	private String buildFileStoragePathToAResourceId(String recordId, String dataDivider) {
-		return fileStorageBasePath + "streams/" + dataDivider + "/" + recordId;
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
+				"large", 600);
+		/**
+		 * To increase speed and efficiency of the conversion process we use the large preview
+		 * version to convert the medium and thumbnail versions instead of the archived version.
+		 */
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
+				mediumPath, "medium", 300);
+		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
+				thumbnailPath, "thumbnail", 100);
 	}
 
 	private void convertImageUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
@@ -135,18 +113,12 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 			int convertToWidth) {
 
 		ImageConverter imageConverter = imageConverterFactory.factor();
-		imageConverter.convertUsingWidth(pathToImage, outputPath + "-" + representation,
-				convertToWidth);
+		imageConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
 
-		ImageData imageData = analyzeImage(outputPath + "-" + representation);
+		ImageData imageData = analyzeImage(outputPath);
 
 		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
 				recordId, imageData);
-	}
-
-	private ImageData analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
-		return analyzer.analyze();
 	}
 
 	@Override
@@ -160,10 +132,6 @@ public class AnalyzeAndConvertToThumbnails implements MessageReceiver {
 
 	DataClient onlyForTestGetDataClient() {
 		return dataClient;
-	}
-
-	String onlyForTestGetFileStorageBasePath() {
-		return fileStorageBasePath;
 	}
 
 	ImageConverterFactory onlyForTestGetImageConverterFactory() {

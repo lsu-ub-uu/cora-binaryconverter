@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.document;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 
 /**
  * PdfConverter is intended to be used to convert the first page of an pdf to other formats.
@@ -36,7 +36,7 @@ public interface PdfConverter {
 	 * @param width
 	 *            An int with wanted width in pixels
 	 * 
-	 * @throws ImageConverterException
+	 * @throws BinaryConverterException
 	 *             if the conversion fails
 	 */
 	void convertUsingWidth(String inputPath, String outputPath, int width);

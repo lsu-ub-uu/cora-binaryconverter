@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.document;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
@@ -29,11 +29,9 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.PdfConverterFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
@@ -42,6 +40,7 @@ public class PdfConverterTest {
 
 	private static final String SOME_OUTPUT_PATH = "someOutputPath";
 	private static final String SOME_INPUT_PATH = "someInputPath";
+	private static final String OUTPUT_FORMAT = "JPG:";
 	private PdfConverterImp pdfConverter;
 	private ConvertCmdSpy convertCmd;
 	private IMOperationFactorySpy imOperationFactory;
@@ -71,7 +70,7 @@ public class PdfConverterTest {
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
 		imOperation.MCR.assertParameters("thumbnail", 0, width);
 		imOperation.MCR.assertParameters("alpha", 0, "remove");
-		assertFirstArgumentAddImage(imOperation, 1, SOME_OUTPUT_PATH);
+		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
 
@@ -93,7 +92,7 @@ public class PdfConverterTest {
 			pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, width);
 			fail("It failed");
 		} catch (Exception e) {
-			assertTrue(e instanceof ImageConverterException);
+			assertTrue(e instanceof BinaryConverterException);
 			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
 			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_INPUT_PATH, width));
 			assertEquals(e.getCause().getMessage(), "someSpyException");

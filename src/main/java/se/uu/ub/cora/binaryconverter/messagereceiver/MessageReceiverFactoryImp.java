@@ -19,14 +19,17 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.common.PathBuilder;
 import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactoryImp;
 import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterFactoryImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -34,51 +37,63 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
-	private ImageConverterFactory imageConverterFactory;
+	private ImageAnalyzerFactory imageAnalyzerFactory;
+	private ResourceMetadataCreator resourceMetadataCreator;
+	private PathBuilder pathBuilder;
+	private DataClient dataClient;
 
 	public MessageReceiverFactoryImp() {
-		this.imageConverterFactory = new ImageConverterFactoryImp();
+		imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
+		resourceMetadataCreator = new ResourceMetadataCreatorImp();
 	}
 
 	@Override
-	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome, String fileStorageBasePath) {
-		DataClient dataClient = JavaClientProvider
+	public MessageReceiver factor(String queueName,
+			JavaClientAppTokenCredentials appTokenCredentials, String archiveBasePath,
+			String fileStorageBasePath) {
+		initializeDataClientAndPathBuilder(appTokenCredentials, archiveBasePath,
+				fileStorageBasePath);
+		return factorMessageReceiverUsingQueueName(queueName);
+	}
+
+	private void initializeDataClientAndPathBuilder(
+			JavaClientAppTokenCredentials appTokenCredentials, String archiveBasePath,
+			String fileStorageBasePath) {
+		dataClient = JavaClientProvider
 				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
-
-		String queueName = "smallConverterQueue";
-		return createMessageReceiver(queueName, dataClient, ocflHome, fileStorageBasePath);
+		pathBuilder = new PathBuilderImp(archiveBasePath, fileStorageBasePath);
 	}
 
-	private MessageReceiver createMessageReceiver(String queueName, DataClient dataClient,
-			String ocflHome, String fileStorageBasePath) {
-		if (queueName.equals("smallConverterQueue")) {
-			ImageAnalyzerFactory imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
-			ResourceMetadataCreator resourceMetadataCreator = new ResourceMetadataCreatorImp();
-			PathBuilder pathBuilder = new PathBuilderImp(ocflHome);
-
-			return new AnalyzeAndConvertToThumbnails(dataClient, fileStorageBasePath,
-					imageAnalyzerFactory, imageConverterFactory, pathBuilder,
-					resourceMetadataCreator);
-
+	private MessageReceiver factorMessageReceiverUsingQueueName(String queueName) {
+		if (isImageConverterQueue(queueName)) {
+			return factorAnalyzeAndConvertImageToThumbnails();
 		}
-		return new ConvertToJpeg2000();
+
+		if (isPdfConverterQueue(queueName)) {
+			return factorConvertPdfToThumbnails();
+		}
+
+		throw BinaryConverterException.withMessage(
+				"It could not start any message receiver with the queue name: " + queueName);
 	}
 
-	// public MessageListener onlyForTestGetMessageListener() {
-	// return listener;
-	// }
+	private boolean isImageConverterQueue(String queueName) {
+		return "smallImageConverterQueue".equals(queueName);
+	}
 
-	// public Object onlyForTestGetAppTokenCredentials() {
-	// return appTokenCredentials;
-	// }
-	//
-	// public String onlyForTestGetOcflHome() {
-	// return ocflHome;
-	// }
-	//
-	// public String onlyForTestGetFileStorageBasePath() {
-	// return fileStorageBasePath;
-	// }
+	private MessageReceiver factorAnalyzeAndConvertImageToThumbnails() {
+		ImageConverterFactory imageConverterFactory = new ImageConverterFactoryImp();
+		return new AnalyzeAndConvertImageToThumbnails(dataClient, imageAnalyzerFactory,
+				imageConverterFactory, pathBuilder, resourceMetadataCreator);
+	}
 
+	private boolean isPdfConverterQueue(String queueName) {
+		return "pdfConverterQueue".equals(queueName);
+	}
+
+	private MessageReceiver factorConvertPdfToThumbnails() {
+		PdfConverterFactory pdfConverterFactory = new PdfConverterFactoryImp();
+		return new ConvertPdfToThumbnails(pdfConverterFactory, imageAnalyzerFactory, dataClient,
+				resourceMetadataCreator, pathBuilder);
+	}
 }

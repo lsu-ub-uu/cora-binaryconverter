@@ -18,29 +18,36 @@
  */
 package se.uu.ub.cora.binaryconverter.common;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.MessageFormat;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverterException;
-
 public class PathBuilderImp implements PathBuilder {
 
+	private static final String STREAMS_DIR = "streams";
 	private String hashAlgorithm = "SHA-256";
+	private static final String CAN_NOT_WRITE_FILES_TO_DISK = "can not write files to disk: ";
 	private String archiveBasePath;
+	private String fileSystemBasePath;
 
-	public PathBuilderImp(String archiveBasePath) {
+	public PathBuilderImp(String archiveBasePath, String fileSystemBasePath) {
 		this.archiveBasePath = archiveBasePath;
+		this.fileSystemBasePath = fileSystemBasePath;
 	}
 
 	@Override
-	public String buildPathToAResourceInArchive(String type, String id, String dataDivider) {
+	public String buildPathToAResourceInArchive(String dataDivider, String type, String id) {
 		String sha256Path = generateSha256Path(dataDivider, type, id);
-		return buildImagePathFromSha256Path(type, id, sha256Path);
+		return buildImagePathFromSha256Path(archiveBasePath, type, id, sha256Path);
 	}
 
-	private String buildImagePathFromSha256Path(String type, String id, String sha256Path) {
+	private String buildImagePathFromSha256Path(String archiveBasePath, String type, String id,
+			String sha256Path) {
 		String sha256PathLowerCase = sha256Path.toLowerCase();
 		String folder1 = sha256PathLowerCase.substring(0, 3);
 		String folder2 = sha256PathLowerCase.substring(3, 6);
@@ -72,7 +79,7 @@ public class PathBuilderImp implements PathBuilder {
 		try {
 			return MessageDigest.getInstance(hashAlgorithm);
 		} catch (NoSuchAlgorithmException e) {
-			throw ImageConverterException.withMessageAndException("Error while analyzing image.",
+			throw BinaryConverterException.withMessageAndException("Error while analyzing image.",
 					e);
 		}
 	}
@@ -97,8 +104,42 @@ public class PathBuilderImp implements PathBuilder {
 		this.hashAlgorithm = hashAlgorithm;
 	}
 
+	@Override
+	public String buildPathToAFileAndEnsureFolderExists(String dataDivider, String type,
+			String id) {
+
+		Path pathByDataDivider = Paths.get(fileSystemBasePath, STREAMS_DIR, dataDivider);
+		ensureStorageDirectoryExists(pathByDataDivider);
+		return buildFileStoragePathToAFile(pathByDataDivider, type, id);
+	}
+
+	private void ensureStorageDirectoryExists(Path pathByDataDivider) {
+		if (storageDirectoryDoesNotExist(pathByDataDivider)) {
+			tryToCreateStorageDirectory(pathByDataDivider);
+		}
+	}
+
+	private boolean storageDirectoryDoesNotExist(Path pathByDataDivider) {
+		return !Files.exists(pathByDataDivider);
+	}
+
+	private void tryToCreateStorageDirectory(Path pathByDataDivider) {
+		try {
+			Files.createDirectories(pathByDataDivider);
+		} catch (IOException e) {
+			throw new RuntimeException(CAN_NOT_WRITE_FILES_TO_DISK + e, e);
+		}
+	}
+
+	private String buildFileStoragePathToAFile(Path path, String type, String id) {
+		return path.toString() + "/" + type + ":" + id;
+	}
+
 	public String onlyForTestGetArchiveBasePath() {
 		return archiveBasePath;
 	}
 
+	public String onlyForTestGetFileSystemBasePath() {
+		return fileSystemBasePath;
+	}
 }

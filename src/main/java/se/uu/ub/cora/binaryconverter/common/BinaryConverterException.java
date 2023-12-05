@@ -16,19 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.common;
 
-import org.im4java.core.ConvertCmd;
+public class BinaryConverterException extends RuntimeException {
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
+	private static final long serialVersionUID = -255261285196817577L;
 
-public class ImageConverterFactoryImp implements ImageConverterFactory {
-
-	@Override
-	public ImageConverter factor() {
-		IMOperationFactory factory = new IMOperationFactoryImp();
-		ConvertCmd command = new ConvertCmd();
-		return new ImageConverterImp(factory, command);
+	private BinaryConverterException(String message) {
+		super(message);
 	}
+
+	private BinaryConverterException(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static BinaryConverterException withMessage(String message) {
+		return new BinaryConverterException(message);
+	}
+
+	public static BinaryConverterException withMessageAndException(String message, Exception e) {
+		return new BinaryConverterException(message, e);
+	}
+
 }

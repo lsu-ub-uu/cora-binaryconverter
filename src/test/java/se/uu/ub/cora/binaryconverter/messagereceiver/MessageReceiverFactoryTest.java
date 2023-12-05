@@ -20,15 +20,20 @@
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.common.PathBuilder;
 import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
+import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
@@ -39,7 +44,7 @@ public class MessageReceiverFactoryTest {
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
 	private static final String SOME_APP_TOKEN_URL = "someAppTokenUrl";
 	private static final String SOME_BASE_URL = "someBaseUrl";
-	private static final String SOME_OCFL_HOME_PATH = "/someOcfl/Home/Path/From/Fedora";
+	private static final String SOME_ARCHIVE_BASE_PATH = "/someOcfl/Home/Path/From/Fedora";
 	private static final String SOME_APP_TOKEN = "someAppToken";
 	private static final String SOME_USER_ID = "someUserId";
 	private MessageReceiverFactory factory;
@@ -53,45 +58,82 @@ public class MessageReceiverFactoryTest {
 
 		appTokenCredentials = new JavaClientAppTokenCredentials(SOME_BASE_URL, SOME_APP_TOKEN_URL,
 				SOME_USER_ID, SOME_APP_TOKEN);
+
+		factory = new MessageReceiverFactoryImp();
 	}
 
 	@Test
-	public void testFactorMessageReceiver() throws Exception {
-		factory = new MessageReceiverFactoryImp();
+	public void testFactorAnalayzeAndConvertImatgeToThumbnail() throws Exception {
 
-		MessageReceiver messageReceiver = factory.factor(appTokenCredentials, SOME_OCFL_HOME_PATH,
-				SOME_FILE_STORAGE_BASE_PATH);
+		MessageReceiver messageReceiver = factory.factor("smallImageConverterQueue", appTokenCredentials,
+				SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
 
 		javaClientFactory.MCR.assertParameters("factorDataClientUsingJavaClientAppTokenCredentials",
 				0, appTokenCredentials);
-		DataClientSpy dataClientSpyFromFactory = (DataClientSpy) javaClientFactory.MCR
-				.getReturnValue("factorDataClientUsingJavaClientAppTokenCredentials", 0);
 
-		assertMessageReceiverStartedWithOcflPathAndDataClient(
-				(AnalyzeAndConvertToThumbnails) messageReceiver, SOME_OCFL_HOME_PATH,
-				dataClientSpyFromFactory, SOME_FILE_STORAGE_BASE_PATH);
+		assertMessageReceiver((AnalyzeAndConvertImageToThumbnails) messageReceiver);
+		assertPathBuilder((AnalyzeAndConvertImageToThumbnails) messageReceiver);
 
-		assertTrue(messageReceiver instanceof AnalyzeAndConvertToThumbnails);
+		assertTrue(messageReceiver instanceof AnalyzeAndConvertImageToThumbnails);
 	}
 
-	private void assertMessageReceiverStartedWithOcflPathAndDataClient(
-			AnalyzeAndConvertToThumbnails messageReceiver, String ocflHomePath,
-			DataClientSpy dataClientSpyFromFactory, String someFileStorageBasePath) {
-		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClientSpyFromFactory);
-		assertEquals(messageReceiver.onlyForTestGetFileStorageBasePath(),
-				SOME_FILE_STORAGE_BASE_PATH);
-		assertTrue(messageReceiver
-				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactoryImp);
-		assertTrue(messageReceiver
-				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactoryImp);
+	private DataClientSpy getDataClientSpyFromeReturn() {
+		return (DataClientSpy) javaClientFactory.MCR
+				.getReturnValue("factorDataClientUsingJavaClientAppTokenCredentials", 0);
+	}
 
-		PathBuilderImp onlyForTestGetPathBuilder = (PathBuilderImp) messageReceiver
-				.onlyForTestGetPathBuilder();
-		assertEquals(onlyForTestGetPathBuilder.onlyForTestGetArchiveBasePath(),
-				SOME_OCFL_HOME_PATH);
-		assertTrue(onlyForTestGetPathBuilder instanceof PathBuilderImp);
+	private void assertMessageReceiver(AnalyzeAndConvertImageToThumbnails messageReceiver) {
+		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
+		assertTrue(messageReceiver
+				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+		assertTrue(messageReceiver
+				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactory);
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
+		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+	}
+
+	private void assertPathBuilder(AnalyzeAndConvertImageToThumbnails messageReceiver) {
+		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
+		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
+		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
+		assertTrue(pathBuilder instanceof PathBuilderImp);
+	}
+
+	@Test
+	public void testNotKnownQueueName() throws Exception {
+		try {
+			factory.factor("notKnownQueue", appTokenCredentials, SOME_ARCHIVE_BASE_PATH,
+					SOME_FILE_STORAGE_BASE_PATH);
+			fail();
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(),
+					"It could not start any message receiver with the queue name: notKnownQueue");
+		}
+	}
+
+	@Test
+	public void testFactorPdfConverterToThumbnails() throws Exception {
+		ConvertPdfToThumbnails messageReceiver = (ConvertPdfToThumbnails) factory.factor(
+				"pdfConverterQueue", appTokenCredentials, SOME_ARCHIVE_BASE_PATH,
+				SOME_FILE_STORAGE_BASE_PATH);
+
+		assertNotNull(messageReceiver);
+
+		assertTrue(
+				messageReceiver.onlyForTestGetPdfConverterFactory() instanceof PdfConverterFactory);
+		assertTrue(messageReceiver
+				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
+		assertTrue(messageReceiver
+				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
+		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+
+		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
+
+		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
+		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
 	}
 
 }

@@ -18,24 +18,20 @@
  */
 package se.uu.ub.cora.binaryconverter.image;
 
-public class ImageConverterException extends RuntimeException {
+import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 
-	private static final long serialVersionUID = -255261285196817577L;
+public interface Jp2Converter {
 
-	private ImageConverterException(String message) {
-		super(message);
-	}
-
-	private ImageConverterException(String message, Exception e) {
-		super(message, e);
-	}
-
-	public static ImageConverterException withMessage(String message) {
-		return new ImageConverterException(message);
-	}
-
-	public static ImageConverterException withMessageAndException(String message, Exception e) {
-		return new ImageConverterException(message, e);
-	}
-
+	/**
+	 * convert a master image to a jpeg2000 image.
+	 * 
+	 * @param inputPath
+	 *            Path to the file to convert from.
+	 * @param outputPath
+	 *            Path where to store the converted file.
+	 *
+	 * @throws BinaryConverterException
+	 *             if the conversion fails
+	 */
+	void convert(String inputPath, String outputPath);
 }

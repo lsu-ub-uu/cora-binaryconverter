@@ -30,11 +30,20 @@ public class PathBuilderSpy implements PathBuilder {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("buildPathToAResourceInArchive",
 				() -> "somePathToArchive");
+		MRV.setDefaultReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
+				() -> "somePathToAFile");
 	}
 
 	@Override
-	public String buildPathToAResourceInArchive(String type, String id, String dataDivider) {
-		return (String) MCR.addCallAndReturnFromMRV("type", type, "id", id, "dataDivider",
-				dataDivider);
+	public String buildPathToAResourceInArchive(String dataDivider, String type, String id) {
+		return (String) MCR.addCallAndReturnFromMRV("dataDivider", dataDivider, "type", type, "id",
+				id);
+	}
+
+	@Override
+	public String buildPathToAFileAndEnsureFolderExists(String dataDivider, String type,
+			String id) {
+		return (String) MCR.addCallAndReturnFromMRV("dataDivider", dataDivider, "type", type, "id",
+				id);
 	}
 }

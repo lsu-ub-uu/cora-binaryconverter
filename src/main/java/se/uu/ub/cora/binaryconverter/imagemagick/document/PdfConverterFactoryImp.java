@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Olov McKie
+ * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,8 +16,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter;
+package se.uu.ub.cora.binaryconverter.imagemagick.document;
 
-public record CoraClientInfo(String baseUrl, String appTokenUrl, String userId, String appToken) {
+import org.im4java.core.ConvertCmd;
 
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
+
+public class PdfConverterFactoryImp implements PdfConverterFactory {
+
+	@Override
+	public PdfConverter factor() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new PdfConverterImp(factory, command);
+	}
 }
