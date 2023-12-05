@@ -16,19 +16,21 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.document;
 
 import org.im4java.core.ConvertCmd;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
 
-public class ImageConverterFactoryImp implements ImageConverterFactory {
+public class PdfConverterFactoryImp implements PdfConverterFactory {
 
 	@Override
-	public ImageConverter factor() {
+	public PdfConverter factor() {
 		IMOperationFactory factory = new IMOperationFactoryImp();
 		ConvertCmd command = new ConvertCmd();
-		return new ImageConverterImp(factory, command);
+		return new PdfConverterImp(factory, command);
 	}
 }

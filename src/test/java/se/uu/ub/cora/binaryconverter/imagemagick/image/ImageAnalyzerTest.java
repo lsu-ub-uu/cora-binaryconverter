@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageAnalyzerImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IdentifyCmdSpy;

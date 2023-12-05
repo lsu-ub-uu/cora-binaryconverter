@@ -27,8 +27,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.ImageConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
