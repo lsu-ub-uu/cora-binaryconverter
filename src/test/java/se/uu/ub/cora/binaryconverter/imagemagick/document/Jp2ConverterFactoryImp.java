@@ -16,24 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.messagereceiver;
+package se.uu.ub.cora.binaryconverter.imagemagick.document;
 
-import java.util.Map;
+import org.im4java.core.ConvertCmd;
 
-import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
 
-public class ConvertToJpeg2000 implements MessageReceiver {
-
-	@Override
-	public void receiveMessage(Map<String, String> headers, String message) {
-		// TODO Auto-generated method stub
-
-	}
+public class Jp2ConverterFactoryImp implements Jp2ConverterFactory {
 
 	@Override
-	public void topicClosed() {
-		// TODO Auto-generated method stub
-
+	public Jp2Converter factor() {
+		IMOperationFactory imOperationFactory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new Jp2ConverterImp(imOperationFactory, command);
 	}
 
 }

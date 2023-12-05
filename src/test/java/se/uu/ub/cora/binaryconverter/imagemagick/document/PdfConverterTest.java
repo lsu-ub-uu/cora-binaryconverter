@@ -68,7 +68,8 @@ public class PdfConverterTest {
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
 				.getReturnValue("factor", 0);
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
-		imOperation.MCR.assertParameters("thumbnail", 0, width);
+		imOperation.MCR.assertParameters("resize", 0, width);
+		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
 		imOperation.MCR.assertParameters("alpha", 0, "remove");
 		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
 

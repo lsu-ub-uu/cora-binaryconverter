@@ -44,7 +44,7 @@ public class ImageConverterImp implements ImageConverter {
 	public void convertUsingWidth(String inputPath, String outputPath, int width) {
 		IMOperation imOperation = imOperationFactory.factor();
 		imOperation.addImage(inputPath);
-		imOperation.resize(width, null);
+		imOperation.resize(width);
 		imOperation.quality(QUALITY);
 		imOperation.addImage("JPEG:" + outputPath);
 		try {

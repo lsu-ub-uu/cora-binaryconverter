@@ -32,7 +32,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
@@ -63,7 +62,7 @@ public class ImageConverterTest {
 				.getReturnValue("factor", 0);
 
 		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
-		imOperation.MCR.assertParameters("resize", 0, width, null);
+		imOperation.MCR.assertParameters("resize", 0, width);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
 		assertFirstArgumentAddImage(imOperation, 1, "JPEG:" + SOME_TEMP_OUTPUT_PATH);
 
