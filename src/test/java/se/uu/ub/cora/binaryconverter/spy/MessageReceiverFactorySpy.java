@@ -34,10 +34,11 @@ public class MessageReceiverFactorySpy implements MessageReceiverFactory {
 	}
 
 	@Override
-	public MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials,
-			String ocflHome, String fileStorageBasePath) {
-		return (MessageReceiver) MCR.addCallAndReturnFromMRV("appTokenCredentials",
-				appTokenCredentials, "ocflHome", ocflHome, "fileStorageBasePath",
-				fileStorageBasePath);
+	public MessageReceiver factor(String queueName,
+			JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
+			String fileStorageBasePath) {
+		return (MessageReceiver) MCR.addCallAndReturnFromMRV("queueName", queueName,
+				"appTokenCredentials", appTokenCredentials, "ocflHome", ocflHome,
+				"fileStorageBasePath", fileStorageBasePath);
 	}
 }

@@ -53,7 +53,6 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
-		//
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
@@ -84,19 +83,19 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-thumbnail");
 
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
+		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
 				"large", 600);
 		/**
 		 * To increase speed and efficiency of the conversion process we use the large preview
 		 * version to convert the medium and thumbnail versions instead of the archived version.
 		 */
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
-				mediumPath, "medium", 300);
-		convertImageUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
+		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath, mediumPath,
+				"medium", 300);
+		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
 				thumbnailPath, "thumbnail", 100);
 	}
 
-	private void convertImageUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
+	private void convertPdfUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
 			String recordId, String pathToImage, String outputPath, String representation,
 			int convertToWidth) {
 
@@ -118,6 +117,26 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	public void topicClosed() {
 		// TODO Auto-generated method stub
 
+	}
+
+	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
+		return imageAnalyzerFactory;
+	}
+
+	public PdfConverterFactory onlyForTestGetPdfConverterFactory() {
+		return pdfConverterFactory;
+	}
+
+	public DataClient onlyForTestGetDataClient() {
+		return dataClient;
+	}
+
+	public ResourceMetadataCreator onlyForTestGetResourceMetadataCreator() {
+		return resourceMetadataCreator;
+	}
+
+	public PathBuilder onlyForTestGetPathBuilder() {
+		return pathBuilder;
 	}
 
 }

@@ -47,10 +47,7 @@ public class BinaryConverter {
 	private static String ocflHome;
 	private static String fileStorageBasePath;
 
-	private static JavaClientAppTokenCredentials appTokenCredentials;
-
-	BinaryConverter() {
-
+	private BinaryConverter() {
 	}
 
 	public static void main(String[] args) {
@@ -70,19 +67,18 @@ public class BinaryConverter {
 		ocflHome = args[8];
 		fileStorageBasePath = args[9];
 
-		appTokenCredentials = new JavaClientAppTokenCredentials(coraUrl, appTokenUrl, userId,
-				appToken);
+		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
+				coraUrl, appTokenUrl, userId, appToken);
 
 		logCoraClientFactory();
 
 		logMessagingLister();
-		MessageReceiver messageReceiver = messageReceiverFactory.factor(appTokenCredentials,
-				ocflHome, fileStorageBasePath);
+		MessageReceiver messageReceiver = messageReceiverFactory.factor(queueName,
+				appTokenCredentials, ocflHome, fileStorageBasePath);
 		MessageListener listener = getMessageListener();
 		listener.listen(messageReceiver);
 
 		logAnalyzeAndConverterStarter();
-		// startListeningForConvertMessages(listener);
 	}
 
 	private static MessageListener getMessageListener() {
@@ -90,13 +86,6 @@ public class BinaryConverter {
 				virtualHost, queueName);
 		return MessagingProvider.getTopicMessageListener(routingInfo);
 	}
-
-	// private static void startListeningForConvertMessages(MessageListener listener) {
-	//
-	// MessageReceiverFactory starter = analyzeAndConvertStarterFactory.factor(listener,
-	// appTokenCredentials, ocflHome, fileStorageBasePath);
-	// starter.factor();
-	// }
 
 	private static void logMessagingLister() {
 		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
@@ -118,14 +107,8 @@ public class BinaryConverter {
 				appToken, ocflHome, fileStorageBasePath));
 	}
 
-	public static void onlyForTestSetMessageReceiverFactory(
+	static void onlyForTestSetMessageReceiverFactory(
 			MessageReceiverFactory messageReceiverFactorySpy) {
 		messageReceiverFactory = messageReceiverFactorySpy;
 	}
-
-	// public static void onlyForTestSetAnalyzeAndConvertStarterFactory(
-	// NotMessageReceiverFac analyzeAndConvertStarterFactorySpy) {
-	// analyzeAndConvertStarterFactory = analyzeAndConvertStarterFactorySpy;
-	// }
-
 }

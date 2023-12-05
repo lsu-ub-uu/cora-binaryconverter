@@ -26,13 +26,16 @@ public interface MessageReceiverFactory {
 	/**
 	 * factor method create a new MessageReceiver. The MessageReceiver returned depends on the type
 	 * of the queue that the system is initialized with.
+	 * 
+	 * @param queueName
+	 *            is the name of the queue
 	 *
 	 * @param appTokenCredentials
 	 * @param ocflHome
 	 * @param fileStorageBasePath
 	 * @return
 	 */
-	MessageReceiver factor(JavaClientAppTokenCredentials appTokenCredentials, String ocflHome,
-			String fileStorageBasePath);
+	MessageReceiver factor(String queueName, JavaClientAppTokenCredentials appTokenCredentials,
+			String ocflHome, String fileStorageBasePath);
 
 }

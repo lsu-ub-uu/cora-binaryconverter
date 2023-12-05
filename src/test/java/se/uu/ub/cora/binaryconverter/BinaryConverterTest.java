@@ -41,7 +41,7 @@ import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverterTest {
 
-	private static final String SOME_RABBIT_MQ_QUEUE_NAME = "someRabbitMqQueueName";
+	private static final String SOME_RABBIT_MQ_QUEUE_NAME = "pdfConverterQueue";
 	private static final String SOME_RABBIT_VIRTUAL_HOST = "someVirtualHost";
 	private static final String SOME_RABBIT_MQ_PORT = "12345";
 	private static final String SOME_RABBIT_MQ_HOST = "someRabbitMqHost";
@@ -55,7 +55,6 @@ public class BinaryConverterTest {
 
 	private String[] args;
 	private MessagingFactorySpy messagingFactory;
-	// private NotMessageReceiverFacSpy analyzeAndConvertStarterFactory;
 
 	@BeforeMethod
 	public void setUp() {
@@ -98,10 +97,6 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testStartListening() throws Exception {
-		// analyzeAndConvertStarterFactory = new NotMessageReceiverFacSpy();
-		// BinaryConverter
-		// .onlyForTestSetAnalyzeAndConvertStarterFactory(analyzeAndConvertStarterFactory);
-
 		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
 		BinaryConverter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
 
@@ -113,6 +108,8 @@ public class BinaryConverterTest {
 		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
 				SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN);
 
+		messageReceiverFactory.MCR.assertParameter("factor", 0, "queueName",
+				SOME_RABBIT_MQ_QUEUE_NAME);
 		messageReceiverFactory.MCR.assertParameterAsEqual("factor", 0, "appTokenCredentials",
 				appTokenCredentials);
 		messageReceiverFactory.MCR.assertParameter("factor", 0, "ocflHome", SOME_OCFL_HOME);
@@ -121,20 +118,6 @@ public class BinaryConverterTest {
 
 		var messageReceiver = messageReceiverFactory.MCR.getReturnValue("factor", 0);
 		listener.MCR.assertParameters("listen", 0, messageReceiver);
-
-		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "messageListener",
-		// listener);
-		// analyzeAndConvertStarterFactory.MCR.assertParameterAsEqual("factor", 0,
-		// "appTokenCredentials", appTokenCredentials);
-		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "ocflHome",
-		// SOME_OCFL_HOME);
-		// analyzeAndConvertStarterFactory.MCR.assertParameter("factor", 0, "fileStorageBasePath",
-		// SOME_FILE_STORAGE_BASE_PATH);
-		//
-		// MessageReceiverFactorySpy messageReceiverFactory = (MessageReceiverFactorySpy)
-		// analyzeAndConvertStarterFactory.MCR
-		// .getReturnValue("factor", 0);
-
 	}
 
 	@Test
@@ -150,7 +133,7 @@ public class BinaryConverterTest {
 	}
 
 	private void assertLoggerForClassName(int callNumber, String className) {
-		Class javaClass = (Class) loggerFactorySpy.MCR
+		Class<?> javaClass = (Class<?>) loggerFactorySpy.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factorForClass", callNumber,
 						"javaClass");
 

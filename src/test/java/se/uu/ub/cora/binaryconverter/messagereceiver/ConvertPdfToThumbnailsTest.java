@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -192,14 +194,15 @@ public class ConvertPdfToThumbnailsTest {
 				.getReturnValue("getDataRecordGroup", 0);
 		return binaryRecordGroup;
 	}
-	//
-	// @Test
-	// public void testOnlyForTestGet() throws Exception {
-	// assertEquals(converter.onlyForTestGetDataClient(), dataClient);
-	// assertEquals(converter.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
-	// assertEquals(converter.onlyForTestGetpdfConverterFactory(), pdfConverterFactory);
-	// assertEquals(converter.onlyForTestGetPathBuilder(), pathBuilder);
-	// assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
-	// }
+
+	@Test
+	public void testOnlyForTestGet() throws Exception {
+		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
+		assertEquals(messageReceiver.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
+		assertEquals(messageReceiver.onlyForTestGetPdfConverterFactory(), pdfConverterFactory);
+		assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
+				resourceMetadataCreator);
+	}
 
 }
