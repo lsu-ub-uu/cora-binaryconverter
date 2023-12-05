@@ -1,4 +1,5 @@
 /*
+
  * Copyright 2023 Uppsala University Library
  *
  * This file is part of Cora.
@@ -31,6 +32,7 @@ public class PdfConverterImp implements PdfConverter {
 
 	private ConvertCmd convertCmd;
 	private IMOperationFactory imOperationFactory;
+	private static final String OUTPUT_FORMAT = "JPG:";
 
 	public PdfConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
 		this.imOperationFactory = imOperationFactory;
@@ -46,7 +48,7 @@ public class PdfConverterImp implements PdfConverter {
 		imOperation.thumbnail(width);
 		imOperation.alpha("remove");
 
-		imOperation.addImage(outputPath);
+		imOperation.addImage(OUTPUT_FORMAT + outputPath);
 
 		try {
 			convertCmd.run(imOperation);

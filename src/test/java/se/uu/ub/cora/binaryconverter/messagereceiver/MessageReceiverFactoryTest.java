@@ -41,7 +41,6 @@ import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class MessageReceiverFactoryTest {
-	private static final String IMAGE_CONVERTER_QUEUE = "smallConverterQueue";
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
 	private static final String SOME_APP_TOKEN_URL = "someAppTokenUrl";
 	private static final String SOME_BASE_URL = "someBaseUrl";
@@ -66,7 +65,7 @@ public class MessageReceiverFactoryTest {
 	@Test
 	public void testFactorAnalayzeAndConvertImatgeToThumbnail() throws Exception {
 
-		MessageReceiver messageReceiver = factory.factor(IMAGE_CONVERTER_QUEUE, appTokenCredentials,
+		MessageReceiver messageReceiver = factory.factor("smallImageConverterQueue", appTokenCredentials,
 				SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
 
 		javaClientFactory.MCR.assertParameters("factorDataClientUsingJavaClientAppTokenCredentials",

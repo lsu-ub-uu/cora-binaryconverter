@@ -32,8 +32,6 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
@@ -42,6 +40,7 @@ public class PdfConverterTest {
 
 	private static final String SOME_OUTPUT_PATH = "someOutputPath";
 	private static final String SOME_INPUT_PATH = "someInputPath";
+	private static final String OUTPUT_FORMAT = "JPG:";
 	private PdfConverterImp pdfConverter;
 	private ConvertCmdSpy convertCmd;
 	private IMOperationFactorySpy imOperationFactory;
@@ -71,7 +70,7 @@ public class PdfConverterTest {
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
 		imOperation.MCR.assertParameters("thumbnail", 0, width);
 		imOperation.MCR.assertParameters("alpha", 0, "remove");
-		assertFirstArgumentAddImage(imOperation, 1, SOME_OUTPUT_PATH);
+		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
 

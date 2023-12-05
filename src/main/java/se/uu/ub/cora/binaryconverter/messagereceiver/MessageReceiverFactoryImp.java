@@ -78,7 +78,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 	}
 
 	private boolean isImageConverterQueue(String queueName) {
-		return "smallConverterQueue".equals(queueName);
+		return "smallImageConverterQueue".equals(queueName);
 	}
 
 	private MessageReceiver factorAnalyzeAndConvertImageToThumbnails() {
