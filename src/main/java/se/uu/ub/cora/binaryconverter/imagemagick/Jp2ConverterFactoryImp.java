@@ -16,14 +16,12 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick.document;
+package se.uu.ub.cora.binaryconverter.imagemagick;
 
 import org.im4java.core.ConvertCmd;
 
 import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
 
 public class Jp2ConverterFactoryImp implements Jp2ConverterFactory {

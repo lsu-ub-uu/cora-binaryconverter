@@ -31,6 +31,7 @@ import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.common.PathBuilder;
 import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
 import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
@@ -65,8 +66,8 @@ public class MessageReceiverFactoryTest {
 	@Test
 	public void testFactorAnalayzeAndConvertImatgeToThumbnail() throws Exception {
 
-		MessageReceiver messageReceiver = factory.factor("smallImageConverterQueue", appTokenCredentials,
-				SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
+		MessageReceiver messageReceiver = factory.factor("smallImageConverterQueue",
+				appTokenCredentials, SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
 
 		javaClientFactory.MCR.assertParameters("factorDataClientUsingJavaClientAppTokenCredentials",
 				0, appTokenCredentials);
@@ -123,6 +124,28 @@ public class MessageReceiverFactoryTest {
 
 		assertTrue(
 				messageReceiver.onlyForTestGetPdfConverterFactory() instanceof PdfConverterFactory);
+		assertTrue(messageReceiver
+				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
+		assertTrue(messageReceiver
+				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
+		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+
+		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
+
+		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
+		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
+	}
+
+	@Test
+	public void testFactorImageConverterToJp2() throws Exception {
+		ConvertImageToJp2 messageReceiver = (ConvertImageToJp2) factory.factor("jp2ConverterQueue",
+				appTokenCredentials, SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
+
+		assertNotNull(messageReceiver);
+
+		assertTrue(
+				messageReceiver.onlyForTestGetJp2ConverterFactory() instanceof Jp2ConverterFactory);
 		assertTrue(messageReceiver
 				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());

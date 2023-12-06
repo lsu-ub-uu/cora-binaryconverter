@@ -60,13 +60,14 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
+		ImageData imageData = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
+				recordId, originalImagePath);
+
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		ClientDataGroup resourceInfoGroup = binaryRecordGroup
 				.getFirstGroupWithNameInData("resourceInfo");
-
-		convertAndCreateMetadataForRepresentations(dataDivider, recordType, recordId,
-				resourceInfoGroup, originalImagePath);
-
+		resourceMetadataCreator.createMetadataForRepresentation("jp2", resourceInfoGroup, recordId,
+				imageData);
 		dataClient.update(recordType, recordId, binaryRecordGroup);
 
 	}
@@ -76,26 +77,24 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void convertAndCreateMetadataForRepresentations(String dataDivider, String type,
-			String recordId, ClientDataGroup resourceInfoGroup, String inputPath) {
+	private ImageData convertAndCreateMetadataForRepresentations(String dataDivider, String type,
+			String recordId, String inputPath) {
 		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-jp2");
 
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
-				"jp2");
+		return convertPdfUsingResourceTypeNameAndWidth(recordId, inputPath, largePath, "jp2");
 
 	}
 
-	private void convertPdfUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
-			String recordId, String pathToImage, String outputPath, String representation) {
+	private ImageData convertPdfUsingResourceTypeNameAndWidth(String recordId, String pathToImage,
+			String outputPath, String representation) {
 
 		Jp2Converter jp2Converter = jp2ConverterFactory.factor();
 		jp2Converter.convert(pathToImage, outputPath);
 
-		ImageData imageData = analyzeImage(outputPath);
+		// ImageData imageData = analyzeImage(outputPath);
+		return analyzeImage(outputPath);
 
-		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData);
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
@@ -107,6 +106,26 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	public void topicClosed() {
 		// TODO Auto-generated method stub
 
+	}
+
+	public Jp2ConverterFactory onlyForTestGetJp2ConverterFactory() {
+		return jp2ConverterFactory;
+	}
+
+	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
+		return imageAnalyzerFactory;
+	}
+
+	public Object onlyForTestGetDataClient() {
+		return dataClient;
+	}
+
+	public ResourceMetadataCreator onlyForTestGetResourceMetadataCreator() {
+		return resourceMetadataCreator;
+	}
+
+	public PathBuilder onlyForTestGetPathBuilder() {
+		return pathBuilder;
 	}
 
 }

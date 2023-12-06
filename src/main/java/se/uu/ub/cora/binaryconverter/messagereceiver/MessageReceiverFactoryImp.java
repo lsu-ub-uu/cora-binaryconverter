@@ -24,9 +24,11 @@ import se.uu.ub.cora.binaryconverter.common.PathBuilder;
 import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
 import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
 import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.imagemagick.Jp2ConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterFactoryImp;
@@ -72,6 +74,11 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 		if (isPdfConverterQueue(queueName)) {
 			return factorConvertPdfToThumbnails();
 		}
+		if (isJp2ConverterQueue(queueName)) {
+			Jp2ConverterFactory jp2ConverterFactory = new Jp2ConverterFactoryImp();
+			return new ConvertImageToJp2(jp2ConverterFactory, imageAnalyzerFactory, dataClient,
+					resourceMetadataCreator, pathBuilder);
+		}
 
 		throw BinaryConverterException.withMessage(
 				"It could not start any message receiver with the queue name: " + queueName);
@@ -95,5 +102,9 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 		PdfConverterFactory pdfConverterFactory = new PdfConverterFactoryImp();
 		return new ConvertPdfToThumbnails(pdfConverterFactory, imageAnalyzerFactory, dataClient,
 				resourceMetadataCreator, pathBuilder);
+	}
+
+	private boolean isJp2ConverterQueue(String queueName) {
+		return "jp2ConverterQueue".equals(queueName);
 	}
 }

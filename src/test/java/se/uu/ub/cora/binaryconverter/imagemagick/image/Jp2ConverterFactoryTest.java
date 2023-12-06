@@ -28,7 +28,7 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.document.Jp2ConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.Jp2ConverterFactoryImp;
 
 public class Jp2ConverterFactoryTest {
 
