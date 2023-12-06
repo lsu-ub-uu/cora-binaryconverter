@@ -35,6 +35,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ConvertImageToJp2 implements MessageReceiver {
 
+	private static final String JP2_MIME_TYPE = "image/jp2";
 	private Jp2ConverterFactory jp2ConverterFactory;
 	private ImageAnalyzerFactory imageAnalyzerFactory;
 	private DataClient dataClient;
@@ -60,41 +61,42 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
-		ImageData imageData = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
-				recordId, originalImagePath);
+		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
+				originalImagePath);
 
+		ClientDataRecordGroup binaryRecordGroup = createMetadataForRepresentation(recordType,
+				recordId, imageData);
+		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
+			String inputPath) {
+		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
+				recordId + "-jp2");
+
+		return convertToJp2AndAnalyze(inputPath, largePath);
+	}
+
+	private ImageData convertToJp2AndAnalyze(String pathToImage, String outputPath) {
+		Jp2Converter jp2Converter = jp2ConverterFactory.factor();
+		jp2Converter.convert(pathToImage, outputPath);
+
+		return analyzeImage(outputPath);
+	}
+
+	private ClientDataRecordGroup createMetadataForRepresentation(String recordType,
+			String recordId, ImageData imageData) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		ClientDataGroup resourceInfoGroup = binaryRecordGroup
 				.getFirstGroupWithNameInData("resourceInfo");
 		resourceMetadataCreator.createMetadataForRepresentation("jp2", resourceInfoGroup, recordId,
-				imageData);
-		dataClient.update(recordType, recordId, binaryRecordGroup);
-
+				imageData, JP2_MIME_TYPE);
+		return binaryRecordGroup;
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
 		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
 		return binaryRecord.getDataRecordGroup();
-	}
-
-	private ImageData convertAndCreateMetadataForRepresentations(String dataDivider, String type,
-			String recordId, String inputPath) {
-		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-jp2");
-
-		return convertPdfUsingResourceTypeNameAndWidth(recordId, inputPath, largePath, "jp2");
-
-	}
-
-	private ImageData convertPdfUsingResourceTypeNameAndWidth(String recordId, String pathToImage,
-			String outputPath, String representation) {
-
-		Jp2Converter jp2Converter = jp2ConverterFactory.factor();
-		jp2Converter.convert(pathToImage, outputPath);
-
-		// ImageData imageData = analyzeImage(outputPath);
-		return analyzeImage(outputPath);
-
 	}
 
 	private ImageData analyzeImage(String pathToImage) {

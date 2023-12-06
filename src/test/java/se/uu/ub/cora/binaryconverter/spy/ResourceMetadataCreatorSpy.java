@@ -34,9 +34,10 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 
 	@Override
 	public void createMetadataForRepresentation(String representation,
-			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData) {
+			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
+			String mimeType) {
 		MCR.addCall("representation", representation, "resourceInfoGroup", resourceInfoGroup,
-				"recordId", recordId, "imageData", imageData);
+				"recordId", recordId, "imageData", imageData, "mimeType", mimeType);
 
 	}
 

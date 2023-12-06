@@ -34,6 +34,7 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
+	private static final String JPEG_MIME_TYPE = "image/jpeg";
 	private ImageAnalyzerFactory imageAnalyzerFactory;
 	private DataClient dataClient;
 	private ImageConverterFactory imageConverterFactory;
@@ -118,7 +119,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		ImageData imageData = analyzeImage(outputPath);
 
 		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData);
+				recordId, imageData, JPEG_MIME_TYPE);
 	}
 
 	@Override

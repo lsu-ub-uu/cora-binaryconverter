@@ -75,9 +75,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 			return factorConvertPdfToThumbnails();
 		}
 		if (isJp2ConverterQueue(queueName)) {
-			Jp2ConverterFactory jp2ConverterFactory = new Jp2ConverterFactoryImp();
-			return new ConvertImageToJp2(jp2ConverterFactory, imageAnalyzerFactory, dataClient,
-					resourceMetadataCreator, pathBuilder);
+			return factorConvertImageToJp2();
 		}
 
 		throw BinaryConverterException.withMessage(
@@ -106,5 +104,11 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
 	private boolean isJp2ConverterQueue(String queueName) {
 		return "jp2ConverterQueue".equals(queueName);
+	}
+
+	private MessageReceiver factorConvertImageToJp2() {
+		Jp2ConverterFactory jp2ConverterFactory = new Jp2ConverterFactoryImp();
+		return new ConvertImageToJp2(jp2ConverterFactory, imageAnalyzerFactory, dataClient,
+				resourceMetadataCreator, pathBuilder);
 	}
 }

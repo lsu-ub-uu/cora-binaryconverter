@@ -31,7 +31,7 @@ public interface ResourceMetadataCreator {
 	 * @param imageData
 	 */
 	void createMetadataForRepresentation(String representation, ClientDataGroup resourceInfoGroup,
-			String recordId, ImageData imageData);
+			String recordId, ImageData imageData, String mimeType);
 
 	/**
 	 * 

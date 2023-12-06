@@ -42,6 +42,7 @@ import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 
 public class ConvertPdfToThumbnailsTest {
 
+	private static final String JPEG_MIME_TYPE = "image/jpeg";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
@@ -105,11 +106,11 @@ public class ConvertPdfToThumbnailsTest {
 		var imageDataThumbnail = getImageData(2);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				getResourceInfo(), SOME_ID, imageDataLarge);
+				getResourceInfo(), SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				getResourceInfo(), SOME_ID, imageDataMedium);
+				getResourceInfo(), SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail);
+				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
 	}
 
 	private ImageData getImageData(int callNr) {

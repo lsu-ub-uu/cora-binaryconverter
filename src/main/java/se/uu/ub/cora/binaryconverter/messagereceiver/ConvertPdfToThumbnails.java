@@ -35,6 +35,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ConvertPdfToThumbnails implements MessageReceiver {
 
+	private static final String JPEG_MIME_TYPE = "image/jpeg";
 	private DataClient dataClient;
 	private PdfConverterFactory pdfConverterFactory;
 	private ImageAnalyzerFactory imageAnalyzerFactory;
@@ -105,7 +106,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		ImageData imageData = analyzeImage(outputPath);
 
 		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData);
+				recordId, imageData, JPEG_MIME_TYPE);
 	}
 
 	private ImageData analyzeImage(String pathToImage) {

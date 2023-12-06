@@ -25,22 +25,22 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
-	private static final String IMAGE_JPEG = "image/jpeg";
 
 	@Override
 	public void createMetadataForRepresentation(String representation,
-			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData) {
+			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
+			String mimeType) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(representation);
 
 		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
 				recordId + "-" + representation);
 		ClientDataResourceLink resourceLink = ClientDataProvider
-				.createResourceLinkUsingNameInDataAndMimeType(representation, IMAGE_JPEG);
+				.createResourceLinkUsingNameInDataAndMimeType(representation, mimeType);
 		ClientDataAtomic fileSize = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
-		ClientDataAtomic mimeType = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("mimeType", IMAGE_JPEG);
+		ClientDataAtomic updateMimeType = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("mimeType", mimeType);
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
@@ -51,7 +51,7 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		thumbnailGroup.addChild(id);
 		thumbnailGroup.addChild(resourceLink);
 		thumbnailGroup.addChild(fileSize);
-		thumbnailGroup.addChild(mimeType);
+		thumbnailGroup.addChild(updateMimeType);
 		thumbnailGroup.addChild(height);
 		thumbnailGroup.addChild(width);
 		thumbnailGroup.addChild(resolution);

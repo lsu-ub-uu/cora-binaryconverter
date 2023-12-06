@@ -57,7 +57,7 @@ public class ResourceMetadataCreatorTest {
 	public void testCallCreateMetadataForRepresentation() throws Exception {
 
 		resourceMetadataCreator.createMetadataForRepresentation("someRepresentation",
-				resourceInfoGroup, SOME_RECORD_ID, imageData);
+				resourceInfoGroup, SOME_RECORD_ID, imageData, IMAGE_JPEG);
 
 		assertCreateAndUpdateMetadataForRespresentation("someRepresentation", imageData, 0, 0);
 	}

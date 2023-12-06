@@ -40,6 +40,7 @@ import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 
 public class ConvertImageToJp2Test {
 
+	private static final String JP2_MIME_TYPE = "image/jp2";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
@@ -99,7 +100,7 @@ public class ConvertImageToJp2Test {
 		var imageDataLarge = getImageData(0);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "jp2",
-				getResourceInfo(), SOME_ID, imageDataLarge);
+				getResourceInfo(), SOME_ID, imageDataLarge, JP2_MIME_TYPE);
 
 	}
 
