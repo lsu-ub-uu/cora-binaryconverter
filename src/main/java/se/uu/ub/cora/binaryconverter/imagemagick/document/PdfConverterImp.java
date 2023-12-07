@@ -24,14 +24,15 @@ import java.text.MessageFormat;
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class PdfConverterImp implements PdfConverter {
 
 	private ConvertCmd convertCmd;
 	private IMOperationFactory imOperationFactory;
+	private static final double QUALITY = 90.0;
 	private static final String OUTPUT_FORMAT = "JPG:";
 
 	public PdfConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
@@ -41,15 +42,7 @@ public class PdfConverterImp implements PdfConverter {
 
 	@Override
 	public void convertUsingWidth(String inputPath, String outputPath, int width) {
-
-		IMOperation imOperation = imOperationFactory.factor();
-
-		imOperation.addImage(inputPath + "[0]");
-		imOperation.thumbnail(width);
-		imOperation.alpha("remove");
-
-		imOperation.addImage(OUTPUT_FORMAT + outputPath);
-
+		IMOperation imOperation = createImOperationForPdfConverter(inputPath, outputPath, width);
 		try {
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
@@ -57,6 +50,17 @@ public class PdfConverterImp implements PdfConverter {
 			String message = MessageFormat.format(errorMsg, inputPath, width);
 			throw BinaryConverterException.withMessageAndException(message, e);
 		}
+	}
+
+	private IMOperation createImOperationForPdfConverter(String inputPath, String outputPath,
+			int width) {
+		IMOperation imOperation = imOperationFactory.factor();
+		imOperation.addImage(inputPath + "[0]");
+		imOperation.resize(width);
+		imOperation.quality(QUALITY);
+		imOperation.alpha("remove");
+		imOperation.addImage(OUTPUT_FORMAT + outputPath);
+		return imOperation;
 	}
 
 	public IMOperationFactory onlyForTestGetImOperationFactory() {

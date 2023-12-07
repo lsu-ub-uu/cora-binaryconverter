@@ -21,6 +21,7 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 import static org.testng.Assert.assertEquals;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
@@ -30,8 +31,8 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
+import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
-import se.uu.ub.cora.binaryconverter.spy.PdfConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
@@ -39,9 +40,9 @@ import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 
-public class ConvertPdfToThumbnailsTest {
+public class ConvertImageToJp2Test {
 
-	private static final String JPEG_MIME_TYPE = "image/jpeg";
+	private static final String JP2_MIME_TYPE = "image/jp2";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
@@ -50,7 +51,7 @@ public class ConvertPdfToThumbnailsTest {
 	private Map<String, String> some_headers = new HashMap<>();
 
 	private ClientDataFactorySpy clientDataFactory;
-	private ConvertPdfToThumbnails messageReceiver;
+	private ConvertImageToJp2 messageReceiver;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
 	private PathBuilderSpy pathBuilder;
@@ -69,7 +70,7 @@ public class ConvertPdfToThumbnailsTest {
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
-		messageReceiver = new ConvertPdfToThumbnails(binaryOperationFactory, dataClient,
+		messageReceiver = new ConvertImageToJp2(binaryOperationFactory, dataClient,
 				resourceMetadataCreator, pathBuilder);
 
 		setMessageHeaders();
@@ -82,32 +83,25 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testConvertPDfToThumbnailCalled() throws Exception {
+	public void testConvertImageToJp2Called() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) pathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0);
-		assertAnalyzeAndConvertToRepresentation("medium", 300, "somePathToAFile", 1);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "somePathToAFile", 2);
+		assertAnalyzeAndConvertToRepresentation("jp2", 600, resourceMasterPath, 0);
 	}
 
 	@Test
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
-		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 3);
+		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 1);
 		var imageDataLarge = getImageData(0);
-		var imageDataMedium = getImageData(1);
-		var imageDataThumbnail = getImageData(2);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				getResourceInfo(), SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				getResourceInfo(), SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "jp2",
+				getResourceInfo(), SOME_ID, imageDataLarge, JP2_MIME_TYPE);
+
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -135,11 +129,10 @@ public class ConvertPdfToThumbnailsTest {
 
 	private void assertCallToConvert(int width, String inputPath, int callNr,
 			String pathToFileRepresentation) {
-		binaryOperationFactory.MCR.assertParameters("factorPdfConverter", callNr);
-		PdfConverterSpy pdfConverter = (PdfConverterSpy) binaryOperationFactory.MCR
-				.getReturnValue("factorPdfConverter", callNr);
-		pdfConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath, "somePathToAFile",
-				width);
+		binaryOperationFactory.MCR.assertParameters("factorJp2Converter", callNr);
+		Jp2ConverterSpy jp2Converter = (Jp2ConverterSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorJp2Converter", callNr);
+		jp2Converter.MCR.assertParameters("convert", 0, inputPath, "somePathToAFile");
 	}
 
 	private String assertPathBuilderBuildFileSystemFilePath(String representation, int callNr) {
@@ -192,6 +185,13 @@ public class ConvertPdfToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = (ClientDataRecordGroupSpy) dataRecord.MCR
 				.getReturnValue("getDataRecordGroup", 0);
 		return binaryRecordGroup;
+	}
+
+	@Test
+	public void testUpdateReturn_Conflict_409() throws Exception {
+
+		dataClient.MRV.setReturnValues("update", List.of(new RuntimeException()));
+
 	}
 
 	@Test

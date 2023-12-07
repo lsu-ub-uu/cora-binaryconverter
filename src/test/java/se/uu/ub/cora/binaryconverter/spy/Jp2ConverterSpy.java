@@ -16,21 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick.image;
+package se.uu.ub.cora.binaryconverter.spy;
 
-import org.im4java.core.ConvertCmd;
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
+public class Jp2ConverterSpy implements Jp2Converter {
 
-public class ImageConverterFactoryImp implements ImageConverterFactory {
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
+
+	public Jp2ConverterSpy() {
+		MCR.useMRV(MRV);
+	}
 
 	@Override
-	public ImageConverter factor() {
-		IMOperationFactory factory = new IMOperationFactoryImp();
-		ConvertCmd command = new ConvertCmd();
-		return new ImageConverterImp(factory, command);
+	public void convert(String inputPath, String outputPath) {
+		MCR.addCall("inputPath", inputPath, "outputPath", outputPath);
 	}
 }

@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.document;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 /**
  * PdfConverter is intended to be used to convert the first page of an pdf to other formats.

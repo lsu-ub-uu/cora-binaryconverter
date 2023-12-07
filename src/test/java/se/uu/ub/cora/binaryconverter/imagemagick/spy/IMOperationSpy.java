@@ -57,8 +57,8 @@ public class IMOperationSpy extends IMOperation {
 	}
 
 	@Override
-	public IMOps resize(Integer var1, Integer var2) {
-		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1, "var2", var2);
+	public IMOps resize(Integer var1) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
 	}
 
 	@Override

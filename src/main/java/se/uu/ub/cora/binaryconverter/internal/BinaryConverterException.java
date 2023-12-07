@@ -16,24 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.messagereceiver;
+package se.uu.ub.cora.binaryconverter.internal;
 
-import java.util.Map;
+public class BinaryConverterException extends RuntimeException {
 
-import se.uu.ub.cora.messaging.MessageReceiver;
+	private static final long serialVersionUID = -255261285196817577L;
 
-public class ConvertToJpeg2000 implements MessageReceiver {
-
-	@Override
-	public void receiveMessage(Map<String, String> headers, String message) {
-		// TODO Auto-generated method stub
-
+	private BinaryConverterException(String message) {
+		super(message);
 	}
 
-	@Override
-	public void topicClosed() {
-		// TODO Auto-generated method stub
+	private BinaryConverterException(String message, Exception e) {
+		super(message, e);
+	}
 
+	public static BinaryConverterException withMessage(String message) {
+		return new BinaryConverterException(message);
+	}
+
+	public static BinaryConverterException withMessageAndException(String message, Exception e) {
+		return new BinaryConverterException(message, e);
 	}
 
 }

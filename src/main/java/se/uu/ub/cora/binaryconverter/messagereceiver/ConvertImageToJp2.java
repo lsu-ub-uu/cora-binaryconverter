@@ -20,9 +20,9 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
@@ -32,19 +32,19 @@ import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
-public class ConvertPdfToThumbnails implements MessageReceiver {
-	private DataClient dataClient;
+public class ConvertImageToJp2 implements MessageReceiver {
 	private BinaryOperationFactory binaryOperationFactory;
-	private PathBuilder pathBuilder;
+	private DataClient dataClient;
 	private ResourceMetadataCreator resourceMetadataCreator;
+	private PathBuilder pathBuilder;
 
-	public ConvertPdfToThumbnails(BinaryOperationFactory binaryOperationFactory,
-			DataClient dataClient, ResourceMetadataCreator resourceMetadataCreator,
-			PathBuilder pathBuilder) {
+	public ConvertImageToJp2(BinaryOperationFactory binaryOperationFactory, DataClient dataClient,
+			ResourceMetadataCreator resourceMetadataCreator, PathBuilder pathBuilder) {
 		this.binaryOperationFactory = binaryOperationFactory;
 		this.dataClient = dataClient;
 		this.resourceMetadataCreator = resourceMetadataCreator;
 		this.pathBuilder = pathBuilder;
+
 	}
 
 	@Override
@@ -55,55 +55,42 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
-		ClientDataRecordGroup binaryRecordGroup = convertAndCreateMetadataForRepresentations(
-				dataDivider, recordType, recordId, originalImagePath);
+		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
+				originalImagePath);
 
+		ClientDataRecordGroup binaryRecordGroup = createMetadataForRepresentation(recordType,
+				recordId, imageData);
 		dataClient.update(recordType, recordId, binaryRecordGroup);
+	}
+
+	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
+			String inputPath) {
+		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
+				recordId + "-jp2");
+
+		return convertToJp2AndAnalyze(inputPath, largePath);
+	}
+
+	private ImageData convertToJp2AndAnalyze(String pathToImage, String outputPath) {
+		Jp2Converter jp2Converter = binaryOperationFactory.factorJp2Converter();
+		jp2Converter.convert(pathToImage, outputPath);
+
+		return analyzeImage(outputPath);
+	}
+
+	private ClientDataRecordGroup createMetadataForRepresentation(String recordType,
+			String recordId, ImageData imageData) {
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+		ClientDataGroup resourceInfoGroup = binaryRecordGroup
+				.getFirstGroupWithNameInData("resourceInfo");
+		resourceMetadataCreator.createMetadataForRepresentation("jp2", resourceInfoGroup, recordId,
+				imageData, "image/jp2");
+		return binaryRecordGroup;
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
 		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
 		return binaryRecord.getDataRecordGroup();
-	}
-
-	private ClientDataRecordGroup convertAndCreateMetadataForRepresentations(String dataDivider,
-			String type, String recordId, String inputPath) {
-		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-large");
-		String mediumPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-medium");
-		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-thumbnail");
-
-		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(type, recordId);
-		ClientDataGroup resourceInfoGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData("resourceInfo");
-
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
-				"large", 600);
-		/**
-		 * To increase speed and efficiency of the conversion process we use the large preview
-		 * version to convert the medium and thumbnail versions instead of the archived version.
-		 */
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath, mediumPath,
-				"medium", 300);
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
-				thumbnailPath, "thumbnail", 100);
-
-		return binaryRecordGroup;
-	}
-
-	private void convertPdfUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
-			String recordId, String pathToImage, String outputPath, String representation,
-			int convertToWidth) {
-
-		PdfConverter pdfConverter = binaryOperationFactory.factorPdfConverter();
-		pdfConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
-
-		ImageData imageData = analyzeImage(outputPath);
-
-		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData, "image/jpeg");
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
@@ -121,7 +108,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		return binaryOperationFactory;
 	}
 
-	public DataClient onlyForTestGetDataClient() {
+	public Object onlyForTestGetDataClient() {
 		return dataClient;
 	}
 

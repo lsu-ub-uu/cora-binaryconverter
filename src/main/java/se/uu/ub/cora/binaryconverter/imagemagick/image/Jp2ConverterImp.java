@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick.jp2;
+package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import java.text.MessageFormat;
 
@@ -24,9 +24,9 @@ import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 import org.im4java.process.ArrayListOutputConsumer;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class Jp2ConverterImp implements Jp2Converter {
 	private IMOperationFactory imOperationFactory;

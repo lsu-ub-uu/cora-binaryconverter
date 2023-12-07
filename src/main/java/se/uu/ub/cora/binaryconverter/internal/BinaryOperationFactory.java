@@ -16,25 +16,33 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick.spy;
+package se.uu.ub.cora.binaryconverter.internal;
 
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 
-public class ImageAnalyzerFactorySpy implements ImageAnalyzerFactory {
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+public interface BinaryOperationFactory {
 
-	public ImageAnalyzerFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageAnalyzerSpy::new);
-	}
+	/**
+	 * Factor method creates a new ImageAnalyzer using a path to an image.
+	 * 
+	 * @param path
+	 *            is a String with the absolute path to an image to analyze.
+	 * @return an {@link ImageAnalyzer} is an object that can be use to analyze pictures.
+	 */
+	public ImageAnalyzer factorImageAnalyzer(String path);
 
-	@Override
-	public ImageAnalyzer factor(String path) {
-		return (ImageAnalyzer) MCR.addCallAndReturnFromMRV("path", path);
-	}
+	ImageConverter factorImageConverter();
+
+	PdfConverter factorPdfConverter();
+
+	/**
+	 * factor creates a new Jp2Converter
+	 * 
+	 * @return a new Jp2Converter
+	 */
+	Jp2Converter factorJp2Converter();
+
 }

@@ -16,26 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.internal;
 
-import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 
-public class PdfConverterFactorySpy implements PdfConverterFactory {
+public interface ResourceMetadataCreator {
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+	/**
+	 * 
+	 * @param representation
+	 * @param resourceInfoGroup
+	 * @param recordId
+	 * @param imageData
+	 */
+	void createMetadataForRepresentation(String representation, ClientDataGroup resourceInfoGroup,
+			String recordId, ImageData imageData, String mimeType);
 
-	public PdfConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", PdfConverterSpy::new);
-	}
-
-	@Override
-	public PdfConverter factor() {
-		return (PdfConverter) MCR.addCallAndReturnFromMRV();
-	}
+	/**
+	 * 
+	 * @param resourceInfoGroup
+	 * @param imageData
+	 */
+	void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup, ImageData imageData);
 
 }

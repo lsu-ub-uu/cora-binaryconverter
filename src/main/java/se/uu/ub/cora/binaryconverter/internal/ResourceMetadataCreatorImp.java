@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.common;
+package se.uu.ub.cora.binaryconverter.internal;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
@@ -25,22 +25,22 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
-	private static final String IMAGE_JPEG = "image/jpeg";
 
 	@Override
 	public void createMetadataForRepresentation(String representation,
-			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData) {
+			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
+			String mimeTypenName) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(representation);
 
 		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
 				recordId + "-" + representation);
 		ClientDataResourceLink resourceLink = ClientDataProvider
-				.createResourceLinkUsingNameInDataAndMimeType(representation, IMAGE_JPEG);
+				.createResourceLinkUsingNameInDataAndMimeType(representation, mimeTypenName);
 		ClientDataAtomic fileSize = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
 		ClientDataAtomic mimeType = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("mimeType", IMAGE_JPEG);
+				.createAtomicUsingNameInDataAndValue("mimeType", mimeTypenName);
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",

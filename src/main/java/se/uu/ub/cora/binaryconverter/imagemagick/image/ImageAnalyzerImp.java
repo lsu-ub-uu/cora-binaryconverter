@@ -27,9 +27,9 @@ import org.im4java.core.IMOps;
 import org.im4java.core.IdentifyCmd;
 import org.im4java.process.ArrayListOutputConsumer;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class ImageAnalyzerImp implements ImageAnalyzer {
 
@@ -99,4 +99,5 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 	public String onlyForTestGetImagePath() {
 		return imagePath;
 	}
+
 }

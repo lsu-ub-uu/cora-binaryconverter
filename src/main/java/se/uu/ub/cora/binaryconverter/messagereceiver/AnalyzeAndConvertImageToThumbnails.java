@@ -20,13 +20,12 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
@@ -34,18 +33,16 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
-	private ImageAnalyzerFactory imageAnalyzerFactory;
 	private DataClient dataClient;
-	private ImageConverterFactory imageConverterFactory;
+	private BinaryOperationFactory binaryOperationFactory;
 	private PathBuilder pathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
 
 	public AnalyzeAndConvertImageToThumbnails(DataClient dataClient,
-			ImageAnalyzerFactory imageAnalyzerFactory, ImageConverterFactory imageConverterFactory,
-			PathBuilder pathBuilder, ResourceMetadataCreator resourceMetadataCreator) {
+			BinaryOperationFactory binaryOperationFactory, PathBuilder pathBuilder,
+			ResourceMetadataCreator resourceMetadataCreator) {
 		this.dataClient = dataClient;
-		this.imageAnalyzerFactory = imageAnalyzerFactory;
-		this.imageConverterFactory = imageConverterFactory;
+		this.binaryOperationFactory = binaryOperationFactory;
 		this.pathBuilder = pathBuilder;
 		this.resourceMetadataCreator = resourceMetadataCreator;
 	}
@@ -83,7 +80,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
+		ImageAnalyzer analyzer = binaryOperationFactory.factorImageAnalyzer(pathToImage);
 		return analyzer.analyze();
 	}
 
@@ -112,13 +109,13 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			String recordId, String pathToImage, String outputPath, String representation,
 			int convertToWidth) {
 
-		ImageConverter imageConverter = imageConverterFactory.factor();
+		ImageConverter imageConverter = binaryOperationFactory.factorImageConverter();
 		imageConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
 
 		ImageData imageData = analyzeImage(outputPath);
 
 		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData);
+				recordId, imageData, "image/jpeg");
 	}
 
 	@Override
@@ -126,16 +123,12 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		// TODO Auto-generated method stub
 	}
 
-	ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
-		return imageAnalyzerFactory;
-	}
-
 	DataClient onlyForTestGetDataClient() {
 		return dataClient;
 	}
 
-	ImageConverterFactory onlyForTestGetImageConverterFactory() {
-		return imageConverterFactory;
+	BinaryOperationFactory onlyForTestGetBinaryOperationFactory() {
+		return binaryOperationFactory;
 	}
 
 	PathBuilder onlyForTestGetPathBuilder() {
