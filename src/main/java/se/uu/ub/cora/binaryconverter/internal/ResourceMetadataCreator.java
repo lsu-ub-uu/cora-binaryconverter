@@ -16,21 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick.image;
+package se.uu.ub.cora.binaryconverter.internal;
 
-import org.im4java.core.ConvertCmd;
+import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 
-import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
+public interface ResourceMetadataCreator {
 
-public class ImageConverterFactoryImp implements ImageConverterFactory {
+	/**
+	 * 
+	 * @param representation
+	 * @param resourceInfoGroup
+	 * @param recordId
+	 * @param imageData
+	 */
+	void createMetadataForRepresentation(String representation, ClientDataGroup resourceInfoGroup,
+			String recordId, ImageData imageData, String mimeType);
 
-	@Override
-	public ImageConverter factor() {
-		IMOperationFactory factory = new IMOperationFactoryImp();
-		ConvertCmd command = new ConvertCmd();
-		return new ImageConverterImp(factory, command);
-	}
+	/**
+	 * 
+	 * @param resourceInfoGroup
+	 * @param imageData
+	 */
+	void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup, ImageData imageData);
+
 }

@@ -20,13 +20,12 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
@@ -34,20 +33,16 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ConvertPdfToThumbnails implements MessageReceiver {
-
-	private static final String JPEG_MIME_TYPE = "image/jpeg";
 	private DataClient dataClient;
-	private PdfConverterFactory pdfConverterFactory;
-	private ImageAnalyzerFactory imageAnalyzerFactory;
+	private BinaryOperationFactory binaryOperationFactory;
 	private PathBuilder pathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
 
-	public ConvertPdfToThumbnails(PdfConverterFactory pdfConverterFactory,
-			ImageAnalyzerFactory imageAnalyzerFactory, DataClient dataClient,
-			ResourceMetadataCreator resourceMetadataCreator, PathBuilder pathBuilder) {
-		this.imageAnalyzerFactory = imageAnalyzerFactory;
+	public ConvertPdfToThumbnails(BinaryOperationFactory binaryOperationFactory,
+			DataClient dataClient, ResourceMetadataCreator resourceMetadataCreator,
+			PathBuilder pathBuilder) {
+		this.binaryOperationFactory = binaryOperationFactory;
 		this.dataClient = dataClient;
-		this.pdfConverterFactory = pdfConverterFactory;
 		this.resourceMetadataCreator = resourceMetadataCreator;
 		this.pathBuilder = pathBuilder;
 	}
@@ -100,17 +95,17 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 			String recordId, String pathToImage, String outputPath, String representation,
 			int convertToWidth) {
 
-		PdfConverter pdfConverter = pdfConverterFactory.factor();
+		PdfConverter pdfConverter = binaryOperationFactory.factorPdfConverter();
 		pdfConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
 
 		ImageData imageData = analyzeImage(outputPath);
 
 		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData, JPEG_MIME_TYPE);
+				recordId, imageData, "image/jpeg");
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
+		ImageAnalyzer analyzer = binaryOperationFactory.factorImageAnalyzer(pathToImage);
 		return analyzer.analyze();
 	}
 
@@ -120,12 +115,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 	}
 
-	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
-		return imageAnalyzerFactory;
-	}
-
-	public PdfConverterFactory onlyForTestGetPdfConverterFactory() {
-		return pdfConverterFactory;
+	public BinaryOperationFactory onlyForTestGetBinaryOperationFactory() {
+		return binaryOperationFactory;
 	}
 
 	public DataClient onlyForTestGetDataClient() {

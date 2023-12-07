@@ -27,14 +27,11 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
-import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
-import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
-import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilderImp;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreatorImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
@@ -86,9 +83,9 @@ public class MessageReceiverFactoryTest {
 	private void assertMessageReceiver(AnalyzeAndConvertImageToThumbnails messageReceiver) {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
 		assertTrue(messageReceiver
-				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+				.onlyForTestGetBinaryOperationFactory() instanceof BinaryOperationFactory);
 		assertTrue(messageReceiver
-				.onlyForTestGetImageConverterFactory() instanceof ImageConverterFactory);
+				.onlyForTestGetBinaryOperationFactory() instanceof BinaryOperationFactory);
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
 		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
@@ -122,10 +119,8 @@ public class MessageReceiverFactoryTest {
 
 		assertNotNull(messageReceiver);
 
-		assertTrue(
-				messageReceiver.onlyForTestGetPdfConverterFactory() instanceof PdfConverterFactory);
 		assertTrue(messageReceiver
-				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+				.onlyForTestGetBinaryOperationFactory() instanceof BinaryOperationFactory);
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
@@ -144,10 +139,8 @@ public class MessageReceiverFactoryTest {
 
 		assertNotNull(messageReceiver);
 
-		assertTrue(
-				messageReceiver.onlyForTestGetJp2ConverterFactory() instanceof Jp2ConverterFactory);
 		assertTrue(messageReceiver
-				.onlyForTestGetImageAnalyzerFactory() instanceof ImageAnalyzerFactory);
+				.onlyForTestGetBinaryOperationFactory() instanceof BinaryOperationFactory);
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);

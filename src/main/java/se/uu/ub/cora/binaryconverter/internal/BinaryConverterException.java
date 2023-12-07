@@ -16,26 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.internal;
 
-import se.uu.ub.cora.binaryconverter.document.PdfConverter;
-import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public class BinaryConverterException extends RuntimeException {
 
-public class PdfConverterFactorySpy implements PdfConverterFactory {
+	private static final long serialVersionUID = -255261285196817577L;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public PdfConverterFactorySpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", PdfConverterSpy::new);
+	private BinaryConverterException(String message) {
+		super(message);
 	}
 
-	@Override
-	public PdfConverter factor() {
-		return (PdfConverter) MCR.addCallAndReturnFromMRV();
+	private BinaryConverterException(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static BinaryConverterException withMessage(String message) {
+		return new BinaryConverterException(message);
+	}
+
+	public static BinaryConverterException withMessageAndException(String message, Exception e) {
+		return new BinaryConverterException(message, e);
 	}
 
 }

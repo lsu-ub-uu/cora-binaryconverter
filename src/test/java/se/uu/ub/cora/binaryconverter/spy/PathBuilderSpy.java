@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 

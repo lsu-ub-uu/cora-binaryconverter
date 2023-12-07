@@ -28,12 +28,10 @@ import java.util.Map;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
+import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
-import se.uu.ub.cora.binaryconverter.spy.ImageConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
@@ -54,10 +52,9 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private AnalyzeAndConvertImageToThumbnails converter;
 	private Map<String, String> some_headers = new HashMap<>();
-	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
+	private BinaryOperationFactorySpy binaryOperationFactory;
 	private DataClientSpy dataClient;
 	private ClientDataFactorySpy clientDataFactory;
-	private ImageConverterFactorySpy imageConverterFactory;
 	private ImageAnalyzerSpy analyzerMaster;
 	private ImageAnalyzerSpy analyzerThumbnail;
 	private ImageAnalyzerSpy analyzerMedium;
@@ -75,13 +72,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@BeforeMethod
 	public void beforeMethod() throws Exception {
-		setUpImageAnalyzerFactory();
 		dataClient = new DataClientSpy();
-		imageConverterFactory = new ImageConverterFactorySpy();
+		binaryOperationFactory = new BinaryOperationFactorySpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
+		setUpImageAnalyzerFactory();
 
-		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, imageAnalyzerFactory,
-				imageConverterFactory, pathBuilder, resourceMetadataCreator);
+		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, binaryOperationFactory,
+				pathBuilder, resourceMetadataCreator);
 
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
@@ -99,15 +96,14 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		analyzerMedium.MRV.setDefaultReturnValuesSupplier("analyze", () -> imageDataMedium);
 		analyzerLarge.MRV.setDefaultReturnValuesSupplier("analyze", () -> imageDataLarge);
 
-		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
-		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMaster,
-				"somePathToArchive");
-		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerThumbnail,
-				"aPath-thumbnail");
-		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerMedium,
-				"aPath-medium");
-		imageAnalyzerFactory.MRV.setSpecificReturnValuesSupplier("factor", () -> analyzerLarge,
-				"aPath-large");
+		binaryOperationFactory.MRV.setSpecificReturnValuesSupplier("factorImageAnalyzer",
+				() -> analyzerMaster, "somePathToArchive");
+		binaryOperationFactory.MRV.setSpecificReturnValuesSupplier("factorImageAnalyzer",
+				() -> analyzerThumbnail, "aPath-thumbnail");
+		binaryOperationFactory.MRV.setSpecificReturnValuesSupplier("factorImageAnalyzer",
+				() -> analyzerMedium, "aPath-medium");
+		binaryOperationFactory.MRV.setSpecificReturnValuesSupplier("factorImageAnalyzer",
+				() -> analyzerLarge, "aPath-large");
 
 		pathBuilder = new PathBuilderSpy();
 		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
@@ -127,7 +123,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	@Test
 	public void testImageAnalyzerFactoryInitialized() throws Exception {
 		assertTrue(converter instanceof MessageReceiver);
-		ImageAnalyzerFactory factory = converter.onlyForTestGetImageAnalyzerFactory();
+		var factory = converter.onlyForTestGetBinaryOperationFactory();
 		assertNotNull(factory);
 	}
 
@@ -138,7 +134,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		String resourceMasterPath = (String) pathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		imageAnalyzerFactory.MCR.assertParameters("factor", 0, resourceMasterPath);
+		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", 0, resourceMasterPath);
 	}
 
 	@Test
@@ -155,8 +151,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", 0);
+		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", 0);
 
 		analyzer.MCR.assertParameters("analyze", 0);
 	}
@@ -177,8 +173,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
 
-		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", 0);
+		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
 		resourceMetadataCreator.MCR.assertParameters("updateMasterGroupFromResourceInfo", 0,
@@ -203,7 +199,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		String resourceMasterPath = (String) pathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		imageAnalyzerFactory.MCR.assertNumberOfCallsToMethod("factor", 4);
+		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 4);
 
 		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1, 0);
 		assertAnalyzeAndConvertToRepresentation("medium", 300, "aPath-large", 1, 2, 1);
@@ -237,9 +233,9 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private void assertCallToConvert(int width, String inputPath, int fImageConverterCallNr,
 			String pathToFileRepresentation) {
-		imageConverterFactory.MCR.assertParameters("factor", fImageConverterCallNr);
-		ImageConverterSpy imageConverter = (ImageConverterSpy) imageConverterFactory.MCR
-				.getReturnValue("factor", fImageConverterCallNr);
+		binaryOperationFactory.MCR.assertParameters("factorImageConverter", fImageConverterCallNr);
+		ImageConverterSpy imageConverter = (ImageConverterSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageConverter", fImageConverterCallNr);
 		imageConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath,
 				pathToFileRepresentation, width);
 	}
@@ -256,10 +252,10 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr,
 			String pathToFileRepresentation) {
-		imageAnalyzerFactory.MCR.assertParameters("factor", fAnalyzerCallNr,
+		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", fAnalyzerCallNr,
 				pathToFileRepresentation);
-		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", fAnalyzerCallNr);
+		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", fAnalyzerCallNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
@@ -272,8 +268,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	@Test
 	public void testOnlyForTestGet() throws Exception {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
-		assertEquals(converter.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
-		assertEquals(converter.onlyForTestGetImageConverterFactory(), imageConverterFactory);
+		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
+		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetPathBuilder(), pathBuilder);
 		assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
 	}

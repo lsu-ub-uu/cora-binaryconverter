@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.common;
+package se.uu.ub.cora.binaryconverter.internal;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
@@ -29,18 +29,18 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 	@Override
 	public void createMetadataForRepresentation(String representation,
 			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
-			String mimeType) {
+			String mimeTypenName) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(representation);
 
 		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
 				recordId + "-" + representation);
 		ClientDataResourceLink resourceLink = ClientDataProvider
-				.createResourceLinkUsingNameInDataAndMimeType(representation, mimeType);
+				.createResourceLinkUsingNameInDataAndMimeType(representation, mimeTypenName);
 		ClientDataAtomic fileSize = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
-		ClientDataAtomic updateMimeType = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("mimeType", mimeType);
+		ClientDataAtomic mimeType = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("mimeType", mimeTypenName);
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
@@ -51,7 +51,7 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		thumbnailGroup.addChild(id);
 		thumbnailGroup.addChild(resourceLink);
 		thumbnailGroup.addChild(fileSize);
-		thumbnailGroup.addChild(updateMimeType);
+		thumbnailGroup.addChild(mimeType);
 		thumbnailGroup.addChild(height);
 		thumbnailGroup.addChild(width);
 		thumbnailGroup.addChild(resolution);

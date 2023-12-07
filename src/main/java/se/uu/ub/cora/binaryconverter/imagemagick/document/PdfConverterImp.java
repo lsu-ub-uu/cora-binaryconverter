@@ -24,9 +24,9 @@ import java.text.MessageFormat;
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class PdfConverterImp implements PdfConverter {
 

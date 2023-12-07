@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.common;
+package se.uu.ub.cora.binaryconverter.internal;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -33,6 +33,10 @@ import java.util.stream.Stream;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilderImp;
 
 public class PathBuilderTest {
 

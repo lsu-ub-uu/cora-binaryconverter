@@ -29,12 +29,12 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IdentifyCmdSpy;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class ImageAnalyzerTest {
 

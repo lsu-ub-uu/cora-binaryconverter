@@ -19,24 +19,44 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class ImageConverterFactorySpy implements ImageConverterFactory {
+public class BinaryOperationFactorySpy implements BinaryOperationFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public ImageConverterFactorySpy() {
+	public BinaryOperationFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factor", ImageConverterSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorImageAnalyzer", ImageAnalyzerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorImageConverter", ImageConverterSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorPdfConverter", PdfConverterSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorJp2Converter", Jp2ConverterSpy::new);
 	}
 
 	@Override
-	public ImageConverter factor() {
+	public ImageAnalyzer factorImageAnalyzer(String path) {
+		return (ImageAnalyzer) MCR.addCallAndReturnFromMRV("path", path);
+	}
+
+	@Override
+	public ImageConverter factorImageConverter() {
 		return (ImageConverter) MCR.addCallAndReturnFromMRV();
 	}
 
+	@Override
+	public PdfConverter factorPdfConverter() {
+		return (PdfConverter) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public Jp2Converter factorJp2Converter() {
+		return (Jp2Converter) MCR.addCallAndReturnFromMRV();
+	}
 }

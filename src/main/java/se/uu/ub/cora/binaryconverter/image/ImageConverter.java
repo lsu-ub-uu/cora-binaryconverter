@@ -18,7 +18,7 @@
  */
 package se.uu.ub.cora.binaryconverter.image;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 /**
  * ImageConverter is intended to be used to convert images to other formats.

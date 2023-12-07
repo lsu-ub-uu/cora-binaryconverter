@@ -29,12 +29,14 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 
 public class PdfConverterTest {
 
@@ -44,11 +46,13 @@ public class PdfConverterTest {
 	private PdfConverterImp pdfConverter;
 	private ConvertCmdSpy convertCmd;
 	private IMOperationFactorySpy imOperationFactory;
+	private BinaryOperationFactory binaryOperation;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		convertCmd = new ConvertCmdSpy();
 		imOperationFactory = new IMOperationFactorySpy();
+		binaryOperation = new BinaryOperationFactoryImp();
 
 		pdfConverter = new PdfConverterImp(imOperationFactory, convertCmd);
 	}
@@ -118,19 +122,9 @@ public class PdfConverterTest {
 		String input = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
 		String output = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputSmall.jpg";
 
-		PdfConverterFactoryImp converterFactory = new PdfConverterFactoryImp();
-		PdfConverter converter = converterFactory.factor();
+		PdfConverter converter = binaryOperation.factorPdfConverter();
 		converter.convertUsingWidth(input, output, 600);
 
-		// output =
-		// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputMedium.jpg";
-		// pdfConverter = new PdfConverterImp(input, output, 300);
-		// pdfConverter.convertUsingWidth(300);
-
-		// output =
-		// "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputLarge.jpg";
-		// pdfConverter = new PdfConverterImp(input, output, 600);
-		// pdfConverter.convertUsingWidth(600);
 	}
 
 	@Test(enabled = false)
@@ -139,8 +133,7 @@ public class PdfConverterTest {
 		String input = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
 		String output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_100.jpg";
 
-		PdfConverterFactoryImp converterFactory = new PdfConverterFactoryImp();
-		PdfConverter converter = converterFactory.factor();
+		PdfConverter converter = binaryOperation.factorPdfConverter();
 		converter.convertUsingWidth(input, output, 100);
 
 		output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_300.jpg";

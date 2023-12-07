@@ -25,10 +25,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
+import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
-import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
@@ -51,27 +50,25 @@ public class ConvertImageToJp2Test {
 	private ClientDataFactorySpy clientDataFactory;
 	private ConvertImageToJp2 messageReceiver;
 	private DataClientSpy dataClient;
-	private Jp2ConverterFactorySpy jp2ConverterFactory;
+	private BinaryOperationFactorySpy binaryOperationFactory;
 	private PathBuilderSpy pathBuilder;
 
-	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		dataClient = new DataClientSpy();
-		jp2ConverterFactory = new Jp2ConverterFactorySpy();
+		binaryOperationFactory = new BinaryOperationFactorySpy();
 
 		pathBuilder = new PathBuilderSpy();
 
-		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
-		messageReceiver = new ConvertImageToJp2(jp2ConverterFactory, imageAnalyzerFactory,
-				dataClient, resourceMetadataCreator, pathBuilder);
+		messageReceiver = new ConvertImageToJp2(binaryOperationFactory, dataClient,
+				resourceMetadataCreator, pathBuilder);
 
 		setMessageHeaders();
 	}
@@ -83,7 +80,7 @@ public class ConvertImageToJp2Test {
 	}
 
 	@Test
-	public void testConvertPDfToThumbnailCalled() throws Exception {
+	public void testConvertImageToJp2Called() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) pathBuilder.MCR
@@ -96,7 +93,7 @@ public class ConvertImageToJp2Test {
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageAnalyzerFactory.MCR.assertNumberOfCallsToMethod("factor", 1);
+		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 1);
 		var imageDataLarge = getImageData(0);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "jp2",
@@ -105,8 +102,8 @@ public class ConvertImageToJp2Test {
 	}
 
 	private ImageData getImageData(int callNr) {
-		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", callNr);
+		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", callNr);
 		return (ImageData) imageAnalyzer.MCR.getReturnValue("analyze", 0);
 	}
 
@@ -129,9 +126,9 @@ public class ConvertImageToJp2Test {
 
 	private void assertCallToConvert(int width, String inputPath, int callNr,
 			String pathToFileRepresentation) {
-		jp2ConverterFactory.MCR.assertParameters("factor", callNr);
-		Jp2ConverterSpy jp2Converter = (Jp2ConverterSpy) jp2ConverterFactory.MCR
-				.getReturnValue("factor", callNr);
+		binaryOperationFactory.MCR.assertParameters("factorJp2Converter", callNr);
+		Jp2ConverterSpy jp2Converter = (Jp2ConverterSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorJp2Converter", callNr);
 		jp2Converter.MCR.assertParameters("convert", 0, inputPath, "somePathToAFile");
 	}
 
@@ -146,9 +143,10 @@ public class ConvertImageToJp2Test {
 
 	private void assertAnalyzeRepresentation(String representation, int callNr,
 			String pathToFileRepresentation) {
-		imageAnalyzerFactory.MCR.assertParameters("factor", callNr, pathToFileRepresentation);
-		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", callNr);
+		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", callNr,
+				pathToFileRepresentation);
+		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", callNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 

@@ -27,11 +27,10 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.spy.ImageAnalyzerFactorySpy;
+import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
-import se.uu.ub.cora.binaryconverter.spy.PdfConverterFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.PdfConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
@@ -53,27 +52,25 @@ public class ConvertPdfToThumbnailsTest {
 	private ClientDataFactorySpy clientDataFactory;
 	private ConvertPdfToThumbnails messageReceiver;
 	private DataClientSpy dataClient;
-	private PdfConverterFactorySpy pdfConverterFactory;
+	private BinaryOperationFactorySpy binaryOperationFactory;
 	private PathBuilderSpy pathBuilder;
 
-	private ImageAnalyzerFactorySpy imageAnalyzerFactory;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		dataClient = new DataClientSpy();
-		pdfConverterFactory = new PdfConverterFactorySpy();
+		binaryOperationFactory = new BinaryOperationFactorySpy();
 
 		pathBuilder = new PathBuilderSpy();
 
-		imageAnalyzerFactory = new ImageAnalyzerFactorySpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
-		messageReceiver = new ConvertPdfToThumbnails(pdfConverterFactory, imageAnalyzerFactory,
-				dataClient, resourceMetadataCreator, pathBuilder);
+		messageReceiver = new ConvertPdfToThumbnails(binaryOperationFactory, dataClient,
+				resourceMetadataCreator, pathBuilder);
 
 		setMessageHeaders();
 	}
@@ -100,7 +97,7 @@ public class ConvertPdfToThumbnailsTest {
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
-		imageAnalyzerFactory.MCR.assertNumberOfCallsToMethod("factor", 3);
+		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 3);
 		var imageDataLarge = getImageData(0);
 		var imageDataMedium = getImageData(1);
 		var imageDataThumbnail = getImageData(2);
@@ -114,8 +111,8 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	private ImageData getImageData(int callNr) {
-		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", callNr);
+		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", callNr);
 		return (ImageData) imageAnalyzer.MCR.getReturnValue("analyze", 0);
 	}
 
@@ -138,9 +135,9 @@ public class ConvertPdfToThumbnailsTest {
 
 	private void assertCallToConvert(int width, String inputPath, int callNr,
 			String pathToFileRepresentation) {
-		pdfConverterFactory.MCR.assertParameters("factor", callNr);
-		PdfConverterSpy pdfConverter = (PdfConverterSpy) pdfConverterFactory.MCR
-				.getReturnValue("factor", callNr);
+		binaryOperationFactory.MCR.assertParameters("factorPdfConverter", callNr);
+		PdfConverterSpy pdfConverter = (PdfConverterSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorPdfConverter", callNr);
 		pdfConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath, "somePathToAFile",
 				width);
 	}
@@ -156,9 +153,10 @@ public class ConvertPdfToThumbnailsTest {
 
 	private void assertAnalyzeRepresentation(String representation, int callNr,
 			String pathToFileRepresentation) {
-		imageAnalyzerFactory.MCR.assertParameters("factor", callNr, pathToFileRepresentation);
-		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) imageAnalyzerFactory.MCR
-				.getReturnValue("factor", callNr);
+		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", callNr,
+				pathToFileRepresentation);
+		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
+				.getReturnValue("factorImageAnalyzer", callNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
@@ -199,8 +197,8 @@ public class ConvertPdfToThumbnailsTest {
 	@Test
 	public void testOnlyForTestGet() throws Exception {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
-		assertEquals(messageReceiver.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
-		assertEquals(messageReceiver.onlyForTestGetPdfConverterFactory(), pdfConverterFactory);
+		assertEquals(messageReceiver.onlyForTestGetBinaryOperationFactory(),
+				binaryOperationFactory);
 		assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
 		assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
 				resourceMetadataCreator);

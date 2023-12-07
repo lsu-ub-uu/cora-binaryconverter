@@ -20,14 +20,38 @@ package se.uu.ub.cora.binaryconverter.imagemagick;
 
 import org.im4java.core.ConvertCmd;
 
-import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
+import se.uu.ub.cora.binaryconverter.document.PdfConverter;
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 
-public class Jp2ConverterFactoryImp implements Jp2ConverterFactory {
+public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 
 	@Override
-	public Jp2Converter factor() {
+	public ImageAnalyzerImp factorImageAnalyzer(String someTempPath) {
+		return new ImageAnalyzerImp(someTempPath);
+	}
+
+	@Override
+	public ImageConverter factorImageConverter() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new ImageConverterImp(factory, command);
+	}
+
+	@Override
+	public PdfConverter factorPdfConverter() {
+		IMOperationFactory factory = new IMOperationFactoryImp();
+		ConvertCmd command = new ConvertCmd();
+		return new PdfConverterImp(factory, command);
+	}
+
+	@Override
+	public Jp2Converter factorJp2Converter() {
 		IMOperationFactory imOperationFactory = new IMOperationFactoryImp();
 		ConvertCmd command = new ConvertCmd();
 		return new Jp2ConverterImp(imOperationFactory, command);

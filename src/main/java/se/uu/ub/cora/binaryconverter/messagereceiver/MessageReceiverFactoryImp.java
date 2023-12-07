@@ -19,19 +19,13 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
-import se.uu.ub.cora.binaryconverter.common.PathBuilderImp;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreatorImp;
-import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
-import se.uu.ub.cora.binaryconverter.document.PdfConverterFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
-import se.uu.ub.cora.binaryconverter.image.ImageConverterFactory;
-import se.uu.ub.cora.binaryconverter.imagemagick.Jp2ConverterFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterFactoryImp;
+import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilderImp;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreatorImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -39,13 +33,13 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
-	private ImageAnalyzerFactory imageAnalyzerFactory;
+	private BinaryOperationFactory binaryOperationFactory;
 	private ResourceMetadataCreator resourceMetadataCreator;
 	private PathBuilder pathBuilder;
 	private DataClient dataClient;
 
 	public MessageReceiverFactoryImp() {
-		imageAnalyzerFactory = new ImageAnalyzerFactoryImp();
+		binaryOperationFactory = new BinaryOperationFactoryImp();
 		resourceMetadataCreator = new ResourceMetadataCreatorImp();
 	}
 
@@ -87,9 +81,9 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 	}
 
 	private MessageReceiver factorAnalyzeAndConvertImageToThumbnails() {
-		ImageConverterFactory imageConverterFactory = new ImageConverterFactoryImp();
-		return new AnalyzeAndConvertImageToThumbnails(dataClient, imageAnalyzerFactory,
-				imageConverterFactory, pathBuilder, resourceMetadataCreator);
+
+		return new AnalyzeAndConvertImageToThumbnails(dataClient, binaryOperationFactory,
+				pathBuilder, resourceMetadataCreator);
 	}
 
 	private boolean isPdfConverterQueue(String queueName) {
@@ -97,8 +91,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 	}
 
 	private MessageReceiver factorConvertPdfToThumbnails() {
-		PdfConverterFactory pdfConverterFactory = new PdfConverterFactoryImp();
-		return new ConvertPdfToThumbnails(pdfConverterFactory, imageAnalyzerFactory, dataClient,
+		return new ConvertPdfToThumbnails(binaryOperationFactory, dataClient,
 				resourceMetadataCreator, pathBuilder);
 	}
 
@@ -107,8 +100,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 	}
 
 	private MessageReceiver factorConvertImageToJp2() {
-		Jp2ConverterFactory jp2ConverterFactory = new Jp2ConverterFactoryImp();
-		return new ConvertImageToJp2(jp2ConverterFactory, imageAnalyzerFactory, dataClient,
-				resourceMetadataCreator, pathBuilder);
+		return new ConvertImageToJp2(binaryOperationFactory, dataClient, resourceMetadataCreator,
+				pathBuilder);
 	}
 }

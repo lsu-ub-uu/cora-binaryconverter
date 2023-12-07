@@ -24,9 +24,9 @@ import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
 import org.im4java.process.ArrayListOutputConsumer;
 
-import se.uu.ub.cora.binaryconverter.common.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class ImageConverterImp implements ImageConverter {
 	private static final double QUALITY = 90.0;

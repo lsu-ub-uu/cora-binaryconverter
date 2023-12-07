@@ -20,13 +20,12 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import java.util.Map;
 
-import se.uu.ub.cora.binaryconverter.common.PathBuilder;
-import se.uu.ub.cora.binaryconverter.common.ResourceMetadataCreator;
-import se.uu.ub.cora.binaryconverter.document.Jp2ConverterFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
-import se.uu.ub.cora.binaryconverter.image.ImageAnalyzerFactory;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
+import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
@@ -34,19 +33,14 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class ConvertImageToJp2 implements MessageReceiver {
-
-	private static final String JP2_MIME_TYPE = "image/jp2";
-	private Jp2ConverterFactory jp2ConverterFactory;
-	private ImageAnalyzerFactory imageAnalyzerFactory;
+	private BinaryOperationFactory binaryOperationFactory;
 	private DataClient dataClient;
 	private ResourceMetadataCreator resourceMetadataCreator;
 	private PathBuilder pathBuilder;
 
-	public ConvertImageToJp2(Jp2ConverterFactory jp2ConverterFactory,
-			ImageAnalyzerFactory imageAnalyzerFactory, DataClient dataClient,
+	public ConvertImageToJp2(BinaryOperationFactory binaryOperationFactory, DataClient dataClient,
 			ResourceMetadataCreator resourceMetadataCreator, PathBuilder pathBuilder) {
-		this.jp2ConverterFactory = jp2ConverterFactory;
-		this.imageAnalyzerFactory = imageAnalyzerFactory;
+		this.binaryOperationFactory = binaryOperationFactory;
 		this.dataClient = dataClient;
 		this.resourceMetadataCreator = resourceMetadataCreator;
 		this.pathBuilder = pathBuilder;
@@ -78,7 +72,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	}
 
 	private ImageData convertToJp2AndAnalyze(String pathToImage, String outputPath) {
-		Jp2Converter jp2Converter = jp2ConverterFactory.factor();
+		Jp2Converter jp2Converter = binaryOperationFactory.factorJp2Converter();
 		jp2Converter.convert(pathToImage, outputPath);
 
 		return analyzeImage(outputPath);
@@ -90,7 +84,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		ClientDataGroup resourceInfoGroup = binaryRecordGroup
 				.getFirstGroupWithNameInData("resourceInfo");
 		resourceMetadataCreator.createMetadataForRepresentation("jp2", resourceInfoGroup, recordId,
-				imageData, JP2_MIME_TYPE);
+				imageData, "image/jp2");
 		return binaryRecordGroup;
 	}
 
@@ -100,7 +94,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = imageAnalyzerFactory.factor(pathToImage);
+		ImageAnalyzer analyzer = binaryOperationFactory.factorImageAnalyzer(pathToImage);
 		return analyzer.analyze();
 	}
 
@@ -110,12 +104,8 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 	}
 
-	public Jp2ConverterFactory onlyForTestGetJp2ConverterFactory() {
-		return jp2ConverterFactory;
-	}
-
-	public ImageAnalyzerFactory onlyForTestGetImageAnalyzerFactory() {
-		return imageAnalyzerFactory;
+	public BinaryOperationFactory onlyForTestGetBinaryOperationFactory() {
+		return binaryOperationFactory;
 	}
 
 	public Object onlyForTestGetDataClient() {
