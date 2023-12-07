@@ -55,12 +55,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
-		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		ClientDataGroup resourceInfoGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData("resourceInfo");
-
-		convertAndCreateMetadataForRepresentations(dataDivider, recordType, recordId,
-				resourceInfoGroup, originalImagePath);
+		ClientDataRecordGroup binaryRecordGroup = convertAndCreateMetadataForRepresentations(
+				dataDivider, recordType, recordId, originalImagePath);
 
 		dataClient.update(recordType, recordId, binaryRecordGroup);
 	}
@@ -70,14 +66,18 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void convertAndCreateMetadataForRepresentations(String dataDivider, String type,
-			String recordId, ClientDataGroup resourceInfoGroup, String inputPath) {
+	private ClientDataRecordGroup convertAndCreateMetadataForRepresentations(String dataDivider,
+			String type, String recordId, String inputPath) {
 		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-large");
 		String mediumPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-medium");
 		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-thumbnail");
+
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(type, recordId);
+		ClientDataGroup resourceInfoGroup = binaryRecordGroup
+				.getFirstGroupWithNameInData("resourceInfo");
 
 		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
 				"large", 600);
@@ -89,6 +89,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 				"medium", 300);
 		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
 				thumbnailPath, "thumbnail", 100);
+
+		return binaryRecordGroup;
 	}
 
 	private void convertPdfUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,

@@ -33,7 +33,6 @@ import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
-	// private ImageAnalyzerFactory binaryOperationFactory;
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
 	private PathBuilder pathBuilder;

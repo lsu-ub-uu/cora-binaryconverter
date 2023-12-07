@@ -18,7 +18,10 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.BeforeMethod;
@@ -185,13 +188,20 @@ public class ConvertImageToJp2Test {
 	}
 
 	@Test
+	public void testUpdateReturn_Conflict_409() throws Exception {
+
+		dataClient.MRV.setReturnValues("update", List.of(new RuntimeException()));
+
+	}
+
+	@Test
 	public void testOnlyForTestGet() throws Exception {
-		// assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
-		// assertEquals(messageReceiver.onlyForTestGetImageAnalyzerFactory(), imageAnalyzerFactory);
-		// assertEquals(messageReceiver.onlyForTestGetPdfConverterFactory(), jp2ConverterFactory);
-		// assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
-		// assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
-		// resourceMetadataCreator);
+		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
+		assertEquals(messageReceiver.onlyForTestGetBinaryOperationFactory(),
+				binaryOperationFactory);
+		assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
+				resourceMetadataCreator);
 	}
 
 }
