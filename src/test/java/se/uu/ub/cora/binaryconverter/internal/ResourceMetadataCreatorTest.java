@@ -122,7 +122,7 @@ public class ResourceMetadataCreatorTest {
 	}
 
 	@Test
-	public void testCallCreateMasterGroupFromResourceInfo() throws Exception {
+	public void testCallCreateMasterGroup() throws Exception {
 
 		resourceMetadataCreator.updateMasterGroup(masterGroup, imageData);
 		assertUpdateRecordAfterAnalyze();

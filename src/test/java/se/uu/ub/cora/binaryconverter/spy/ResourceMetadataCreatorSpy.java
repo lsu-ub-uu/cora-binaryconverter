@@ -36,9 +36,8 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 	}
 
 	@Override
-	public void updateMasterGroup(ClientDataGroup masterGroup,
-			ImageData imageData) {
-		MCR.addCall("resourceInfoGroup", masterGroup, "imageData", imageData);
+	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
+		MCR.addCall("masterGroup", masterGroup, "imageData", imageData);
 
 	}
 
