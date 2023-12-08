@@ -37,7 +37,6 @@ import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
-import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
@@ -171,14 +170,14 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze() {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
+		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
+		var masterG = binaryRecordGroup.MCR.getReturnValue("getFirstGroupWithNameInData", 0);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageAnalyzer", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
-		resourceMetadataCreator.MCR.assertParameters("updateMasterGroupFromResourceInfo", 0,
-				getResourceInfo(), imageData);
+		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, masterG, imageData);
 
 		return binaryRecordGroup;
 	}
@@ -206,11 +205,25 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "aPath-large", 2, 3, 2);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				getResourceInfo(), SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
+				SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				getResourceInfo(), SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
+				SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+				"thumbnail", SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+
+		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
+				0);
+		var mediumG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
+				1);
+		var thumbnailG = resourceMetadataCreator.MCR
+				.getReturnValue("createMetadataForRepresentation", 2);
+
+		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
+
+		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
+		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
+		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
+
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
@@ -257,12 +270,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageAnalyzer", fAnalyzerCallNr);
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
-	}
-
-	private ClientDataGroupSpy getResourceInfo() {
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		return (ClientDataGroupSpy) binaryRecordGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
 	}
 
 	@Test

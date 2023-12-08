@@ -76,34 +76,35 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 				recordId + "-thumbnail");
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(type, recordId);
-		ClientDataGroup resourceInfoGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData("resourceInfo");
 
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, inputPath, largePath,
-				"large", 600);
+		ClientDataGroup largeDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, inputPath,
+				largePath, "large", 600);
 		/**
 		 * To increase speed and efficiency of the conversion process we use the large preview
 		 * version to convert the medium and thumbnail versions instead of the archived version.
 		 */
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath, mediumPath,
-				"medium", 300);
-		convertPdfUsingResourceTypeNameAndWidth(resourceInfoGroup, recordId, largePath,
+		ClientDataGroup mediumDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, largePath,
+				mediumPath, "medium", 300);
+		ClientDataGroup thumbnailDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, largePath,
 				thumbnailPath, "thumbnail", 100);
+
+		binaryRecordGroup.addChild(largeDG);
+		binaryRecordGroup.addChild(mediumDG);
+		binaryRecordGroup.addChild(thumbnailDG);
 
 		return binaryRecordGroup;
 	}
 
-	private void convertPdfUsingResourceTypeNameAndWidth(ClientDataGroup resourceInfoGroup,
-			String recordId, String pathToImage, String outputPath, String representation,
-			int convertToWidth) {
+	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(String recordId,
+			String pathToImage, String outputPath, String representation, int convertToWidth) {
 
 		PdfConverter pdfConverter = binaryOperationFactory.factorPdfConverter();
 		pdfConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
 
 		ImageData imageData = analyzeImage(outputPath);
 
-		resourceMetadataCreator.createMetadataForRepresentation(representation, resourceInfoGroup,
-				recordId, imageData, "image/jpeg");
+		return resourceMetadataCreator.createMetadataForRepresentation(representation, recordId,
+				imageData, "image/jpeg");
 	}
 
 	private ImageData analyzeImage(String pathToImage) {

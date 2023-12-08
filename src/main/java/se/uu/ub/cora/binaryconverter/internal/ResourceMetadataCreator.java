@@ -24,20 +24,28 @@ import se.uu.ub.cora.clientdata.ClientDataGroup;
 public interface ResourceMetadataCreator {
 
 	/**
+	 * createMetadataForRepresentation method creates a new group using representation as nameInData
+	 * and filling all the fields using imageData.
 	 * 
 	 * @param representation
-	 * @param resourceInfoGroup
+	 *            name of the representation
 	 * @param recordId
+	 *            id of the record
 	 * @param imageData
+	 *            an image data {@link ImageData} of the representation
+	 * @return a {@link ClientDataGroup}
 	 */
-	void createMetadataForRepresentation(String representation, ClientDataGroup resourceInfoGroup,
-			String recordId, ImageData imageData, String mimeType);
+	ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
+			ImageData imageData, String mimeType);
 
 	/**
+	 * updateMasterGroup method updates masterGroup using imageData as input.
 	 * 
-	 * @param resourceInfoGroup
+	 * @param masterGroup
+	 *            is the master representation
 	 * @param imageData
+	 *            image data of the representation
 	 */
-	void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup, ImageData imageData);
+	void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData);
 
 }

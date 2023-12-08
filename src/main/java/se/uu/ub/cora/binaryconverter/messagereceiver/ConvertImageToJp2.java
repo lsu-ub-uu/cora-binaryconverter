@@ -58,9 +58,11 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
 				originalImagePath);
 
-		ClientDataRecordGroup binaryRecordGroup = createMetadataForRepresentation(recordType,
-				recordId, imageData);
-		dataClient.update(recordType, recordId, binaryRecordGroup);
+		ClientDataGroup jp2G = resourceMetadataCreator.createMetadataForRepresentation("jp2",
+				recordId, imageData, "image/jp2");
+
+		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2G);
+
 	}
 
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
@@ -78,14 +80,13 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return analyzeImage(outputPath);
 	}
 
-	private ClientDataRecordGroup createMetadataForRepresentation(String recordType,
-			String recordId, ImageData imageData) {
+	private void updateRecordUsingRepresentationDataGroup(String recordType, String recordId,
+			ClientDataGroup jp2G) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		ClientDataGroup resourceInfoGroup = binaryRecordGroup
-				.getFirstGroupWithNameInData("resourceInfo");
-		resourceMetadataCreator.createMetadataForRepresentation("jp2", resourceInfoGroup, recordId,
-				imageData, "image/jp2");
-		return binaryRecordGroup;
+
+		binaryRecordGroup.addChild(jp2G);
+
+		dataClient.update(recordType, recordId, binaryRecordGroup);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {

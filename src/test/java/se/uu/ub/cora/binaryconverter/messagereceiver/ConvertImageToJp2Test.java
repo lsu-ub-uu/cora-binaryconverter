@@ -36,7 +36,6 @@ import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
-import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 
@@ -49,14 +48,13 @@ public class ConvertImageToJp2Test {
 	private static final String SOME_MESSAGE = "someMessage";
 
 	private Map<String, String> some_headers = new HashMap<>();
-
 	private ClientDataFactorySpy clientDataFactory;
-	private ConvertImageToJp2 messageReceiver;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
 	private PathBuilderSpy pathBuilder;
-
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
+
+	private ConvertImageToJp2 messageReceiver;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -100,7 +98,13 @@ public class ConvertImageToJp2Test {
 		var imageDataLarge = getImageData(0);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "jp2",
-				getResourceInfo(), SOME_ID, imageDataLarge, JP2_MIME_TYPE);
+				SOME_ID, imageDataLarge, JP2_MIME_TYPE);
+
+		var jp2G = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation", 0);
+
+		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
+
+		binaryRecordGroup.MCR.assertParameters("addChild", 0, jp2G);
 
 	}
 
@@ -153,29 +157,16 @@ public class ConvertImageToJp2Test {
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
-	private ClientDataGroupSpy getResourceInfo() {
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		return (ClientDataGroupSpy) binaryRecordGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
-	}
-
 	@Test
 	public void testUpdateRecord() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
 
-		ClientDataRecordGroupSpy binaryRecordGroup = assertUpdateRecordAfterAnalyze();
+		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
 
-	}
-
-	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze() {
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
-
-		return binaryRecordGroup;
 	}
 
 	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
