@@ -24,8 +24,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
-import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
@@ -38,14 +37,14 @@ public class ResourceMetadataCreatorTest {
 	private ResourceMetadataCreator resourceMetadataCreator;
 	private ClientDataFactorySpy clientDataFactory;
 	private ImageData imageData;
-	private ClientDataGroupSpy resourceInfoGroup;
+	private ClientDataGroupSpy masterGroup;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
-		resourceInfoGroup = new ClientDataGroupSpy();
 		imageData = new ImageData("someResolution", "someWidth", "someHeight", "someSize");
+		masterGroup = new ClientDataGroupSpy();
 
 		resourceMetadataCreator = new ResourceMetadataCreatorImp();
 	}
@@ -58,10 +57,13 @@ public class ResourceMetadataCreatorTest {
 	@Test
 	public void testCallCreateMetadataForRepresentation() throws Exception {
 
-		resourceMetadataCreator.createMetadataForRepresentation("someRepresentation",
-				resourceInfoGroup, SOME_RECORD_ID, imageData, IMAGE_JPEG);
+		ClientDataGroup representationDataGroup = resourceMetadataCreator
+				.createMetadataForRepresentation("someRepresentation", SOME_RECORD_ID, imageData,
+						IMAGE_JPEG);
 
 		assertCreateAndUpdateMetadataForRespresentation("someRepresentation", imageData, 0, 0);
+		clientDataFactory.MCR.assertReturn("factorGroupUsingNameInData", 0,
+				representationDataGroup);
 	}
 
 	private void assertCreateAndUpdateMetadataForRespresentation(String representationName,
@@ -107,10 +109,7 @@ public class ResourceMetadataCreatorTest {
 				fAtomicCallNr);
 		fAtomicCallNr++;
 
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"resolution", imageData.resolution());
-		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				fAtomicCallNr);
+		clientDataFactory.MCR.assertNumberOfCallsToMethod("factorAtomicUsingNameInDataAndValue", 5);
 
 		group.MCR.assertParameters("addChild", 0, resourceId);
 		group.MCR.assertParameters("addChild", 1, resourceLink);
@@ -118,23 +117,18 @@ public class ResourceMetadataCreatorTest {
 		group.MCR.assertParameters("addChild", 3, mimeType);
 		group.MCR.assertParameters("addChild", 4, height);
 		group.MCR.assertParameters("addChild", 5, width);
-		group.MCR.assertParameters("addChild", 6, resolution);
 
-		ClientDataGroupSpy resourceInfo = resourceInfoGroup;
-		resourceInfo.MCR.assertParameters("addChild", representationCallNr, group);
+		group.MCR.assertNumberOfCallsToMethod("addChild", 6);
 	}
 
 	@Test
-	public void testCallCreateMasterGroupFromResourceInfo() throws Exception {
-		resourceMetadataCreator.updateMasterGroupFromResourceInfo(resourceInfoGroup, imageData);
+	public void testCallCreateMasterGroup() throws Exception {
+
+		resourceMetadataCreator.updateMasterGroup(masterGroup, imageData);
 		assertUpdateRecordAfterAnalyze();
 	}
 
 	private void assertUpdateRecordAfterAnalyze() {
-
-		resourceInfoGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
-		ClientDataGroupSpy groupMaster = (ClientDataGroupSpy) resourceInfoGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
 
 		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "height",
 				imageData.height());
@@ -143,17 +137,14 @@ public class ResourceMetadataCreatorTest {
 		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2,
 				"resolution", imageData.resolution());
 
-		var atomicHeight = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		var atomicWidth = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-		var atomicResolution = clientDataFactory.MCR
-				.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
+		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
+		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+				2);
 
-		groupMaster.MCR.assertParameters("addChild", 0, atomicHeight);
-		groupMaster.MCR.assertParameters("addChild", 1, atomicWidth);
-		groupMaster.MCR.assertParameters("addChild", 2, atomicResolution);
+		masterGroup.MCR.assertParameters("addChild", 0, height);
+		masterGroup.MCR.assertParameters("addChild", 1, width);
+		masterGroup.MCR.assertParameters("addChild", 2, resolution);
 
 	}
-
 }

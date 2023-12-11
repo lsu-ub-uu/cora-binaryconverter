@@ -21,6 +21,7 @@ package se.uu.ub.cora.binaryconverter.spy;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
@@ -30,22 +31,20 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 
 	public ResourceMetadataCreatorSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("createMetadataForRepresentation",
+				ClientDataGroupSpy::new);
 	}
 
 	@Override
-	public void createMetadataForRepresentation(String representation,
-			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
-			String mimeType) {
-		MCR.addCall("representation", representation, "resourceInfoGroup", resourceInfoGroup,
+	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
+		MCR.addCall("masterGroup", masterGroup, "imageData", imageData);
+
+	}
+
+	@Override
+	public ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
+			ImageData imageData, String mimeType) {
+		return (ClientDataGroup) MCR.addCallAndReturnFromMRV("representation", representation,
 				"recordId", recordId, "imageData", imageData, "mimeType", mimeType);
-
 	}
-
-	@Override
-	public void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup,
-			ImageData imageData) {
-		MCR.addCall("resourceInfoGroup", resourceInfoGroup, "imageData", imageData);
-
-	}
-
 }

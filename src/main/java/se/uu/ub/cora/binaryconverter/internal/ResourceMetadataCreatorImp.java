@@ -27,9 +27,24 @@ import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
 	@Override
-	public void createMetadataForRepresentation(String representation,
-			ClientDataGroup resourceInfoGroup, String recordId, ImageData imageData,
-			String mimeTypenName) {
+	public void updateMasterGroup(ClientDataGroup masterGroup,
+			ImageData imageData) {
+
+		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
+				imageData.height());
+		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
+				imageData.width());
+		ClientDataAtomic resolution = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
+
+		masterGroup.addChild(height);
+		masterGroup.addChild(width);
+		masterGroup.addChild(resolution);
+	}
+
+	@Override
+	public ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
+			ImageData imageData, String mimeTypenName) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(representation);
 
@@ -45,8 +60,6 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
 				imageData.width());
-		ClientDataAtomic resolution = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
 
 		thumbnailGroup.addChild(id);
 		thumbnailGroup.addChild(resourceLink);
@@ -54,26 +67,7 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		thumbnailGroup.addChild(mimeType);
 		thumbnailGroup.addChild(height);
 		thumbnailGroup.addChild(width);
-		thumbnailGroup.addChild(resolution);
 
-		resourceInfoGroup.addChild(thumbnailGroup);
-	}
-
-	@Override
-	public void updateMasterGroupFromResourceInfo(ClientDataGroup resourceInfoGroup,
-			ImageData imageData) {
-
-		ClientDataGroup masterGroup = resourceInfoGroup.getFirstGroupWithNameInData("master");
-
-		ClientDataAtomic atomicHeight = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("height", imageData.height());
-		ClientDataAtomic atomicWidth = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("width", imageData.width());
-		ClientDataAtomic atomicResolution = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
-
-		masterGroup.addChild(atomicHeight);
-		masterGroup.addChild(atomicWidth);
-		masterGroup.addChild(atomicResolution);
+		return thumbnailGroup;
 	}
 }

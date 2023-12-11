@@ -35,7 +35,6 @@ import se.uu.ub.cora.binaryconverter.spy.PdfConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
-import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 
@@ -48,14 +47,13 @@ public class ConvertPdfToThumbnailsTest {
 	private static final String SOME_MESSAGE = "someMessage";
 
 	private Map<String, String> some_headers = new HashMap<>();
-
 	private ClientDataFactorySpy clientDataFactory;
-	private ConvertPdfToThumbnails messageReceiver;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
 	private PathBuilderSpy pathBuilder;
-
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
+
+	private ConvertPdfToThumbnails messageReceiver;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -103,11 +101,25 @@ public class ConvertPdfToThumbnailsTest {
 		var imageDataThumbnail = getImageData(2);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				getResourceInfo(), SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
+				SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				getResourceInfo(), SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
+				SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", getResourceInfo(), SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+				"thumbnail", SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+
+		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
+				0);
+		var mediumG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
+				1);
+		var thumbnailG = resourceMetadataCreator.MCR
+				.getReturnValue("createMetadataForRepresentation", 2);
+
+		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
+
+		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
+		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
+		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
+
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -160,29 +172,16 @@ public class ConvertPdfToThumbnailsTest {
 		imageAnalyzer.MCR.assertParameters("analyze", 0);
 	}
 
-	private ClientDataGroupSpy getResourceInfo() {
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		return (ClientDataGroupSpy) binaryRecordGroup.MCR
-				.getReturnValue("getFirstGroupWithNameInData", 0);
-	}
-
 	@Test
 	public void testUpdateRecord() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
 
-		ClientDataRecordGroupSpy binaryRecordGroup = assertUpdateRecordAfterAnalyze();
+		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
 
-	}
-
-	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze() {
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "resourceInfo");
-
-		return binaryRecordGroup;
 	}
 
 	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
