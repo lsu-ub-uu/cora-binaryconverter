@@ -62,7 +62,7 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void precinctSize(String precinctSize) {
 		ops.add("-c");
-		ops.add(precinctSize);
+		ops.add("[" + precinctSize + "]");
 	}
 
 	@Override
