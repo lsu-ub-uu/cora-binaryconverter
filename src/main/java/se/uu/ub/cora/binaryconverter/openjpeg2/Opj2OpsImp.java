@@ -1,19 +1,20 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Opj2OpsImp implements Opj2Ops {
 
-	private LinkedList<String> ops;
+	private List<String> ops;
 	private String inputPath;
 	private String outputPath;
 
 	public Opj2OpsImp() {
-		ops = new LinkedList<>();
+		ops = new ArrayList<>();
 	}
 
 	@Override
-	public LinkedList<String> getOpsList() {
+	public List<String> getOpsList() {
 		return ops;
 	}
 
@@ -45,6 +46,12 @@ public class Opj2OpsImp implements Opj2Ops {
 	public void psnrQuality(String psnrLayers) {
 		ops.add("-q");
 		ops.add(psnrLayers);
+	}
+
+	@Override
+	public void compressionRatio(String ratio) {
+		ops.add("-r");
+		ops.add(ratio);
 	}
 
 	@Override
@@ -85,5 +92,11 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void enableEph(boolean enableEph) {
 		ops.add("-EPH");
+	}
+
+	@Override
+	public void numberOfThreads(int numOfThreads) {
+		ops.add("-threads");
+		ops.add(numOfThreads + "");
 	}
 }

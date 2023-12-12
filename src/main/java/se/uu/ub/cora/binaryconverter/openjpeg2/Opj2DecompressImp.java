@@ -1,13 +1,13 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
-import java.util.LinkedList;
+import java.util.List;
 
 public class Opj2DecompressImp implements Opj2Decompress {
 
 	@Override
-	public int run(Opj2OpsImp ops) {
-		LinkedList<String> operations = ops.getOpsList();
-		operations.addFirst("opj2_decompress");
+	public int run(Opj2Ops ops) {
+		List<String> operations = ops.getOpsList();
+		operations.add(0, "opj2_decompress");
 		Opj2ProcessRunner runner = new Opj2ProcessRunnerImp(operations);
 		return runner.convertImage();
 	}

@@ -1,14 +1,14 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.List;
 
 public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 
 	private static final int TIMEOUT_IN_MINUTES = 30;
-	private final LinkedList<String> operations;
+	private final List<String> operations;
 
-	public Opj2ProcessRunnerImp(LinkedList<String> operations) {
+	public Opj2ProcessRunnerImp(List<String> operations) {
 		this.operations = operations;
 	}
 

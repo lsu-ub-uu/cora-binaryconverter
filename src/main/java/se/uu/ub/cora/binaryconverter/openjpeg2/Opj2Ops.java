@@ -1,13 +1,13 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
-import java.util.LinkedList;
+import java.util.List;
 
 public interface Opj2Ops {
 
 	/**
 	 * Get ops list
 	 */
-	LinkedList<String> getOpsList();
+	List<String> getOpsList();
 
 	/**
 	 * Get input path
@@ -34,6 +34,13 @@ public interface Opj2Ops {
 	 * different psnr for successive layers (e.g. "25,28,30,35,40")
 	 */
 	void psnrQuality(String psnrLayers);
+
+	/**
+	 * Different compression ratio(s) for successive layers. The rate specified for each quality
+	 * level is the desired compression factor (e.g. "2.5"). Note: (options compressionRatio and
+	 * psnrQuality cannot be used together)
+	 */
+	void compressionRatio(String ratio);
 
 	/**
 	 * Size of tile (e.g. "1024,1024")
@@ -69,4 +76,9 @@ public interface Opj2Ops {
 	 * Write EPH marker after each header packet (default: off)
 	 */
 	void enableEph(boolean enableEph);
+
+	/**
+	 * Number of threads for opj2 to use (e.g. 6)
+	 */
+	void numberOfThreads(int numOfThreads);
 }
