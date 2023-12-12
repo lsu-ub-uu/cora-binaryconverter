@@ -5,6 +5,7 @@ public interface Opj2ProcessRunner {
 	/**
 	 * Convert an image using settings supplied via Opj2Ops
 	 * 
+	 * @return The exit code for the opj2 process
 	 */
-	int convertImage();
+	int runOpj2Process();
 }

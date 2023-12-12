@@ -13,7 +13,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 	}
 
 	@Override
-	public int convertImage() {
+	public int runOpj2Process() {
 		ProcessBuilder builder = new ProcessBuilder(operations);
 		builder.inheritIO(); // send logs to console, use redirect.... to send elsewhere (file etc)
 		try {

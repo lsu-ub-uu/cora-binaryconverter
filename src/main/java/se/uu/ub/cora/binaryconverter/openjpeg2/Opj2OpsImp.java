@@ -85,12 +85,12 @@ public class Opj2OpsImp implements Opj2Ops {
 	}
 
 	@Override
-	public void enableSop(boolean enableSop) {
+	public void enableSop() {
 		ops.add("-SOP");
 	}
 
 	@Override
-	public void enableEph(boolean enableEph) {
+	public void enableEph() {
 		ops.add("-EPH");
 	}
 
@@ -98,5 +98,21 @@ public class Opj2OpsImp implements Opj2Ops {
 	public void numberOfThreads(int numOfThreads) {
 		ops.add("-threads");
 		ops.add(numOfThreads + "");
+	}
+
+	@Override
+	public void enablePlt() {
+		ops.add("-PLT");
+	}
+
+	@Override
+	public void enableTlm() {
+		ops.add("-TLM");
+	}
+
+	@Override
+	public void tilePartDivider(String type) {
+		ops.add("-TP");
+		ops.add(type);
 	}
 }

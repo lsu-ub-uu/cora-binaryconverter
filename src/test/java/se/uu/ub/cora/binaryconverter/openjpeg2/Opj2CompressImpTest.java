@@ -1,17 +1,19 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 public class Opj2CompressImpTest {
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	public void test() {
+		// Settings lifted from iipimage (except -q that is from earlier alvin implementation):
 		// opj2_compress -i input.tif -o output.jp2 -q 25,28,30,35,40 (-r 2.5) -t 1024,1024 -n 7 -c
 		// "[256,256]" -b "64,64" -p RPCL -SOP -PLT -TLM -TP R
 
 		Opj2Ops opj2Ops = new Opj2OpsImp();
 		opj2Ops.inputPath(
-				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/alvin.tiff");
+				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff");
 		opj2Ops.outputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2output2.jp2");
 		opj2Ops.codeBlockSize("64,64");
@@ -21,11 +23,14 @@ public class Opj2CompressImpTest {
 		opj2Ops.psnrQuality("25,28,30,35,40");
 		// opj2Ops.compressionRatio("2.5");
 		opj2Ops.progressionOrder("RPCL");
-		opj2Ops.enableEph(true);
-		opj2Ops.enableSop(true);
+		opj2Ops.enableEph();
+		opj2Ops.enableSop();
+		opj2Ops.enableTlm();
+		opj2Ops.enablePlt();
+		opj2Ops.tilePartDivider("R");
 		opj2Ops.numberOfThreads(6);
 
 		Opj2Compress opj2Compress = new Opj2CompressImp();
-		opj2Compress.run(opj2Ops);
+		Assert.assertTrue(opj2Compress.run(opj2Ops));
 	}
 }
