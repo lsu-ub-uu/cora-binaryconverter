@@ -15,7 +15,7 @@ public class Opj2CompressImpTest {
 		opj2Ops.inputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff");
 		opj2Ops.outputPath(
-				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2output2.jp2");
+				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2output.jp2");
 		opj2Ops.codeBlockSize("64,64");
 		opj2Ops.precinctSize("256,256");
 		opj2Ops.tileSize("1024,1024");

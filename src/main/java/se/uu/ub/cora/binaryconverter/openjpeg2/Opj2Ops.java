@@ -43,8 +43,10 @@ public interface Opj2Ops {
 	void outputPath(String outputPath);
 
 	/**
-	 * Different psnr for successive layers (e.g. "25,28,30,35,40") Note: (options psnrQuality and
-	 * compressionRatio cannot be used together)
+	 * Different psnr for successive layers (e.g. "30,40,50").
+     * Increasing PSNR values required, except 0 which can be used for the last
+     * layer to indicate it is lossless. 
+	 * Note: (options psnrQuality and compressionRatio cannot be used together)
 	 * 
 	 * @param psnrLayers
 	 *            Psnr settings for layers
@@ -52,9 +54,13 @@ public interface Opj2Ops {
 	void psnrQuality(String psnrLayers);
 
 	/**
-	 * Different compression ratio(s) for successive layers. The rate specified for each quality
-	 * level is the desired compression factor (e.g. "2.5"). Note: (options compressionRatio and
-	 * psnrQuality cannot be used together)
+	 * The rate specified for each quality level is the desired compression factor (use 1 for
+	 * lossless) Decreasing ratios required. 
+	 * Example: "20,10,1" means 
+	 * quality layer 1: compress 20x, 
+	 * quality layer 2: compress 10x 
+	 * quality layer 3: compress lossless 
+	 * Note: (options compressionRatio and psnrQuality cannot be used together)
 	 * 
 	 * @param ratio
 	 *            The ratio for each successive layers
@@ -63,6 +69,7 @@ public interface Opj2Ops {
 
 	/**
 	 * Size of tile (e.g. "1024,1024")
+	 * Default: the dimension of the whole image, thus only one tile.
 	 * 
 	 * @param tileSize
 	 *            The size of each tile
@@ -78,7 +85,12 @@ public interface Opj2Ops {
 	void numOfResolutions(int numOfResolutions);
 
 	/**
-	 * Size of precinct (e.g. "128,128", Default: 2^15 x 2^15)
+	 * Precinct size. Values specified must be power of 2.
+     * Multiple records may be supplied, in which case the first record refers
+     * to the highest resolution level and subsequent records to lower
+     * resolution levels. The last specified record is halved successively for each
+     * remaining lower resolution levels.
+     * Default: 2^15x2^15 at each resolution.
 	 * 
 	 * @param precinctSize
 	 *            The precinct size to use
@@ -86,7 +98,10 @@ public interface Opj2Ops {
 	void precinctSize(String precinctSize);
 
 	/**
-	 * Size of code block (e.g. "64,64", Default: 64 x 64)
+	 * Code-block size. The dimension must respect the constraint
+     * defined in the JPEG-2000 standard (no dimension smaller than 4
+     * or greater than 1024, no code-block with more than 4096 coefficients).
+     * The maximum value authorized is 64x64.
 	 * 
 	 * @param cblSize
 	 *            The Code block size to use
@@ -97,7 +112,7 @@ public interface Opj2Ops {
 	 * Progression order (e.g. "RPCL", Default: LRCP)
 	 * 
 	 * @param progressionOrderName
-	 *            The name of the progression order to use
+	 *            The name of the progression order to use (LRCP|RLCP|RPCL|PCRL|CPRL)
 	 */
 	void progressionOrder(String progressionOrderName);
 
