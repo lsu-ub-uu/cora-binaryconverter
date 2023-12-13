@@ -3,7 +3,7 @@ package se.uu.ub.cora.binaryconverter.openjpeg2;
 public interface Opj2ProcessRunner {
 
 	/**
-	 * Convert an image using settings supplied via Opj2Ops
+	 * Run the opj2 (compress or decompress) command using settings supplied via Opj2Ops
 	 * 
 	 * @return The exit code for the opj2 process
 	 */

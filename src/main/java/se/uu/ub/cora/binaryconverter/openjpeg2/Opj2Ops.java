@@ -43,10 +43,11 @@ public interface Opj2Ops {
 	void outputPath(String outputPath);
 
 	/**
-	 * Different psnr for successive layers (e.g. "30,40,50").
+	 * Different psnr for successive layers (e.g. "30,40,50").<br>
+	 * <br>
 	 * 
-     * Increasing PSNR values required, except 0 which can be used for the last
-     * layer to indicate it is lossless. 
+	 * Increasing PSNR values required, except 0 which can be used for the last layer to indicate it
+	 * is lossless. <br>
 	 * Note: (options psnrQuality and compressionRatio cannot be used together)
 	 * 
 	 * @param psnrLayers
@@ -56,12 +57,13 @@ public interface Opj2Ops {
 
 	/**
 	 * The rate specified for each quality level is the desired compression factor (use 1 for
-	 * lossless) Decreasing ratios required. 
+	 * lossless) Decreasing ratios required. <br>
+	 * <br>
 	 * 
-	 * Example: "20,10,1" means 
-	 * quality layer 1: compress 20x, 
-	 * quality layer 2: compress 10x 
-	 * quality layer 3: compress lossless 
+	 * Example: "20,10,1" represents<br>
+	 * quality layer 1: compress 20x<br>
+	 * quality layer 2: compress 10x<br>
+	 * quality layer 3: compress lossless<br>
 	 * Note: (options compressionRatio and psnrQuality cannot be used together)
 	 * 
 	 * @param ratio
@@ -70,8 +72,9 @@ public interface Opj2Ops {
 	void compressionRatio(String ratio);
 
 	/**
-	 * Size of tile (e.g. "1024,1024")
-	 * Default: the dimension of the whole image, thus only one tile.
+	 * Size of tile (e.g. "1024,1024")<br>
+	 * <br>
+	 * Default: the dimension of the whole image, meaning the whole image.
 	 * 
 	 * @param tileSize
 	 *            The size of each tile
@@ -79,12 +82,14 @@ public interface Opj2Ops {
 	void tileSize(String tileSize);
 
 	/**
-	 * Number of resolutions (e.g. 7, Default: 6)
+	 * Number of resolutions (e.g. 7, Default: 6)<br>
+	 * <br>
 	 * 
-	 * The number required depends on the size of the image. 
-	 * Each resolution is a factor of 2 smaller than the next, 
-	 * so for images of around 2000×2000 pixels in size, 5 levels should be sufficient, 
-	 * for 4000×4000 6 levels and for 8000×8000 7 levels etc.
+	 * Should be relative to the image size. Each resolution a factor of 2 smaller then the other. 5
+	 * levels should be enough for 2000x2000, 6 levels for 4000x4000 and 7 levels for 8000x8000 and
+	 * so forth. <br>
+	 * <br>
+	 * It corresponds to the number of DWT decompositions +1
 	 * 
 	 * @param numOfResolutions
 	 *            The number of resolutions
@@ -92,18 +97,17 @@ public interface Opj2Ops {
 	void numOfResolutions(int numOfResolutions);
 
 	/**
-	 * Precinct size. Values specified must be power of 2.
-     * Multiple records may be supplied, in which case the first record refers
-     * to the highest resolution level and subsequent records to lower
-     * resolution levels. The last specified record is halved successively for each
-     * remaining lower resolution levels.
-     * 
-     * Precincts allow decoding to be carried out only of specific regions 
-     * (in the same way that tiling works with TIFF). Precinct sizes should 
-     * be the same as the size of the tiles that will be requested by tile-based 
-     * viewers (typically 256×256 pixels)
-     * 
-     * Default: 2^15x2^15 at each resolution.
+	 * Precinct size. Values specified must be power of 2. Multiple records may be supplied, in
+	 * which case the first record refers to the highest resolution level and subsequent records to
+	 * lower resolution levels. The last specified record is halved successively for each remaining
+	 * lower resolution levels.<br>
+	 * <br>
+	 * 
+	 * Precincts allow decoding for specific regions, like tiling for TIFF. For tile-based viewers a
+	 * value of 256x256 is usually recommended.<br>
+	 * <br>
+	 * 
+	 * Default: 2^15x2^15 at each resolution.
 	 * 
 	 * @param precinctSize
 	 *            The precinct size to use
@@ -111,13 +115,13 @@ public interface Opj2Ops {
 	void precinctSize(String precinctSize);
 
 	/**
-	 * Code-block size. The dimension must respect the constraint
-     * defined in the JPEG-2000 standard (no dimension smaller than 4
-     * or greater than 1024, no code-block with more than 4096 coefficients).
-     * The maximum value authorized is 64x64.
-     * 
-     * Code blocks help further with random access and should be as large as possible, 
-     * with the maximum allowed size being 64×64 pixels.
+	 * Code-block size. The dimension must respect the constraint defined in the JPEG-2000 standard
+	 * (no dimension smaller than 4 or greater than 1024, no code-block with more than 4096
+	 * coefficients). The maximum value authorized is 64x64.<br>
+	 * <br>
+	 * 
+	 * Code block is used to assist with random access and should optimally be as large as possible.
+	 * Maximum allowed size is 64x64.
 	 * 
 	 * @param cblSize
 	 *            The Code block size to use
@@ -125,11 +129,11 @@ public interface Opj2Ops {
 	void codeBlockSize(String cblSize);
 
 	/**
-	 * Progression order (e.g. "RPCL", Default: LRCP)
+	 * Progression order (e.g. "RPCL", Default: LRCP)<br>
+	 * <br>
 	 * 
-	 * In order to allow efficient access to different resolutions, 
-	 * a resolution-based progression order should be used by setting 
-	 * the progression order to Resolution –  Component – Position – Layer (RPCL)
+	 * For efficient access to different resolutions the recommended settings is "RCPL" (Resolution,
+	 * Component, Position, Layer)
 	 * 
 	 * @param progressionOrderName
 	 *            The name of the progression order to use (LRCP|RLCP|RPCL|PCRL|CPRL)
@@ -137,37 +141,37 @@ public interface Opj2Ops {
 	void progressionOrder(String progressionOrderName);
 
 	/**
-	 * Write SOP markers before each packet (default: off)
+	 * Write SOP markers before each packet (default: off)<br>
+	 * <br>
 	 * 
-	 * Provides a level of error resiliency and allows decoding to continue even in the 
-	 * presence of file corruption.
+	 * Provides error resiliency and allow decoding of corrupt files
 	 * 
 	 */
 	void enableSop();
 
 	/**
-	 * Write EPH marker after each header packet (default: off)
+	 * Write EPH marker after each header packet (default: off)<br>
+	 * <br>
 	 * 
-	 * Provides a level of error resiliency and allows decoding to continue even in the 
-	 * presence of file corruption.
+	 * Provides error resiliency and allow decoding of corrupt files
 	 * 
 	 */
 	void enableEph();
 
 	/**
-	 * Write PLT marker in tile-part header
+	 * Write PLT marker in tile-part header<br>
+	 * <br>
 	 * 
-	 * PLT packet length markers add a packet index to the file
-	 * header which allows faster access to resolution levels and regions within an image. 
+	 * PLT markers allow faster access to difference resolution levels and regions.
 	 * 
 	 */
 	void enablePlt();
 
 	/**
-	 * Write TLM marker in tile-part header
+	 * Write TLM marker in tile-part header<br>
+	 * <br>
 	 * 
-	 * TLM tile part length markers provide a coarser index that can be used if a decoder 
-	 * does not support PLT markers.
+	 * TLM markers provides a coarse index that can assist decoders without PLT support
 	 * 
 	 */
 	void enableTlm();

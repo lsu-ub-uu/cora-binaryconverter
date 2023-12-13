@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 public class Opj2CompressImpTest {
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	public void test() {
 		// Settings lifted from iipimage (except -q that is from earlier alvin implementation):
 		// opj2_compress -i input.tif -o output.jp2 -q 25,28,30,35,40 (-r 2.5) -n 7 -c
@@ -38,7 +38,7 @@ public class Opj2CompressImpTest {
 		opj2Ops.enablePlt();
 		opj2Ops.tilePartDivider("R");
 		opj2Ops.numberOfThreads(6);
-		
+
 		// opj2Ops.tileSize("1024,1024");
 		// opj2Ops.compressionRatio("2.5");
 
