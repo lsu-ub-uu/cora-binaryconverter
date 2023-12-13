@@ -119,6 +119,6 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void tilePartDivider(String type) {
 		ops.add("-TP");
-		ops.add(type);
+		ops.add(type.toUpperCase());
 	}
 }

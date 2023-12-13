@@ -5,8 +5,8 @@ import org.testng.annotations.Test;
 
 public class Opj2CompressImpTest {
 
-	@Test(enabled = true)
-	public void test() {
+	@Test(enabled = false)
+	public void realTest() {
 		// Settings lifted from iipimage (except -q that is from earlier alvin implementation):
 		// opj2_compress -i input.tif -o output.jp2 -q 25,28,30,35,40 (-r 2.5) -n 7 -c
 		// "[256,256]" -b "64,64" -p RPCL -SOP -PLT -TLM -TP R
