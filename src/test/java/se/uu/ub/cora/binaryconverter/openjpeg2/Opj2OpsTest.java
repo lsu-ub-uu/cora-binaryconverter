@@ -36,8 +36,7 @@ public class Opj2OpsTest {
 
 	@Test
 	public void testPsnrQuality() throws Exception {
-		int[] values = { 10, 20, 30, 40, 50 };
-		ops.psnrQuality(values);
+		ops.psnrQuality(10, 20, 30, 40, 50);
 		assertOpsPresentInOpsListAndInOrder("-q", "10,20,30,40,50");
 	}
 
@@ -55,8 +54,7 @@ public class Opj2OpsTest {
 
 	@Test
 	public void testCompressionRatio() throws Exception {
-		int[] values = { 50, 40, 30, 20, 10 };
-		ops.compressionRatio(values);
+		ops.compressionRatio(50, 40, 30, 20, 10);
 		assertOpsPresentInOpsListAndInOrder("-r", "50,40,30,20,10");
 	}
 
