@@ -2,6 +2,8 @@ package se.uu.ub.cora.binaryconverter.openjpeg2;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class Opj2OpsImp implements Opj2Ops {
 
@@ -43,21 +45,25 @@ public class Opj2OpsImp implements Opj2Ops {
 	}
 
 	@Override
-	public void psnrQuality(String psnrLayers) {
+	public void psnrQuality(int... psnrLayers) {
 		ops.add("-q");
-		ops.add(psnrLayers);
+		ops.add(valuesAsString(psnrLayers));
+	}
+
+	private String valuesAsString(int[] values) {
+		return IntStream.of(values).mapToObj(Integer::toString).collect(Collectors.joining(","));
 	}
 
 	@Override
-	public void compressionRatio(String ratio) {
+	public void compressionRatio(int... ratio) {
 		ops.add("-r");
-		ops.add(ratio);
+		ops.add(valuesAsString(ratio));
 	}
 
 	@Override
-	public void tileSize(String tileSize) {
+	public void tileSize(int width, int height) {
 		ops.add("-t");
-		ops.add(tileSize);
+		ops.add(width + "," + height);
 	}
 
 	@Override
@@ -67,15 +73,15 @@ public class Opj2OpsImp implements Opj2Ops {
 	}
 
 	@Override
-	public void precinctSize(String precinctSize) {
+	public void precinctSize(int width, int height) {
 		ops.add("-c");
-		ops.add("[" + precinctSize + "]");
+		ops.add("[" + width + "," + height + "]");
 	}
 
 	@Override
-	public void codeBlockSize(String cblSize) {
+	public void codeBlockSize(int width, int height) {
 		ops.add("-b");
-		ops.add(cblSize);
+		ops.add(width + "," + height);
 	}
 
 	@Override

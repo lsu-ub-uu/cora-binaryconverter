@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 
 public class Opj2CompressImpTest {
 
-	@Test(enabled = false)
+	@Test(enabled = true)
 	public void test() {
 		// Settings lifted from iipimage (except -q that is from earlier alvin implementation):
 		// opj2_compress -i input.tif -o output.jp2 -q 25,28,30,35,40 (-r 2.5) -n 7 -c
@@ -27,10 +27,10 @@ public class Opj2CompressImpTest {
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff");
 		opj2Ops.outputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2output.jp2");
-		opj2Ops.codeBlockSize("64,64");
-		opj2Ops.precinctSize("256,256");
+		opj2Ops.codeBlockSize(64, 64);
+		opj2Ops.precinctSize(256, 256);
 		opj2Ops.numOfResolutions(7);
-		opj2Ops.psnrQuality("25,28,30,35,40");
+		opj2Ops.psnrQuality(25, 28, 30, 35, 40);
 		opj2Ops.progressionOrder("RPCL");
 		opj2Ops.enableEph();
 		opj2Ops.enableSop();
@@ -40,7 +40,7 @@ public class Opj2CompressImpTest {
 		opj2Ops.numberOfThreads(6);
 
 		// opj2Ops.tileSize("1024,1024");
-		// opj2Ops.compressionRatio("2.5");
+		// opj2Ops.compressionRatio(2);
 
 		Opj2Compress opj2Compress = new Opj2CompressImp();
 		Assert.assertTrue(opj2Compress.run(opj2Ops));

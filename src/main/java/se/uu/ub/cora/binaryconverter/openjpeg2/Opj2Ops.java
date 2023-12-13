@@ -43,7 +43,7 @@ public interface Opj2Ops {
 	void outputPath(String outputPath);
 
 	/**
-	 * Different psnr for successive layers (e.g. "30,40,50").<br>
+	 * Different psnr for successive layers (e.g. 30,40,50).<br>
 	 * <br>
 	 * 
 	 * Increasing PSNR values required, except 0 which can be used for the last layer to indicate it
@@ -53,43 +53,47 @@ public interface Opj2Ops {
 	 * @param psnrLayers
 	 *            Psnr settings for layers
 	 */
-	void psnrQuality(String psnrLayers);
+	void psnrQuality(int... psnrLayers);
 
 	/**
 	 * The rate specified for each quality level is the desired compression factor (use 1 for
 	 * lossless) Decreasing ratios required. <br>
 	 * <br>
 	 * 
-	 * Example: "20,10,1" represents<br>
-	 * quality layer 1: compress 20x<br>
-	 * quality layer 2: compress 10x<br>
-	 * quality layer 3: compress lossless<br>
+	 * Example: "20,10,1":
+	 * <ul>
+	 * <li>quality layer 1: compress 20x</li>
+	 * <li>quality layer 2: compress 10x</li>
+	 * <li>quality layer 3: compress lossless</li>
+	 * </ul>
 	 * Note: (options compressionRatio and psnrQuality cannot be used together)
 	 * 
 	 * @param ratio
 	 *            The ratio for each successive layers
 	 */
-	void compressionRatio(String ratio);
+	void compressionRatio(int... ratio);
 
 	/**
 	 * Size of tile (e.g. "1024,1024")<br>
 	 * <br>
 	 * Default: the dimension of the whole image, meaning the whole image.
 	 * 
-	 * @param tileSize
-	 *            The size of each tile
+	 * @param width
+	 *            The width of each tile
+	 * @param height
+	 *            The height of each tile
 	 */
-	void tileSize(String tileSize);
+	void tileSize(int width, int height);
 
 	/**
-	 * Number of resolutions (e.g. 7, Default: 6)<br>
+	 * Number of resolutions<br>
 	 * <br>
 	 * 
-	 * Should be relative to the image size. Each resolution a factor of 2 smaller then the other. 5
-	 * levels should be enough for 2000x2000, 6 levels for 4000x4000 and 7 levels for 8000x8000 and
-	 * so forth. <br>
+	 * Should be relative to the image size. As an example 5 levels should be enough for 2000x2000,
+	 * 6 levels for 4000x4000 and 7 levels for 8000x8000 and so forth. <br>
 	 * <br>
-	 * It corresponds to the number of DWT decompositions +1
+	 * It corresponds to the number of DWT decompositions +1<br>
+	 * Default: 6
 	 * 
 	 * @param numOfResolutions
 	 *            The number of resolutions
@@ -103,37 +107,43 @@ public interface Opj2Ops {
 	 * lower resolution levels.<br>
 	 * <br>
 	 * 
-	 * Precincts allow decoding for specific regions, like tiling for TIFF. For tile-based viewers a
-	 * value of 256x256 is usually recommended.<br>
+	 * Precincts allow decoding for specific regions, not unlike how tiling works for TIFF. For
+	 * tile-based viewers a value of 256x256 is usually recommended.<br>
 	 * <br>
 	 * 
 	 * Default: 2^15x2^15 at each resolution.
 	 * 
-	 * @param precinctSize
-	 *            The precinct size to use
+	 * @param width
+	 *            The precinct width to use
+	 * @param height
+	 *            The precinct height to use
 	 */
-	void precinctSize(String precinctSize);
+	void precinctSize(int width, int height);
 
 	/**
 	 * Code-block size. The dimension must respect the constraint defined in the JPEG-2000 standard
 	 * (no dimension smaller than 4 or greater than 1024, no code-block with more than 4096
-	 * coefficients). The maximum value authorized is 64x64.<br>
+	 * coefficients).<br>
 	 * <br>
 	 * 
 	 * Code block is used to assist with random access and should optimally be as large as possible.
 	 * Maximum allowed size is 64x64.
 	 * 
-	 * @param cblSize
-	 *            The Code block size to use
+	 * @param width
+	 *            The Code block width to use
+	 * @param height
+	 *            The Code block height to use
+	 * 
 	 */
-	void codeBlockSize(String cblSize);
+	void codeBlockSize(int width, int height);
 
 	/**
-	 * Progression order (e.g. "RPCL", Default: LRCP)<br>
+	 * Progression order<br>
 	 * <br>
-	 * 
 	 * For efficient access to different resolutions the recommended settings is "RCPL" (Resolution,
-	 * Component, Position, Layer)
+	 * Component, Position, Layer)<br>
+	 * <br>
+	 * Default: LRCP
 	 * 
 	 * @param progressionOrderName
 	 *            The name of the progression order to use (LRCP|RLCP|RPCL|PCRL|CPRL)
@@ -144,7 +154,7 @@ public interface Opj2Ops {
 	 * Write SOP markers before each packet (default: off)<br>
 	 * <br>
 	 * 
-	 * Provides error resiliency and allow decoding of corrupt files
+	 * Provides error resiliency and can assist decoding of corrupt files.
 	 * 
 	 */
 	void enableSop();
@@ -153,7 +163,7 @@ public interface Opj2Ops {
 	 * Write EPH marker after each header packet (default: off)<br>
 	 * <br>
 	 * 
-	 * Provides error resiliency and allow decoding of corrupt files
+	 * Provides error resiliency and can assist decoding of corrupt files.
 	 * 
 	 */
 	void enableEph();
@@ -162,7 +172,7 @@ public interface Opj2Ops {
 	 * Write PLT marker in tile-part header<br>
 	 * <br>
 	 * 
-	 * PLT markers allow faster access to difference resolution levels and regions.
+	 * PLT markers allow faster access to different resolution levels and regions.
 	 * 
 	 */
 	void enablePlt();
