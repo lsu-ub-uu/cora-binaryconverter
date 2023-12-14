@@ -71,9 +71,21 @@ public class Opj2OpsTest {
 	}
 
 	@Test
+	public void testPrecinctSizeOnlyOneValueIsRepeatedToCreateAPair() throws Exception {
+		ops.precinctSize(64);
+		assertOpsPresentInOpsListAndInOrder("-c", "[64,64]");
+	}
+
+	@Test
 	public void testPrecinctSize() throws Exception {
 		ops.precinctSize(256, 256);
 		assertOpsPresentInOpsListAndInOrder("-c", "[256,256]");
+	}
+
+	@Test
+	public void testMultiplePrecinctSizesWithUnevenAmountOfValues() throws Exception {
+		ops.precinctSize(256, 256, 128);
+		assertOpsPresentInOpsListAndInOrder("-c", "[256,256],[128,128]");
 	}
 
 	@Test

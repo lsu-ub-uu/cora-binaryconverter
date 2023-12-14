@@ -73,9 +73,27 @@ public class Opj2OpsImp implements Opj2Ops {
 	}
 
 	@Override
-	public void precinctSize(int width, int height) {
+	public void precinctSize(int... precinctSize) {
 		ops.add("-c");
-		ops.add("[" + width + "," + height + "]");
+		ops.add(parsePrecinctSizes(precinctSize));
+	}
+
+	private String parsePrecinctSizes(int[] sizes) {
+		StringBuilder stringOfPrecinctValues = new StringBuilder();
+		for (int i = 0; i < sizes.length; i += 2) {
+			stringOfPrecinctValues.append("[" + sizes[i] + ",");
+
+			if (i == sizes.length - 1 && sizes.length % 2 != 0) {
+				stringOfPrecinctValues.append(sizes[i] + "]");
+			} else {
+				stringOfPrecinctValues.append(sizes[i + 1] + "]");
+			}
+
+			if (i + 2 < sizes.length) {
+				stringOfPrecinctValues.append(",");
+			}
+		}
+		return stringOfPrecinctValues.toString();
 	}
 
 	@Override

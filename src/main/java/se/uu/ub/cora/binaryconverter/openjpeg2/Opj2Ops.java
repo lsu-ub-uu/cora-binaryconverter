@@ -2,6 +2,12 @@ package se.uu.ub.cora.binaryconverter.openjpeg2;
 
 import java.util.List;
 
+/**
+ * Used to add parameters to use when running opj2-commands.
+ * 
+ * Note: When using opj2_decompress only inputPath, outputPath and numberOfThreads is to be used
+ * among these commands.
+ */
 public interface Opj2Ops {
 
 	/**
@@ -111,6 +117,8 @@ public interface Opj2Ops {
 	 * tile-based viewers a value of 256x256 is usually recommended.<br>
 	 * <br>
 	 * 
+	 * Note: For uneven number of values the last one (or only one) is replicated to create a pair
+	 * 
 	 * Default: 2^15x2^15 at each resolution.
 	 * 
 	 * @param width
@@ -118,7 +126,7 @@ public interface Opj2Ops {
 	 * @param height
 	 *            The precinct height to use
 	 */
-	void precinctSize(int width, int height);
+	void precinctSize(int... precinctSize);
 
 	/**
 	 * Code-block size. The dimension must respect the constraint defined in the JPEG-2000 standard

@@ -26,9 +26,10 @@ public class Opj2CompressImpTest {
 		opj2Ops.inputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff");
 		opj2Ops.outputPath(
-				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2output.jp2");
+				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2iipView.jp2");
 		opj2Ops.codeBlockSize(64, 64);
 		opj2Ops.precinctSize(256, 256);
+		opj2Ops.tileSize(1024, 1024);
 		opj2Ops.numOfResolutions(7);
 		opj2Ops.psnrQuality(25, 28, 30, 35, 40);
 		opj2Ops.progressionOrder("RPCL");
@@ -39,7 +40,6 @@ public class Opj2CompressImpTest {
 		opj2Ops.tilePartDivider("R");
 		opj2Ops.numberOfThreads(6);
 
-		// opj2Ops.tileSize("1024,1024");
 		// opj2Ops.compressionRatio(2);
 
 		Opj2Compress opj2Compress = new Opj2CompressImp();
