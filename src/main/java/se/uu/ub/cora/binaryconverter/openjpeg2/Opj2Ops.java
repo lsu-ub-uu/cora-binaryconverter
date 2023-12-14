@@ -204,10 +204,10 @@ public interface Opj2Ops {
 	void tilePartDivider(String type);
 
 	/**
-	 * Number of threads for opj2 to use (e.g. 6)
+	 * Number of threads for opj2 to use. Setting this to 0 enables all available cores.
 	 * 
 	 * @param numOfThreads
-	 *            The amount of threads the opj2 command should utilize
+	 *            The amount of threads the opj2 command should utilize.
 	 */
 	void numberOfThreads(int numOfThreads);
 }

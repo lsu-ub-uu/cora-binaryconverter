@@ -131,6 +131,12 @@ public class Opj2OpsTest {
 	}
 
 	@Test
+	public void testNumberOfThreadsUseAllCores() throws Exception {
+		ops.numberOfThreads(0);
+		assertOpsPresentInOpsListAndInOrder("-threads", "ALL_CPUS");
+	}
+
+	@Test
 	public void testTilePartDivider() throws Exception {
 		ops.tilePartDivider("r");
 		assertOpsPresentInOpsListAndInOrder("-TP", "R");

@@ -121,7 +121,11 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void numberOfThreads(int numOfThreads) {
 		ops.add("-threads");
-		ops.add(numOfThreads + "");
+		if (numOfThreads > 0) {
+			ops.add(numOfThreads + "");
+		} else {
+			ops.add("ALL_CPUS");
+		}
 	}
 
 	@Override
