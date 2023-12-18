@@ -12,9 +12,11 @@ public interface Opj2Decompress {
 	 * Decompress a JPEG2000 image using opj2_decompress.<br>
 	 * 
 	 * @param ops
-	 *            The ops opj2_decompress should use to run
+	 *            The ops opj2_decompress should use to run. <br>
+	 *            Note: Decompress can only utilize <i>inputPath</i>, <i>outputPath</i> and
+	 *            <i>threads</i> from the available ops.
 	 * 
-	 * @return True if convertion was successful
+	 * @return True if conversion was successful
 	 */
 	boolean run(Opj2Ops ops);
 }

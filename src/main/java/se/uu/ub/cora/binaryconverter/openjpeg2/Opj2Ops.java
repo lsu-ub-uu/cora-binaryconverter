@@ -49,12 +49,12 @@ public interface Opj2Ops {
 	void outputPath(String outputPath);
 
 	/**
-	 * Different psnr for successive layers (e.g. 30,40,50).<br>
+	 * Different psnr for successive layers (e.g. 30, 40, 50).<br>
 	 * <br>
 	 * 
 	 * Increasing PSNR values required, except 0 which can be used for the last layer to indicate it
 	 * is lossless. <br>
-	 * Note: (options psnrQuality and compressionRatio cannot be used together)
+	 * Note: Options psnrQuality and compressionRatio cannot be used together
 	 * 
 	 * @param psnrLayers
 	 *            Psnr settings for layers
@@ -72,7 +72,7 @@ public interface Opj2Ops {
 	 * <li>quality layer 2: compress 10x</li>
 	 * <li>quality layer 3: compress lossless</li>
 	 * </ul>
-	 * Note: (options compressionRatio and psnrQuality cannot be used together)
+	 * Note: Options compressionRatio and psnrQuality cannot be used together
 	 * 
 	 * @param ratio
 	 *            The ratio for each successive layers
@@ -80,7 +80,7 @@ public interface Opj2Ops {
 	void compressionRatio(int... ratio);
 
 	/**
-	 * Size of tile (e.g. "1024,1024")<br>
+	 * Size of tile (e.g. 1024, 1024)<br>
 	 * <br>
 	 * Default: the dimension of the whole image, meaning the whole image.
 	 * 
@@ -110,21 +110,19 @@ public interface Opj2Ops {
 	 * Precinct size. Values specified must be power of 2. Multiple records may be supplied, in
 	 * which case the first record refers to the highest resolution level and subsequent records to
 	 * lower resolution levels. The last specified record is halved successively for each remaining
-	 * lower resolution levels.<br>
+	 * lower resolution levels (e.g. 256, 256, 128, 128).<br>
 	 * <br>
 	 * 
-	 * Precincts allow decoding for specific regions, not unlike how tiling works for TIFF. For
-	 * tile-based viewers a value of 256x256 is usually recommended.<br>
+	 * Precincts allow decoding for specific regions, not unlike how tiling works for TIFF. <i>For
+	 * tile-based viewers a value of 256x256 is usually recommended.</i><br>
 	 * <br>
 	 * 
 	 * Note: For uneven number of values the last one (or only one) is replicated to create a pair
 	 * 
 	 * Default: 2^15x2^15 at each resolution.
 	 * 
-	 * @param width
-	 *            The precinct width to use
-	 * @param height
-	 *            The precinct height to use
+	 * @param precinctSize
+	 *            The precinct sizes to use
 	 */
 	void precinctSize(int... precinctSize);
 

@@ -38,7 +38,7 @@ public interface Opj2Compress {
 	 * @param ops
 	 *            The ops opj2_compress should use to run
 	 * 
-	 * @return True if convertion was successful
+	 * @return True if conversion was successful
 	 */
 	boolean run(Opj2Ops ops);
 }
