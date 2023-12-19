@@ -28,7 +28,7 @@ import java.io.IOException;
  * Valid input image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif<br>
  * Valid output image extensions are .j2k, .jp2
  */
-public interface Opj2Compress {
+public interface Opj2Command {
 
 	/**
 	 * Compress to JPEG20000 using opj2_compress<br>
@@ -43,5 +43,17 @@ public interface Opj2Compress {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void run(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
+	void compress(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
+
+	/**
+	 * Decompress a JPEG20000 using opj2_decompress<br>
+	 * Note: For decompress the only available ops are inputPath, outputPath and threads<br>
+	 * 
+	 * @param ops
+	 *            The ops opj2_decompress should use to run
+	 * @throws OpenJpeg2Exception
+	 * @throws InterruptedException
+	 * @throws IOException
+	 */
+	void decompress(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
 }

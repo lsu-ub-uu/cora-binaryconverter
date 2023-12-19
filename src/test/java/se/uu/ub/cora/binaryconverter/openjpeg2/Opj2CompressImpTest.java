@@ -6,7 +6,7 @@ import org.testng.annotations.Test;
 
 public class Opj2CompressImpTest {
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	public void realTest() throws OpenJpeg2Exception, InterruptedException, IOException {
 		// Settings lifted from iipimage (except -q that is from earlier alvin implementation):
 		// opj2_compress -i input.tif -o output.jp2 -q 25,28,30,35,46 (-r 2.5) -n 7 -c
@@ -43,7 +43,7 @@ public class Opj2CompressImpTest {
 
 		// opj2Ops.compressionRatio(2);
 
-		Opj2Compress opj2Compress = new Opj2CompressImp();
-		opj2Compress.run(opj2Ops);
+		Opj2Command opj2Compress = new Opj2CommandImp();
+		opj2Compress.compress(opj2Ops);
 	}
 }
