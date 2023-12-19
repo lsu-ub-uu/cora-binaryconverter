@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.testng.annotations.Test;
 
-public class Opj2CompressImpTest {
+public class Opj2CommandImpTest {
 
 	@Test(enabled = false)
 	public void realTest() throws OpenJpeg2Exception, InterruptedException, IOException {
