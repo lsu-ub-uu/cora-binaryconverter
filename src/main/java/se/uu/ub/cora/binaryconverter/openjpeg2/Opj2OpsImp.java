@@ -47,17 +47,17 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void psnrQuality(int... psnrLayers) {
 		ops.add("-q");
-		ops.add(valuesAsString(psnrLayers));
+		ops.add(valuesAsCommaSeparatedString(psnrLayers));
 	}
 
-	private String valuesAsString(int[] values) {
+	private String valuesAsCommaSeparatedString(int[] values) {
 		return IntStream.of(values).mapToObj(Integer::toString).collect(Collectors.joining(","));
 	}
 
 	@Override
 	public void compressionRatio(int... ratio) {
 		ops.add("-r");
-		ops.add(valuesAsString(ratio));
+		ops.add(valuesAsCommaSeparatedString(ratio));
 	}
 
 	@Override

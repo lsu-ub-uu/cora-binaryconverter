@@ -26,6 +26,12 @@ public class Opj2OpsTest {
 		assertOpsPresentInOpsListAndInOrder("-i", path);
 	}
 
+	private void assertOpsPresentInOpsListAndInOrder(String command, String value) {
+		List<String> opsList = ops.getOpsList();
+		int commandIndex = opsList.indexOf(command);
+		assertEquals(opsList.get(commandIndex + 1), value);
+	}
+
 	@Test
 	public void testOutputPath() throws Exception {
 		String path = "/some/output/Path";
@@ -171,11 +177,5 @@ public class Opj2OpsTest {
 		assertOpsPresentInOpsListAndInOrder("-p", "RPCL");
 		assertOpsPresentInOpsListAndInOrder("-threads", "8");
 		assertOpsPresentInOpsListAndInOrder("-TP", "C");
-	}
-
-	private void assertOpsPresentInOpsListAndInOrder(String command, String value) {
-		List<String> opsList = ops.getOpsList();
-		int commandIndex = opsList.indexOf(command);
-		assertEquals(opsList.get(commandIndex + 1), value);
 	}
 }
