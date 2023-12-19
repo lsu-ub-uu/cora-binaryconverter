@@ -39,7 +39,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 			}
 		}
 
-		if (exitCode == -1) {
+		if (exitCode != 0) {
 			process.destroy();
 			throw OpenJpeg2Exception
 					.withMessage("Converting image using openjpeg2 failed or timed out");
