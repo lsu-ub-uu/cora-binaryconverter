@@ -1,14 +1,15 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import java.io.IOException;
 import java.util.List;
 
 public class Opj2DecompressImp implements Opj2Decompress {
 
 	@Override
-	public boolean run(Opj2Ops ops) {
+	public void run(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException {
 		List<String> operations = ops.getOpsList();
 		operations.add(0, "opj2_decompress");
 		Opj2ProcessRunner runner = new Opj2ProcessRunnerImp(operations);
-		return runner.runOpj2Process() == 0;
+		runner.runOpj2Process();
 	}
 }

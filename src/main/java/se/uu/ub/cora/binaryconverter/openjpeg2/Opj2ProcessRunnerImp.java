@@ -13,43 +13,44 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 	}
 
 	@Override
-	public int runOpj2Process() {
+	public void runOpj2Process() throws OpenJpeg2Exception, InterruptedException, IOException {
 		ProcessBuilder builder = new ProcessBuilder(operations);
 		builder.inheritIO(); // send logs to console, use redirect.... to send elsewhere (file etc)
 		try {
 			Process process = builder.start();
-			return waitForConvertingToFinish(process);
+			waitForConvertingToFinish(process);
 		} catch (IOException e) {
-			System.out.println("some failure, " + e);
-			return -1;
+			throw new IOException("IOException occured, openjpeg2-tools possibly not installed?");
 		}
 	}
 
-	int waitForConvertingToFinish(Process process) {
+	private void waitForConvertingToFinish(Process process)
+			throws OpenJpeg2Exception, InterruptedException {
 		long startTime = System.currentTimeMillis();
-		long timeOutTime = getTimeOut(startTime);
+		long timeOutTime = getTimeOutTime(startTime);
 		int exitCode = -1;
 		while (waitingForProcessToFinish(timeOutTime, exitCode)) {
 			try {
 				exitCode = process.exitValue();
 			} catch (IllegalThreadStateException e) {
 				try {
+					// Process is still working and active
 					Thread.sleep(5000);
 				} catch (InterruptedException ie) {
 					Thread.currentThread().interrupt();
+					throw new InterruptedException("Failed to sleep during openjpeg2 conversion");
 				}
 			}
 		}
 
 		if (exitCode == -1) {
-			System.out.println("Converting image failed or timed out");
 			process.destroy();
+			throw OpenJpeg2Exception
+					.withMessage("Converting image using openjpeg2 failed or timed out");
 		}
-
-		return exitCode;
 	}
 
-	private long getTimeOut(long startTime) {
+	private long getTimeOutTime(long startTime) {
 		return startTime + TIMEOUT_IN_MINUTES * 60 * 1000;
 	}
 

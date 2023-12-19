@@ -1,5 +1,7 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import java.io.IOException;
+
 /**
  * /** Decompress a JPEG2000 image using opj2_decompress.<br>
  * <br>
@@ -15,8 +17,9 @@ public interface Opj2Decompress {
 	 *            The ops opj2_decompress should use to run. <br>
 	 *            Note: Decompress can only utilize <i>inputPath</i>, <i>outputPath</i> and
 	 *            <i>threads</i> from the available ops.
-	 * 
-	 * @return True if conversion was successful
+	 * @throws OpenJpeg2Exception
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
-	boolean run(Opj2Ops ops);
+	void run(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
 }

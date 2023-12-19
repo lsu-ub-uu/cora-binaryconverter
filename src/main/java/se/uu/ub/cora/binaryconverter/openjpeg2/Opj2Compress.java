@@ -1,5 +1,7 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import java.io.IOException;
+
 /**
  * Compress to JPEG20000 using opj2_compress<br>
  * <br>
@@ -37,8 +39,9 @@ public interface Opj2Compress {
 	 * 
 	 * @param ops
 	 *            The ops opj2_compress should use to run
-	 * 
-	 * @return True if conversion was successful
+	 * @throws OpenJpeg2Exception
+	 * @throws InterruptedException
+	 * @throws IOException
 	 */
-	boolean run(Opj2Ops ops);
+	void run(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
 }
