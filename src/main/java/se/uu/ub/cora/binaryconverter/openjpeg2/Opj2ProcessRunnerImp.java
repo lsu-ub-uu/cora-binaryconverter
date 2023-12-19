@@ -26,8 +26,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 
 	private void waitForConvertingToFinish(Process process)
 			throws OpenJpeg2Exception, InterruptedException {
-		long startTime = System.currentTimeMillis();
-		long timeOutTime = getTimeOutTime(startTime);
+		long timeOutTime = getTimeOutTime();
 		int exitCode = -1;
 		while (waitingForProcessToFinish(timeOutTime, exitCode)) {
 			try {
@@ -50,8 +49,8 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 		}
 	}
 
-	private long getTimeOutTime(long startTime) {
-		return startTime + TIMEOUT_IN_MINUTES * 60 * 1000;
+	private long getTimeOutTime() {
+		return System.currentTimeMillis() + TIMEOUT_IN_MINUTES * 60 * 1000;
 	}
 
 	private boolean waitingForProcessToFinish(long timeOutTime, int exitCode) {
