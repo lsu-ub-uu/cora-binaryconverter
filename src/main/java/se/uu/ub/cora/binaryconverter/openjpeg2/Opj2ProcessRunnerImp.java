@@ -12,7 +12,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 	}
 
 	@Override
-	public void runOpj2Process() throws OpenJpeg2Exception, InterruptedException, IOException {
+	public void runOpj2Process() throws OpenJpeg2Exception, IOException {
 		try {
 			Process process = builder.start();
 			waitForConvertingToFinish(process);
@@ -21,29 +21,19 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 		}
 	}
 
-	private void waitForConvertingToFinish(Process process)
-			throws OpenJpeg2Exception, InterruptedException {
+	private void waitForConvertingToFinish(Process process) throws OpenJpeg2Exception {
 		long timeOutTime = getTimeOutTime();
 		int exitCode = -1;
 		while (waitingForProcessToFinish(timeOutTime, exitCode)) {
 			try {
 				exitCode = process.exitValue();
 			} catch (IllegalThreadStateException e) {
-				try {
-					// Process is still working and active
-					Thread.sleep(5000);
-				} catch (InterruptedException ie) {
-					Thread.currentThread().interrupt();
-					throw new InterruptedException("Failed to sleep during openjpeg2 conversion");
-				}
+				sleep();
 			}
 		}
 
 		if (exitCode != 0) {
-			process.destroy();
-			if (process.isAlive()) {
-				process.destroyForcibly();
-			}
+			destroyProcess(process);
 			throw OpenJpeg2Exception
 					.withMessage("Converting image using openjpeg2 failed or timed out");
 		}
@@ -55,5 +45,21 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 
 	private boolean waitingForProcessToFinish(long timeOutTime, int exitCode) {
 		return System.currentTimeMillis() < timeOutTime && exitCode == -1;
+	}
+
+	private void sleep() {
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+		}
+	}
+
+	private void destroyProcess(Process process) {
+		process.destroy();
+		sleep();
+		if (process.isAlive()) {
+			process.destroyForcibly();
+		}
 	}
 }

@@ -12,5 +12,5 @@ public interface Opj2ProcessRunner {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void runOpj2Process() throws OpenJpeg2Exception, InterruptedException, IOException;
+	void runOpj2Process() throws OpenJpeg2Exception, IOException;
 }

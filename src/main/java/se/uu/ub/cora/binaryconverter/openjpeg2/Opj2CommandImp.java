@@ -6,22 +6,20 @@ import java.util.List;
 public class Opj2CommandImp implements Opj2Command {
 
 	@Override
-	public void compress(Opj2Parameters parameters) throws OpenJpeg2Exception, InterruptedException, IOException {
+	public void compress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException {
 		List<String> params = parameters.getParamsList();
 		params.add(0, "opj2_compress");
 		runCommand(params);
 	}
 
 	@Override
-	public void decompress(Opj2Parameters parameters)
-			throws OpenJpeg2Exception, InterruptedException, IOException {
+	public void decompress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException {
 		List<String> params = parameters.getParamsList();
 		params.add(0, "opj2_decompress");
 		runCommand(params);
 	}
 
-	private void runCommand(List<String> parameters)
-			throws OpenJpeg2Exception, InterruptedException, IOException {
+	private void runCommand(List<String> parameters) throws OpenJpeg2Exception, IOException {
 		ProcessBuilder builder = configureBuilder(parameters);
 		Opj2ProcessRunner runner = new Opj2ProcessRunnerImp(builder);
 		runner.runOpj2Process();

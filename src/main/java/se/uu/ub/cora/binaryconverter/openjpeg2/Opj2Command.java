@@ -42,8 +42,7 @@ public interface Opj2Command {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void compress(Opj2Parameters parameters)
-			throws OpenJpeg2Exception, InterruptedException, IOException;
+	void compress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException;
 
 	/**
 	 * Decompress a JPEG2000 using opj2_decompress<br>
@@ -58,6 +57,5 @@ public interface Opj2Command {
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void decompress(Opj2Parameters parameters)
-			throws OpenJpeg2Exception, InterruptedException, IOException;
+	void decompress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException;
 }
