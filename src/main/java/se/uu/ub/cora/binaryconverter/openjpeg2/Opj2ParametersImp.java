@@ -5,19 +5,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public class Opj2OpsImp implements Opj2Ops {
+public class Opj2ParametersImp implements Opj2Parameters {
 
-	private List<String> ops;
+	private List<String> params;
 	private String inputPath;
 	private String outputPath;
 
-	public Opj2OpsImp() {
-		ops = new ArrayList<>();
+	public Opj2ParametersImp() {
+		params = new ArrayList<>();
 	}
 
 	@Override
-	public List<String> getOpsList() {
-		return ops;
+	public List<String> getParamsList() {
+		return params;
 	}
 
 	@Override
@@ -28,8 +28,8 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void inputPath(String inputPath) {
 		this.inputPath = inputPath;
-		ops.add("-i");
-		ops.add(inputPath);
+		params.add("-i");
+		params.add(inputPath);
 	}
 
 	@Override
@@ -40,14 +40,14 @@ public class Opj2OpsImp implements Opj2Ops {
 	@Override
 	public void outputPath(String outputPath) {
 		this.outputPath = outputPath;
-		ops.add("-o");
-		ops.add(outputPath);
+		params.add("-o");
+		params.add(outputPath);
 	}
 
 	@Override
 	public void psnrQuality(int... psnrLayers) {
-		ops.add("-q");
-		ops.add(valuesAsCommaSeparatedString(psnrLayers));
+		params.add("-q");
+		params.add(valuesAsCommaSeparatedString(psnrLayers));
 	}
 
 	private String valuesAsCommaSeparatedString(int[] values) {
@@ -56,26 +56,26 @@ public class Opj2OpsImp implements Opj2Ops {
 
 	@Override
 	public void compressionRatio(int... ratio) {
-		ops.add("-r");
-		ops.add(valuesAsCommaSeparatedString(ratio));
+		params.add("-r");
+		params.add(valuesAsCommaSeparatedString(ratio));
 	}
 
 	@Override
 	public void tileSize(int width, int height) {
-		ops.add("-t");
-		ops.add(width + "," + height);
+		params.add("-t");
+		params.add(width + "," + height);
 	}
 
 	@Override
 	public void numOfResolutions(int numOfResolutions) {
-		ops.add("-n");
-		ops.add(numOfResolutions + "");
+		params.add("-n");
+		params.add(numOfResolutions + "");
 	}
 
 	@Override
 	public void precinctSize(int... precinctSize) {
-		ops.add("-c");
-		ops.add(parsePrecinctSizes(precinctSize));
+		params.add("-c");
+		params.add(parsePrecinctSizes(precinctSize));
 	}
 
 	private String parsePrecinctSizes(int[] sizes) {
@@ -98,49 +98,49 @@ public class Opj2OpsImp implements Opj2Ops {
 
 	@Override
 	public void codeBlockSize(int width, int height) {
-		ops.add("-b");
-		ops.add(width + "," + height);
+		params.add("-b");
+		params.add(width + "," + height);
 	}
 
 	@Override
 	public void progressionOrder(String progressionOrderName) {
-		ops.add("-p");
-		ops.add(progressionOrderName.toUpperCase());
+		params.add("-p");
+		params.add(progressionOrderName.toUpperCase());
 	}
 
 	@Override
 	public void enableSop() {
-		ops.add("-SOP");
+		params.add("-SOP");
 	}
 
 	@Override
 	public void enableEph() {
-		ops.add("-EPH");
+		params.add("-EPH");
 	}
 
 	@Override
 	public void numberOfThreads(int numOfThreads) {
-		ops.add("-threads");
+		params.add("-threads");
 		if (numOfThreads > 0) {
-			ops.add(numOfThreads + "");
+			params.add(numOfThreads + "");
 		} else {
-			ops.add("ALL_CPUS");
+			params.add("ALL_CPUS");
 		}
 	}
 
 	@Override
 	public void enablePlt() {
-		ops.add("-PLT");
+		params.add("-PLT");
 	}
 
 	@Override
 	public void enableTlm() {
-		ops.add("-TLM");
+		params.add("-TLM");
 	}
 
 	@Override
 	public void tilePartDivider(String type) {
-		ops.add("-TP");
-		ops.add(type.toUpperCase());
+		params.add("-TP");
+		params.add(type.toUpperCase());
 	}
 }

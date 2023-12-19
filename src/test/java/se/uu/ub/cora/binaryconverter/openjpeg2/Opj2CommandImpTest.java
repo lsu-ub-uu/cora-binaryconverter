@@ -23,27 +23,27 @@ public class Opj2CommandImpTest {
 		// encoding)."
 		// If tiling is required -t 1024,1024
 
-		Opj2Ops opj2Ops = new Opj2OpsImp();
-		opj2Ops.inputPath(
+		Opj2Parameters opj2Params = new Opj2ParametersImp();
+		opj2Params.inputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aTiff.tiff");
-		opj2Ops.outputPath(
+		opj2Params.outputPath(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/opj2iipView.jp2");
-		opj2Ops.codeBlockSize(64, 64);
-		opj2Ops.precinctSize(256, 256);
-		opj2Ops.tileSize(1024, 1024);
-		opj2Ops.numOfResolutions(7);
-		opj2Ops.psnrQuality(25, 28, 30, 35, 46);
-		opj2Ops.progressionOrder("RPCL");
-		opj2Ops.enableEph();
-		opj2Ops.enableSop();
-		opj2Ops.enableTlm();
-		opj2Ops.enablePlt();
-		opj2Ops.tilePartDivider("R");
-		opj2Ops.numberOfThreads(6);
+		opj2Params.codeBlockSize(64, 64);
+		opj2Params.precinctSize(256, 256);
+		opj2Params.tileSize(1024, 1024);
+		opj2Params.numOfResolutions(7);
+		opj2Params.psnrQuality(25, 28, 30, 35, 46);
+		opj2Params.progressionOrder("RPCL");
+		opj2Params.enableEph();
+		opj2Params.enableSop();
+		opj2Params.enableTlm();
+		opj2Params.enablePlt();
+		opj2Params.tilePartDivider("R");
+		opj2Params.numberOfThreads(6);
 
 		// opj2Ops.compressionRatio(2);
 
 		Opj2Command opj2Compress = new Opj2CommandImp();
-		opj2Compress.compress(opj2Ops);
+		opj2Compress.compress(opj2Params);
 	}
 }

@@ -8,14 +8,14 @@ import java.util.List;
  * Note: When using opj2_decompress only inputPath, outputPath and numberOfThreads is to be used
  * among these commands.
  */
-public interface Opj2Ops {
+public interface Opj2Parameters {
 
 	/**
-	 * Get ops list
+	 * Get parameters list
 	 * 
 	 * @return The configured list of ops
 	 */
-	List<String> getOpsList();
+	List<String> getParamsList();
 
 	/**
 	 * Get input path

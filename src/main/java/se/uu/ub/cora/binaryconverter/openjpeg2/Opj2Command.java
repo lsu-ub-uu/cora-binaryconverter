@@ -5,14 +5,13 @@ import java.io.IOException;
 /**
  * Run either the openjpeg2-tools commands compress or decompress
  * 
- * 
  */
 public interface Opj2Command {
 
 	/**
-	 * Compress to JPEG20000 using opj2_compress<br>
+	 * Compress to JPEG2000 using opj2_compress<br>
 	 * 
-	 * Default encoding options if no Opj2Ops are defined:<br>
+	 * Default encoding options if no Opj2Parameters are defined:<br>
 	 * <ul>
 	 * <li>Lossless</li>
 	 * <li>1 tile</li>
@@ -37,26 +36,28 @@ public interface Opj2Command {
 	 * Valid input image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif<br>
 	 * Valid output image extensions are .j2k, .jp2
 	 * 
-	 * @param ops
-	 *            The ops opj2_compress should use to run
+	 * @param parameters
+	 *            The parameters opj2_compress should use to run
 	 * @throws OpenJpeg2Exception
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void compress(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
+	void compress(Opj2Parameters parameters)
+			throws OpenJpeg2Exception, InterruptedException, IOException;
 
 	/**
-	 * Decompress a JPEG20000 using opj2_decompress<br>
-	 * Note: For decompress the only available ops are inputPath, outputPath and threads<br>
+	 * Decompress a JPEG2000 using opj2_decompress<br>
+	 * Note: For decompress the only available parameters are inputPath, outputPath and threads<br>
 	 * <br>
 	 * Valid input image extensions are .j2k, .jp2, .j2c, .jpt<br>
 	 * Valid output image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif
 	 * 
-	 * @param ops
-	 *            The ops opj2_decompress should use to run
+	 * @param parameters
+	 *            The parameters opj2_decompress should use to run
 	 * @throws OpenJpeg2Exception
 	 * @throws InterruptedException
 	 * @throws IOException
 	 */
-	void decompress(Opj2Ops ops) throws OpenJpeg2Exception, InterruptedException, IOException;
+	void decompress(Opj2Parameters parameters)
+			throws OpenJpeg2Exception, InterruptedException, IOException;
 }
