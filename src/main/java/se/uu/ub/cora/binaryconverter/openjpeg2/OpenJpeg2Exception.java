@@ -1,6 +1,6 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
-public class OpenJpeg2Exception extends Exception {
+public class OpenJpeg2Exception extends RuntimeException {
 
 	private static final long serialVersionUID = -255261285196817577L;
 
