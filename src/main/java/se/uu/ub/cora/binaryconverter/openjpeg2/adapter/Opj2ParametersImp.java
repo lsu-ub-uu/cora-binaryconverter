@@ -1,4 +1,22 @@
-package se.uu.ub.cora.binaryconverter.openjpeg2;
+/*
+ * Copyright 2023 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -81,19 +99,38 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	private String parsePrecinctSizes(int[] sizes) {
 		StringBuilder stringOfPrecinctValues = new StringBuilder();
 		for (int i = 0; i < sizes.length; i += 2) {
-			stringOfPrecinctValues.append("[" + sizes[i] + ",");
-
-			if (i == sizes.length - 1 && sizes.length % 2 != 0) {
-				stringOfPrecinctValues.append(sizes[i] + "]");
-			} else {
-				stringOfPrecinctValues.append(sizes[i + 1] + "]");
-			}
-
-			if (i + 2 < sizes.length) {
-				stringOfPrecinctValues.append(",");
-			}
+			stringPrefix(sizes, stringOfPrecinctValues, i);
+			createPairs(sizes, stringOfPrecinctValues, i);
+			possiblyAddCommaBetweenPairs(sizes, stringOfPrecinctValues, i);
 		}
 		return stringOfPrecinctValues.toString();
+	}
+
+	private void stringPrefix(int[] sizes, StringBuilder stringOfPrecinctValues, int i) {
+		stringOfPrecinctValues.append("[" + sizes[i] + ",");
+	}
+
+	private void createPairs(int[] sizes, StringBuilder stringOfPrecinctValues, int i) {
+		if (isNotARealPair(sizes, i)) {
+			stringOfPrecinctValues.append(sizes[i] + "]");
+		} else {
+			stringOfPrecinctValues.append(sizes[i + 1] + "]");
+		}
+	}
+
+	private boolean isNotARealPair(int[] sizes, int i) {
+		return i == sizes.length - 1 && sizes.length % 2 != 0;
+	}
+
+	private void possiblyAddCommaBetweenPairs(int[] sizes, StringBuilder stringOfPrecinctValues,
+			int i) {
+		if (existsNewPair(sizes, i)) {
+			stringOfPrecinctValues.append(",");
+		}
+	}
+
+	private boolean existsNewPair(int[] sizes, int i) {
+		return i + 2 < sizes.length;
 	}
 
 	@Override
@@ -142,5 +179,10 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	public void tilePartDivider(String type) {
 		params.add("-TP");
 		params.add(type.toUpperCase());
+	}
+
+	@Override
+	public void opj2Command(String command) {
+		params.add(0, command);
 	}
 }

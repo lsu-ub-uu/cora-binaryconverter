@@ -1,4 +1,22 @@
-package se.uu.ub.cora.binaryconverter.openjpeg2;
+/*
+ * Copyright 2023 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -8,6 +26,9 @@ import java.util.List;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ParametersImp;
 
 public class Opj2ParametersTest {
 
@@ -84,8 +105,8 @@ public class Opj2ParametersTest {
 
 	@Test
 	public void testPrecinctSize() throws Exception {
-		params.precinctSize(256, 256);
-		assertOpsPresentInParamListAndInOrder("-c", "[256,256]");
+		params.precinctSize(256, 128);
+		assertOpsPresentInParamListAndInOrder("-c", "[256,128]");
 	}
 
 	@Test
@@ -177,5 +198,17 @@ public class Opj2ParametersTest {
 		assertOpsPresentInParamListAndInOrder("-p", "RPCL");
 		assertOpsPresentInParamListAndInOrder("-threads", "8");
 		assertOpsPresentInParamListAndInOrder("-TP", "C");
+	}
+
+	@Test
+	public void testAddFirst() throws Exception {
+		params.inputPath("/input/path");
+		params.outputPath("/output/path");
+
+		assertEquals(params.getParamsList().size(), 4);
+
+		params.opj2Command("someCommand");
+		assertEquals(params.getParamsList().size(), 5);
+		assertEquals(params.getParamsList().get(0), "someCommand");
 	}
 }

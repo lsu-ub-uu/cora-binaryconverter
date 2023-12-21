@@ -16,30 +16,45 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.openjpeg2.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessBuilder;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import java.io.IOException;
 
-public class Opj2ProcessBuilderSpy implements Opj2ProcessBuilder {
+public class Opj2ProcessBuilderImp implements Opj2ProcessBuilder {
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+	ProcessBuilder processBuilder;
+	private Opj2Parameters parameters;
 
-	public Opj2ProcessBuilderSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("start", ProcessSpy::new);
-		MRV.setDefaultReturnValuesSupplier("inheritIO", Opj2ProcessBuilderSpy::new);
+	public Opj2ProcessBuilderImp(Opj2Parameters parameters) {
+		this.parameters = parameters;
+		processBuilder = new ProcessBuilder(parameters.getParamsList());
 	}
 
 	@Override
 	public Process start() {
-		return (Process) MCR.addCallAndReturnFromMRV();
+		try {
+			return runStart();
+		} catch (IOException e) {
+			throw OpenJpeg2Exception.withMessage(e.getMessage());
+		}
+	}
+
+	Process runStart() throws IOException {
+		return processBuilder.start();
+	}
+
+	ProcessBuilder onlyForTestGetProcessBuilder() {
+		return processBuilder;
 	}
 
 	@Override
 	public Opj2ProcessBuilder inheritIO() {
-		return (Opj2ProcessBuilder) MCR.addCallAndReturnFromMRV();
+		processBuilder.inheritIO();
+		return this;
 	}
+
+	public Opj2Parameters onlyForTestGetParameters() {
+		return parameters;
+	}
+
 }

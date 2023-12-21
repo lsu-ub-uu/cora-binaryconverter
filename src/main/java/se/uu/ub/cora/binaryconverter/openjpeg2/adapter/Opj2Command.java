@@ -1,6 +1,22 @@
-package se.uu.ub.cora.binaryconverter.openjpeg2;
-
-import java.io.IOException;
+/*
+ * Copyright 2023 Uppsala University Library
+ *
+ * This file is part of Cora.
+ *
+ *     Cora is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ *
+ *     Cora is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ *
+ *     You should have received a copy of the GNU General Public License
+ *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
+ */
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 /**
  * Run either the openjpeg2-tools commands compress or decompress
@@ -39,10 +55,10 @@ public interface Opj2Command {
 	 * @param parameters
 	 *            The parameters opj2_compress should use to run
 	 * @throws OpenJpeg2Exception
-	 * @throws InterruptedException
-	 * @throws IOException
+	 *             When something goes wrong
+	 * 
 	 */
-	void compress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException;
+	void compress(Opj2Parameters parameters);
 
 	/**
 	 * Decompress a JPEG2000 using opj2_decompress<br>
@@ -54,8 +70,8 @@ public interface Opj2Command {
 	 * @param parameters
 	 *            The parameters opj2_decompress should use to run
 	 * @throws OpenJpeg2Exception
-	 * @throws InterruptedException
-	 * @throws IOException
+	 *             When something goes wrong
+	 * 
 	 */
-	void decompress(Opj2Parameters parameters) throws OpenJpeg2Exception, IOException;
+	void decompress(Opj2Parameters parameters);
 }

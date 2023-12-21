@@ -18,28 +18,25 @@
  */
 package se.uu.ub.cora.binaryconverter.openjpeg2.spy;
 
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessBuilder;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunner;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class Opj2ProcessBuilderSpy implements Opj2ProcessBuilder {
+public class Opj2ProcessRunnerFactorySpy implements Opj2ProcessRunnerFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public Opj2ProcessBuilderSpy() {
+	public Opj2ProcessRunnerFactorySpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("start", ProcessSpy::new);
-		MRV.setDefaultReturnValuesSupplier("inheritIO", Opj2ProcessBuilderSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factor", Opj2ProcessRunnerSpy::new);
 	}
 
 	@Override
-	public Process start() {
-		return (Process) MCR.addCallAndReturnFromMRV();
+	public Opj2ProcessRunner factor(Opj2Parameters parameters) {
+		return (Opj2ProcessRunner) MCR.addCallAndReturnFromMRV("parameters", parameters);
 	}
 
-	@Override
-	public Opj2ProcessBuilder inheritIO() {
-		return (Opj2ProcessBuilder) MCR.addCallAndReturnFromMRV();
-	}
 }
