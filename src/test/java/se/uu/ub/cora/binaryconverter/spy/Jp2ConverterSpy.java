@@ -32,7 +32,7 @@ public class Jp2ConverterSpy implements Jp2Converter {
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath) {
-		MCR.addCall("inputPath", inputPath, "outputPath", outputPath);
+	public void convert(String inputPath, String outputPath, String mimeType) {
+		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "mimeType", mimeType);
 	}
 }

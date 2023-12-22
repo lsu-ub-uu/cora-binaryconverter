@@ -113,7 +113,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			String pathToImage, String outputPath, String representation, int convertToWidth) {
 
 		ImageConverter imageConverter = binaryOperationFactory.factorImageConverter();
-		imageConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
+		imageConverter.convertAndResizeUsingWidth(pathToImage, outputPath, convertToWidth);
 
 		ImageData imageData = analyzeImage(outputPath);
 

@@ -26,8 +26,14 @@ import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.openjpeg2.Jp2ConverterUsingOpj2;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Command;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ParametersImp;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactory;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactoryImp;
 
 public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 
@@ -50,11 +56,20 @@ public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 		return new PdfConverterImp(factory, command);
 	}
 
+	// @Override
+	// public Jp2Converter factorJp2Converter() {
+	// IMOperationFactory imOperationFactory = new IMOperationFactoryImp();
+	// ConvertCmd command = new ConvertCmd();
+	// return new Jp2ConverterImp(imOperationFactory, command);
+	// }
 	@Override
 	public Jp2Converter factorJp2Converter() {
-		IMOperationFactory imOperationFactory = new IMOperationFactoryImp();
-		ConvertCmd command = new ConvertCmd();
-		return new Jp2ConverterImp(imOperationFactory, command);
+		Opj2ProcessRunnerFactory processRunnerFactory = new Opj2ProcessRunnerFactoryImp();
+		Opj2Command command = new Opj2CommandImp(processRunnerFactory);
+		Opj2Parameters parameters = new Opj2ParametersImp();
+		ImageConverter imageConverter = factorImageConverter();
+
+		return new Jp2ConverterUsingOpj2(command, parameters, imageConverter);
 	}
 
 }

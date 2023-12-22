@@ -29,6 +29,7 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
@@ -53,9 +54,15 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testConvertImage() throws Exception {
+	public void testInit() throws Exception {
+		assertTrue(imageConverter instanceof ImageConverter);
+	}
+
+	@Test
+	public void testConvertAndResizeUsingWidth_OK() throws Exception {
 		int width = 200;
-		imageConverter.convertUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, width);
+		imageConverter.convertAndResizeUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH,
+				width);
 
 		imOperationFactory.MCR.assertParameters("factor", 0);
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
@@ -76,13 +83,14 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testError() throws Exception {
+	public void testConvertAndResizeUsingWidth_Error() throws Exception {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
 		int width = 100;
 
 		try {
-			imageConverter.convertUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, width);
+			imageConverter.convertAndResizeUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH,
+					width);
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
@@ -101,7 +109,7 @@ public class ImageConverterTest {
 		ImageConverterImp imageMagickReal = new ImageConverterImp(realImOperationFactory,
 				realConvertCmd);
 
-		imageMagickReal.convertUsingWidth(
+		imageMagickReal.convertAndResizeUsingWidth(
 				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
 				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b", 600);
 
@@ -119,6 +127,38 @@ public class ImageConverterTest {
 	public void testOnlyForTestGetConvertCmd() throws Exception {
 		ConvertCmd convertCmd1 = imageConverter.onlyForTestGetConvertCmd();
 		assertSame(convertCmd1, convertCmd);
+	}
+
+	@Test
+	public void testConvertToTiff() throws Exception {
+
+		imageConverter.convertToTiff(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
+
+		imOperationFactory.MCR.assertParameters("factor", 0);
+		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
+				.getReturnValue("factor", 0);
+
+		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
+		imOperation.MCR.assertMethodNotCalled("resize");
+		imOperation.MCR.assertMethodNotCalled("quality");
+		assertFirstArgumentAddImage(imOperation, 1, "TIFF:" + SOME_TEMP_OUTPUT_PATH);
+
+		convertCmd.MCR.assertParameters("run", 0, imOperation);
+	}
+
+	@Test
+	public void testConvertToTiff_Error() throws Exception {
+		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
+
+		try {
+			imageConverter.convertToTiff(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			String errorMsg = "Error converting image to TIFF on path {0}";
+			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
+			assertEquals(e.getCause().getMessage(), "someSpyException");
+		}
 	}
 
 }

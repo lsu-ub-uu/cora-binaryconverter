@@ -29,9 +29,11 @@ public interface Jp2Converter {
 	 *            Path to the file to convert from.
 	 * @param outputPath
 	 *            Path where to store the converted file.
+	 * @param mimeType
+	 *            MimeType of the file to convert
 	 *
 	 * @throws BinaryConverterException
 	 *             if the conversion fails
 	 */
-	void convert(String inputPath, String outputPath);
+	void convert(String inputPath, String outputPath, String mimeType);
 }

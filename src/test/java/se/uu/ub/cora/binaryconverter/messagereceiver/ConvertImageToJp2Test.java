@@ -45,6 +45,7 @@ public class ConvertImageToJp2Test {
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
+	private static final String SOME_MIME_TYPE = "someMimeType";
 	private static final String SOME_MESSAGE = "someMessage";
 
 	private Map<String, String> some_headers = new HashMap<>();
@@ -78,6 +79,7 @@ public class ConvertImageToJp2Test {
 		some_headers.put("dataDivider", SOME_DATA_DIVIDER);
 		some_headers.put("type", SOME_TYPE);
 		some_headers.put("id", SOME_ID);
+		some_headers.put("mimeType", SOME_MIME_TYPE);
 	}
 
 	@Test
@@ -136,7 +138,8 @@ public class ConvertImageToJp2Test {
 		binaryOperationFactory.MCR.assertParameters("factorJp2Converter", callNr);
 		Jp2ConverterSpy jp2Converter = (Jp2ConverterSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorJp2Converter", callNr);
-		jp2Converter.MCR.assertParameters("convert", 0, inputPath, "somePathToAFile");
+		jp2Converter.MCR.assertParameters("convert", 0, inputPath, "somePathToAFile",
+				SOME_MIME_TYPE);
 	}
 
 	private String assertPathBuilderBuildFileSystemFilePath(String representation, int callNr) {

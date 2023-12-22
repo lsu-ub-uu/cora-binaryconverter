@@ -52,11 +52,12 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
+		String mimeType = headers.get("mimeType");
 		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
 		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
-				originalImagePath);
+				originalImagePath, mimeType);
 
 		ClientDataGroup jp2G = resourceMetadataCreator.createMetadataForRepresentation("jp2",
 				recordId, imageData, "image/jp2");
@@ -66,16 +67,17 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	}
 
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
-			String inputPath) {
+			String inputPath, String mimeType) {
 		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
 				recordId + "-jp2");
 
-		return convertToJp2AndAnalyze(inputPath, largePath);
+		return convertToJp2AndAnalyze(inputPath, largePath, mimeType);
 	}
 
-	private ImageData convertToJp2AndAnalyze(String pathToImage, String outputPath) {
+	private ImageData convertToJp2AndAnalyze(String pathToImage, String outputPath,
+			String mimeType) {
 		Jp2Converter jp2Converter = binaryOperationFactory.factorJp2Converter();
-		jp2Converter.convert(pathToImage, outputPath);
+		jp2Converter.convert(pathToImage, outputPath, mimeType);
 
 		return analyzeImage(outputPath);
 	}

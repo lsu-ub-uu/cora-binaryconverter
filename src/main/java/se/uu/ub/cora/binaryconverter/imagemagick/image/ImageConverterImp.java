@@ -41,19 +41,47 @@ public class ImageConverterImp implements ImageConverter {
 	}
 
 	@Override
-	public void convertUsingWidth(String inputPath, String outputPath, int width) {
-		IMOperation imOperation = imOperationFactory.factor();
-		imOperation.addImage(inputPath);
+	public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
+		IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
 		imOperation.resize(width);
 		imOperation.quality(QUALITY);
 		imOperation.addImage("JPEG:" + outputPath);
+
+		String message = createErrorMessageConvertAndResizeToJpeg(inputPath, width);
+		tryToRunImageMagickJpeg(imOperation, message);
+	}
+
+	private IMOperation createIMOperationUsingInputPath(String inputPath) {
+		IMOperation imOperation = imOperationFactory.factor();
+		imOperation.addImage(inputPath);
+		return imOperation;
+	}
+
+	private void tryToRunImageMagickJpeg(IMOperation imOperation, String message) {
 		try {
 			convertCmd.run(imOperation);
 		} catch (Exception e) {
-			String errorMsg = "Error converting image on path {0} and width {1}";
-			String message = MessageFormat.format(errorMsg, inputPath, width);
 			throw BinaryConverterException.withMessageAndException(message, e);
 		}
+	}
+
+	private String createErrorMessageConvertAndResizeToJpeg(String inputPath, int width) {
+		String errorMsg = "Error converting image on path {0} and width {1}";
+		return MessageFormat.format(errorMsg, inputPath, width);
+	}
+
+	@Override
+	public void convertToTiff(String inputPath, String outputPath) {
+		IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
+		imOperation.addImage("TIFF:" + outputPath);
+
+		String message = createErrorMessageConvertToTiff(inputPath);
+		tryToRunImageMagickJpeg(imOperation, message);
+	}
+
+	private String createErrorMessageConvertToTiff(String inputPath) {
+		String errorMsg = "Error converting image to TIFF on path {0}";
+		return MessageFormat.format(errorMsg, inputPath);
 	}
 
 	void onlyForTestSetConvertCmd(ConvertCmd convertCmd) {

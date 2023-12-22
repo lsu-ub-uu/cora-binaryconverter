@@ -18,6 +18,12 @@
  */
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Command;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
@@ -26,28 +32,50 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 
 	private Opj2Command opj2Command;
 	private Opj2Parameters opj2Parameters;
+	private ImageConverter imageConverter;
 
-	public Jp2ConverterUsingOpj2(Opj2Command opj2Command, Opj2Parameters opj2Parameters) {
+	public Jp2ConverterUsingOpj2(Opj2Command opj2Command, Opj2Parameters opj2Parameters,
+			ImageConverter converterToTiff) {
 		this.opj2Command = opj2Command;
 		this.opj2Parameters = opj2Parameters;
-		// TODO Auto-generated constructor stub
+		this.imageConverter = converterToTiff;
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath) {
+	public void convert(String inputPath, String outputPath, String mimeType) {
 
 		/**
 		 * TODO:
 		 * 
-		 * 1. check media type, if different than .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga,
-		 * .tif then convert to tiff first and continue to convert with openjp2
+		 * 1.OpenJpeg needs extensions on both input and output files. Input files should be fixed
+		 * using a symbolic link when no temp convertion need it. and output file should be created
+		 * with .jp2 and then moved to a file without extensions.
+		 * 
+		 * 1. calculate numOfResolutions based on reslotuion
 		 * <p>
-		 * 2. calculate numOfResolutions based on reslotuion
+		 * 2. Fail handling
+		 * <p>
+		 * 3. Handle exception if temp file cannot be deleted
 		 * 
 		 */
+		if (mimeTypeOfImageNotAcceptedForOpenJpeg2(mimeType)) {
+			String tempFilePath = "/tmp/" + System.currentTimeMillis();
+			imageConverter.convertToTiff(inputPath, tempFilePath);
+			setOpenJpeg2Settings(tempFilePath, outputPath);
+			opj2Command.compress(opj2Parameters);
+			deleteTempFile(tempFilePath);
+		} else {
+			setOpenJpeg2Settings(inputPath, outputPath);
+			opj2Command.compress(opj2Parameters);
+		}
 
-		setOpenJpeg2Settings(inputPath, outputPath);
-		opj2Command.compress(opj2Parameters);
+	}
+
+	private boolean mimeTypeOfImageNotAcceptedForOpenJpeg2(String mimeType) {
+		List<String> acceptMimeTypesForOpenJpeg2 = List.of("image/bmp", "image/x-portable-graymap",
+				"image/png", "image/x-portable-anymap", "image/x-portable-pixmap",
+				"image/x-raw-panasonic", "image/x-tga", "image/tiff");
+		return !acceptMimeTypesForOpenJpeg2.contains(mimeType);
 	}
 
 	private void setOpenJpeg2Settings(String inputPath, String outputPath) {
@@ -67,6 +95,26 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		opj2Parameters.numberOfThreads(6); // Runtime.getRuntime().availableProcessors() / 2;
 	}
 
-	// TODO
-	// Valid input image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif<br>
+	private void deleteTempFile(String tempFilePath) {
+		Path path = Paths.get(tempFilePath);
+
+		try {
+			Files.delete(path);
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+
+	public Opj2Command onlyForTestGetOpj2Command() {
+		return opj2Command;
+	}
+
+	public Opj2Parameters onlyForTestGetOpj2Parameters() {
+		return opj2Parameters;
+	}
+
+	public ImageConverter onlyForTestGetImageConverter() {
+		// TODO Auto-generated method stub
+		return imageConverter;
+	}
 }

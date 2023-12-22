@@ -19,6 +19,13 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
+import static org.testng.Assert.fail;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -33,7 +40,20 @@ public class ImageConverterSpy implements ImageConverter {
 	}
 
 	@Override
-	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+	public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
 		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "width", width);
+	}
+
+	@Override
+	public void convertToTiff(String inputPath, String outputPath) {
+		MCR.addCall("inputPath", inputPath, "outputPath", outputPath);
+
+		Path path = Paths.get(outputPath);
+
+		try {
+			Files.createFile(path);
+		} catch (IOException e) {
+			fail("It could not create file: " + outputPath);
+		}
 	}
 }

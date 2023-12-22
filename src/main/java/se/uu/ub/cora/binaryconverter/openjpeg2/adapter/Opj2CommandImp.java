@@ -41,4 +41,8 @@ public class Opj2CommandImp implements Opj2Command {
 	public void decompress(Opj2Parameters parameters) {
 		runProcess(parameters, "opj2_decompress");
 	}
+
+	public Opj2ProcessRunnerFactory onlyForTestGetOpj2ProcessRunnerFactory() {
+		return processRunnerFactory;
+	}
 }
