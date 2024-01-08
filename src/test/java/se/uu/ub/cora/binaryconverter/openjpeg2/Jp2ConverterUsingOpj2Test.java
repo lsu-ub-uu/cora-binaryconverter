@@ -21,12 +21,15 @@ package se.uu.ub.cora.binaryconverter.openjpeg2;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.fail;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -36,14 +39,16 @@ import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 
 public class Jp2ConverterUsingOpj2Test {
 
+	// .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif
+
 	private Jp2Converter converter;
 
 	private Opj2CommandSpy opj2Command;
 	private Opj2ParametersSpy opj2Parameters;
 	private ImageConverterSpy converterToTiff;
 
-	private static final String SOME_TEMP_INPUT_PATH = "/someTempInputPath";
-	private static final String SOME_TEMP_OUTPUT_PATH = "/someTempOutputPath";
+	private static final String SOME_TEMP_INPUT_PATH = "./someTempInputPath";
+	private static final String SOME_TEMP_OUTPUT_PATH = "./someTempOutputPath";
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -51,22 +56,54 @@ public class Jp2ConverterUsingOpj2Test {
 		opj2Parameters = new Opj2ParametersSpy();
 		converterToTiff = new ImageConverterSpy();
 
+		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getOutputPath",
+				() -> SOME_TEMP_OUTPUT_PATH + ".jp2");
+
+		createInitialInputFile();
 		converter = new Jp2ConverterUsingOpj2(opj2Command, opj2Parameters, converterToTiff);
 	}
 
+	private void createInitialInputFile() {
+		Path path = Paths.get(SOME_TEMP_INPUT_PATH);
+
+		try {
+			Files.createFile(path);
+		} catch (IOException e) {
+			fail("It could not create file: " + SOME_TEMP_INPUT_PATH);
+		}
+	}
+
+	@AfterMethod
+	private void afterMethod() {
+
+		deleteFile(SOME_TEMP_INPUT_PATH);
+		deleteFile(SOME_TEMP_OUTPUT_PATH);
+	}
+
+	private void deleteFile(String fileToDelete) {
+		Path path = Paths.get(fileToDelete);
+		try {
+			Files.delete(path);
+		} catch (Exception e) {
+			fail("It failed cleaning up the tests. " + e.getMessage());
+		}
+	}
+
 	@Test
-	public void testConvertFillOpj2Command() throws Exception {
+	public void testConvertBpmToJp2() throws Exception {
+		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getInputPath",
+				() -> SOME_TEMP_INPUT_PATH + ".bmp");
 
 		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/bmp");
 
-		assertOpj2Parameters(SOME_TEMP_INPUT_PATH);
+		assertOpj2Parameters(SOME_TEMP_INPUT_PATH + ".bmp");
 
 		opj2Command.MCR.assertParameters("compress", 0, opj2Parameters);
 	}
 
 	private void assertOpj2Parameters(String inputPath) {
 		opj2Parameters.MCR.assertParameters("inputPath", 0, inputPath);
-		opj2Parameters.MCR.assertParameters("outputPath", 0, SOME_TEMP_OUTPUT_PATH);
+		opj2Parameters.MCR.assertParameters("outputPath", 0, SOME_TEMP_OUTPUT_PATH + ".jp2");
 		opj2Parameters.MCR.assertParameters("codeBlockSize", 0, 64, 64);
 		assertParameterArrayValues("precinctSize", "precinctSize", List.of(256, 256));
 		opj2Parameters.MCR.assertParameters("tileSize", 0, 1024, 1024);
@@ -93,6 +130,17 @@ public class Jp2ConverterUsingOpj2Test {
 			assertEquals(array[element], value);
 			element++;
 		}
+	}
+
+	@Test
+	public void testOuptutFileJp2MovedToFileWithoutExtension() throws Exception {
+		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/bmp");
+
+		Path pathWithJp2 = Paths.get(SOME_TEMP_OUTPUT_PATH + ".jp2");
+		assertFalse(Files.exists(pathWithJp2));
+
+		Path path = Paths.get(SOME_TEMP_OUTPUT_PATH);
+		assertTrue(Files.exists(path));
 	}
 
 	@Test
@@ -134,12 +182,17 @@ public class Jp2ConverterUsingOpj2Test {
 						"outputPath");
 
 		assertTrue(tempFilePath.startsWith("/tmp/"));
-		String outputFileName = tempFilePath.substring("/tmp/".length(), tempFilePath.length());
+		assertTrue(tempFilePath.endsWith(".tiff"));
+		String outputFileName = getTimestampFromFileName(tempFilePath);
 
 		Long outputFileNameAsLong = Long.valueOf(outputFileName);
 		assertTrue(before <= outputFileNameAsLong);
 		assertTrue(after >= outputFileNameAsLong);
 		return tempFilePath;
+	}
+
+	private String getTimestampFromFileName(String tempFilePath) {
+		return tempFilePath.substring("/tmp/".length(), tempFilePath.length() - (".tiff".length()));
 	}
 
 }

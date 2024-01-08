@@ -18,9 +18,11 @@
  */
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
@@ -51,6 +53,8 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		 * using a symbolic link when no temp convertion need it. and output file should be created
 		 * with .jp2 and then moved to a file without extensions.
 		 * 
+		 * 1. Test symbolic link deleted.
+		 * 
 		 * 1. calculate numOfResolutions based on reslotuion
 		 * <p>
 		 * 2. Fail handling
@@ -59,16 +63,40 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		 * 
 		 */
 		if (mimeTypeOfImageNotAcceptedForOpenJpeg2(mimeType)) {
-			String tempFilePath = "/tmp/" + System.currentTimeMillis();
+			String tempFilePath = "/tmp/" + System.currentTimeMillis() + ".tiff";
 			imageConverter.convertToTiff(inputPath, tempFilePath);
-			setOpenJpeg2Settings(tempFilePath, outputPath);
+			opj2Parameters = setOpenJpeg2Settings(tempFilePath, outputPath);
 			opj2Command.compress(opj2Parameters);
+
 			deleteTempFile(tempFilePath);
 		} else {
-			setOpenJpeg2Settings(inputPath, outputPath);
+			Path inputPathWithoutExtension = Paths.get(inputPath);
+			Path inputPathWithBmp = Paths.get(inputPath + ".bmp");
+			try {
+				Files.createSymbolicLink(inputPathWithBmp, inputPathWithoutExtension);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			setOpenJpeg2Settings(inputPath + ".bmp", outputPath);
 			opj2Command.compress(opj2Parameters);
 		}
+		moveOutPutPathWithoutExtension(outputPath);
 
+	}
+
+	private void moveOutPutPathWithoutExtension(String outputPath) {
+		Path outPutPathWithJp2 = Paths.get(outputPath + ".jp2");
+		Path outPutPathWithoutExtension = Paths.get(outputPath);
+		try {
+			Files.move(outPutPathWithJp2, outPutPathWithoutExtension,
+					StandardCopyOption.REPLACE_EXISTING);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+		}
 	}
 
 	private boolean mimeTypeOfImageNotAcceptedForOpenJpeg2(String mimeType) {
@@ -78,9 +106,9 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		return !acceptMimeTypesForOpenJpeg2.contains(mimeType);
 	}
 
-	private void setOpenJpeg2Settings(String inputPath, String outputPath) {
+	private Opj2Parameters setOpenJpeg2Settings(String inputPath, String outputPath) {
 		opj2Parameters.inputPath(inputPath);
-		opj2Parameters.outputPath(outputPath);
+		opj2Parameters.outputPath(outputPath + ".jp2");
 		opj2Parameters.codeBlockSize(64, 64);
 		opj2Parameters.precinctSize(256, 256);
 		opj2Parameters.tileSize(1024, 1024);
@@ -93,6 +121,7 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		opj2Parameters.enablePlt();
 		opj2Parameters.tilePartDivider("R");
 		opj2Parameters.numberOfThreads(6); // Runtime.getRuntime().availableProcessors() / 2;
+		return opj2Parameters;
 	}
 
 	private void deleteTempFile(String tempFilePath) {
