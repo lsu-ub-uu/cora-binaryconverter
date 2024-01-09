@@ -23,10 +23,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
+import java.text.MessageFormat;
 
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Command;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
 
@@ -49,44 +50,61 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		/**
 		 * TODO:
 		 * 
-		 * 1.OpenJpeg needs extensions on both input and output files. Input files should be fixed
-		 * using a symbolic link when no temp convertion need it. and output file should be created
-		 * with .jp2 and then moved to a file without extensions.
+		 * 1 Handle exceptions on Files operations.
 		 * 
-		 * 1. Test symbolic link deleted.
-		 * 
+		 * When viewer is on place
+		 * <p>
 		 * 1. calculate numOfResolutions based on reslotuion
-		 * <p>
-		 * 2. Fail handling
-		 * <p>
-		 * 3. Handle exception if temp file cannot be deleted
-		 * 
 		 */
-		if (mimeTypeOfImageNotAcceptedForOpenJpeg2(mimeType)) {
-			String tempFilePath = "/tmp/" + System.currentTimeMillis() + ".tiff";
-			imageConverter.convertToTiff(inputPath, tempFilePath);
-			opj2Parameters = setOpenJpeg2Settings(tempFilePath, outputPath);
-			opj2Command.compress(opj2Parameters);
 
-			deleteTempFile(tempFilePath);
-		} else {
-			Path inputPathWithoutExtension = Paths.get(inputPath);
-			Path inputPathWithBmp = Paths.get(inputPath + ".bmp");
-			try {
-				Files.createSymbolicLink(inputPathWithBmp, inputPathWithoutExtension);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			setOpenJpeg2Settings(inputPath + ".bmp", outputPath);
-			opj2Command.compress(opj2Parameters);
-		}
-		moveOutPutPathWithoutExtension(outputPath);
+		Path tempFilePath = createTempFileForConvertion(inputPath, mimeType);
+		convertToJp2UsingOpenJpeg(tempFilePath, outputPath);
+		deleteTempFileForConvertion(tempFilePath);
 
 	}
 
-	private void moveOutPutPathWithoutExtension(String outputPath) {
+	private Path createTempFileForConvertion(String inputPath, String mimeType) {
+		if (Opj2MimeType.isAcceptedForOpenJpeg2(mimeType)) {
+			return createSymbolicLinkForInputPath(inputPath, mimeType);
+		}
+		return convertInputPathToTempTif(inputPath);
+	}
+
+	private Path createSymbolicLinkForInputPath(String inputPath, String mimeType) {
+		String extension = Opj2MimeType.getExtensionForMimeType(mimeType);
+		String inputPathWithExtension = inputPath + extension;
+
+		Path inputPathAsPath = Paths.get(inputPath);
+		Path symbolicLinkPath = Paths.get(inputPathWithExtension);
+		tryToCreateSymbolicLink(inputPath, inputPathAsPath, symbolicLinkPath);
+		return symbolicLinkPath;
+	}
+
+	private void tryToCreateSymbolicLink(String inputPath, Path inputPathAsPath,
+			Path symbolicLinkPath) {
+		try {
+			Files.createSymbolicLink(symbolicLinkPath, inputPathAsPath);
+		} catch (IOException e) {
+			String errorMessage = "Error converting to OpenJpg2, could not create symbolic link for file {0}";
+			throw BinaryConverterException
+					.withMessageAndException(MessageFormat.format(errorMessage, inputPath), e);
+		}
+	}
+
+	private Path convertInputPathToTempTif(String inputPath) {
+		Path tempTif = Paths.get("/tmp/" + System.currentTimeMillis() + ".tif");
+		imageConverter.convertToTiff(inputPath, tempTif.toString());
+		return tempTif;
+	}
+
+	private void convertToJp2UsingOpenJpeg(Path tempFilePath, String outputPath) {
+		opj2Parameters = setOpenJpeg2Settings(tempFilePath, outputPath);
+		opj2Command.compress(opj2Parameters);
+		removeJp2ExtensionFromOutputFileNameFromOpenJpeg2(outputPath);
+
+	}
+
+	private void removeJp2ExtensionFromOutputFileNameFromOpenJpeg2(String outputPath) {
 		Path outPutPathWithJp2 = Paths.get(outputPath + ".jp2");
 		Path outPutPathWithoutExtension = Paths.get(outputPath);
 		try {
@@ -95,20 +113,17 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-
 		}
 	}
 
-	private boolean mimeTypeOfImageNotAcceptedForOpenJpeg2(String mimeType) {
-		List<String> acceptMimeTypesForOpenJpeg2 = List.of("image/bmp", "image/x-portable-graymap",
-				"image/png", "image/x-portable-anymap", "image/x-portable-pixmap",
-				"image/x-raw-panasonic", "image/x-tga", "image/tiff");
-		return !acceptMimeTypesForOpenJpeg2.contains(mimeType);
+	private Opj2Parameters setOpenJpeg2Settings(Path tempFilePath, String outputPath) {
+		setStandardConvertionParameters();
+		opj2Parameters.inputPath(tempFilePath.toString());
+		opj2Parameters.outputPath(outputPath + ".jp2");
+		return opj2Parameters;
 	}
 
-	private Opj2Parameters setOpenJpeg2Settings(String inputPath, String outputPath) {
-		opj2Parameters.inputPath(inputPath);
-		opj2Parameters.outputPath(outputPath + ".jp2");
+	private void setStandardConvertionParameters() {
 		opj2Parameters.codeBlockSize(64, 64);
 		opj2Parameters.precinctSize(256, 256);
 		opj2Parameters.tileSize(1024, 1024);
@@ -121,11 +136,9 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		opj2Parameters.enablePlt();
 		opj2Parameters.tilePartDivider("R");
 		opj2Parameters.numberOfThreads(6); // Runtime.getRuntime().availableProcessors() / 2;
-		return opj2Parameters;
 	}
 
-	private void deleteTempFile(String tempFilePath) {
-		Path path = Paths.get(tempFilePath);
+	private void deleteTempFileForConvertion(Path path) {
 
 		try {
 			Files.delete(path);
@@ -143,7 +156,6 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 	}
 
 	public ImageConverter onlyForTestGetImageConverter() {
-		// TODO Auto-generated method stub
 		return imageConverter;
 	}
 }

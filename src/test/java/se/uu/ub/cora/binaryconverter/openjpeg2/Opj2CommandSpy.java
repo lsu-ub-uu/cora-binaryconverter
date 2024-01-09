@@ -47,10 +47,23 @@ public class Opj2CommandSpy implements Opj2Command {
 	}
 
 	private void assertInputFileWithSymbolicLinkExists(Opj2Parameters parameters) {
-		Path path = Paths.get(parameters.getInputPath());
-		if (!Files.exists(path)) {
+
+		if (symbolicLinkDoesNotExist(parameters)) {
 			fail("InputFile does not exists: " + parameters.getInputPath());
 		}
+	}
+
+	private boolean symbolicLinkDoesNotExist(Opj2Parameters parameters) {
+		// It simulates scenario with a mimetype that openjp2 can handle
+		if (parameters.getInputPath().startsWith("./someTempInputPath.")) {
+			Path path = Paths.get(parameters.getInputPath());
+			return !Files.exists(path);
+		}
+		/**
+		 * It simulates scenario with a mimetype that openjp2 can NOT handle, no symbolic link is
+		 * created in this scenario
+		 */
+		return false;
 	}
 
 	private void createOuputFile(Opj2Parameters parameters) {

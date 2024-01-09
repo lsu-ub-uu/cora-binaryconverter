@@ -34,12 +34,11 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ParametersSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 
 public class Jp2ConverterUsingOpj2Test {
-
-	// .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif
 
 	private Jp2Converter converter;
 
@@ -59,63 +58,86 @@ public class Jp2ConverterUsingOpj2Test {
 		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getOutputPath",
 				() -> SOME_TEMP_OUTPUT_PATH + ".jp2");
 
-		createInitialInputFile();
+		createFile(SOME_TEMP_INPUT_PATH);
 		converter = new Jp2ConverterUsingOpj2(opj2Command, opj2Parameters, converterToTiff);
 	}
 
-	private void createInitialInputFile() {
-		Path path = Paths.get(SOME_TEMP_INPUT_PATH);
-
+	private void createFile(String pathToFile) {
+		Path path = Paths.get(pathToFile);
 		try {
 			Files.createFile(path);
 		} catch (IOException e) {
-			fail("It could not create file: " + SOME_TEMP_INPUT_PATH);
+			fail("It could not create file: " + pathToFile);
 		}
 	}
 
 	@AfterMethod
 	private void afterMethod() {
-
-		deleteFile(SOME_TEMP_INPUT_PATH);
-		deleteFile(SOME_TEMP_OUTPUT_PATH);
+		deleteFileIfExists(SOME_TEMP_INPUT_PATH);
+		deleteFileIfExists(SOME_TEMP_OUTPUT_PATH);
 	}
 
-	private void deleteFile(String fileToDelete) {
+	private void deleteFileIfExists(String fileToDelete) {
 		Path path = Paths.get(fileToDelete);
 		try {
-			Files.delete(path);
+			if (Files.exists(path)) {
+				Files.delete(path);
+			}
 		} catch (Exception e) {
 			fail("It failed cleaning up the tests. " + e.getMessage());
 		}
 	}
 
 	@Test
-	public void testConvertBpmToJp2() throws Exception {
-		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getInputPath",
-				() -> SOME_TEMP_INPUT_PATH + ".bmp");
+	public void testConvertToJp2UsingKnownMimeTypes() throws Exception {
+		// Extensions known by openJPEG: BMP, PGM, PGX, PNG, PNM, PPM, RAW, RAWL, TGA, TIF
+		assertConvertToJp2UsingKnownMimeType(0, ".bmp", "image/bmp");
+		assertConvertToJp2UsingKnownMimeType(1, ".pgm", "image/x-portable-graymap");
+		assertConvertToJp2UsingKnownMimeType(2, ".png", "image/png");
+		assertConvertToJp2UsingKnownMimeType(3, ".pnm", "image/x-portable-anymap");
+		assertConvertToJp2UsingKnownMimeType(4, ".ppm", "image/x-portable-pixmap");
+		assertConvertToJp2UsingKnownMimeType(5, ".raw", "image/x-raw-panasonic");
+		assertConvertToJp2UsingKnownMimeType(6, ".tga", "image/x-tga");
+		assertConvertToJp2UsingKnownMimeType(7, ".tif", "image/tiff");
+		// assertConvertToJp2UsingKnownMimeType(8, ".pgx", "Not found by tika");
+		// assertConvertToJp2UsingKnownMimeType(9, ".rawl", "Not found by tika");
 
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/bmp");
+		opj2Command.MCR.assertNumberOfCallsToMethod("compress", 8);
 
-		assertOpj2Parameters(SOME_TEMP_INPUT_PATH + ".bmp");
+		converterToTiff.MCR.assertMethodNotCalled("convertToTiff");
 
-		opj2Command.MCR.assertParameters("compress", 0, opj2Parameters);
 	}
 
-	private void assertOpj2Parameters(String inputPath) {
-		opj2Parameters.MCR.assertParameters("inputPath", 0, inputPath);
-		opj2Parameters.MCR.assertParameters("outputPath", 0, SOME_TEMP_OUTPUT_PATH + ".jp2");
-		opj2Parameters.MCR.assertParameters("codeBlockSize", 0, 64, 64);
+	private void assertConvertToJp2UsingKnownMimeType(int callNr, String extension,
+			String mimeType) {
+		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getInputPath",
+				() -> SOME_TEMP_INPUT_PATH + extension);
+
+		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, mimeType);
+
+		assertOpj2Parameters(callNr, SOME_TEMP_INPUT_PATH + extension);
+
+		opj2Command.MCR.assertParameters("compress", callNr, opj2Parameters);
+
+		Path pathWithExtension = Paths.get(SOME_TEMP_INPUT_PATH + extension);
+		assertFalse(Files.exists(pathWithExtension));
+	}
+
+	private void assertOpj2Parameters(int callNr, String inputPath) {
+		opj2Parameters.MCR.assertParameters("inputPath", callNr, inputPath);
+		opj2Parameters.MCR.assertParameters("outputPath", callNr, SOME_TEMP_OUTPUT_PATH + ".jp2");
+		opj2Parameters.MCR.assertParameters("codeBlockSize", callNr, 64, 64);
 		assertParameterArrayValues("precinctSize", "precinctSize", List.of(256, 256));
-		opj2Parameters.MCR.assertParameters("tileSize", 0, 1024, 1024);
-		opj2Parameters.MCR.assertParameters("numOfResolutions", 0, 7);
+		opj2Parameters.MCR.assertParameters("tileSize", callNr, 1024, 1024);
+		opj2Parameters.MCR.assertParameters("numOfResolutions", callNr, 7);
 		assertParameterArrayValues("psnrQuality", "psnrLayers", List.of(25, 28, 30, 35, 40));
-		opj2Parameters.MCR.assertParameters("progressionOrder", 0, "RPCL");
-		opj2Parameters.MCR.assertParameters("enableEph", 0);
-		opj2Parameters.MCR.assertParameters("enableSop", 0);
-		opj2Parameters.MCR.assertParameters("enableTlm", 0);
-		opj2Parameters.MCR.assertParameters("enablePlt", 0);
-		opj2Parameters.MCR.assertParameters("tilePartDivider", 0, "R");
-		opj2Parameters.MCR.assertParameters("numberOfThreads", 0, 6);
+		opj2Parameters.MCR.assertParameters("progressionOrder", callNr, "RPCL");
+		opj2Parameters.MCR.assertParameters("enableEph", callNr);
+		opj2Parameters.MCR.assertParameters("enableSop", callNr);
+		opj2Parameters.MCR.assertParameters("enableTlm", callNr);
+		opj2Parameters.MCR.assertParameters("enablePlt", callNr);
+		opj2Parameters.MCR.assertParameters("tilePartDivider", callNr, "R");
+		opj2Parameters.MCR.assertParameters("numberOfThreads", callNr, 6);
 	}
 
 	private void assertParameterArrayValues(String method, String parameter,
@@ -144,23 +166,6 @@ public class Jp2ConverterUsingOpj2Test {
 	}
 
 	@Test
-	public void testMimeTypesAcceptedForOpenJpeg2() throws Exception {
-
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/bmp");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/x-portable-graymap");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/png");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/x-portable-anymap");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/x-portable-pixmap");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/x-raw-panasonic");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/x-tga");
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/tiff");
-
-		opj2Command.MCR.assertNumberOfCallsToMethod("compress", 8);
-
-		converterToTiff.MCR.assertMethodNotCalled("convertToTiff");
-	}
-
-	@Test
 	public void testMimeTypeNotAcceptedConvertToTiff() throws Exception {
 
 		long before = System.currentTimeMillis();
@@ -169,7 +174,7 @@ public class Jp2ConverterUsingOpj2Test {
 
 		converterToTiff.MCR.assertParameters("convertToTiff", 0, SOME_TEMP_INPUT_PATH);
 		String tempFilePath = assertTempFilePathCreation(before, after);
-		assertOpj2Parameters(tempFilePath);
+		assertOpj2Parameters(0, tempFilePath);
 		opj2Command.MCR.assertParameters("compress", 0, opj2Parameters);
 
 		Path path = Paths.get(tempFilePath);
@@ -182,7 +187,7 @@ public class Jp2ConverterUsingOpj2Test {
 						"outputPath");
 
 		assertTrue(tempFilePath.startsWith("/tmp/"));
-		assertTrue(tempFilePath.endsWith(".tiff"));
+		assertTrue(tempFilePath.endsWith(".tif"));
 		String outputFileName = getTimestampFromFileName(tempFilePath);
 
 		Long outputFileNameAsLong = Long.valueOf(outputFileName);
@@ -192,7 +197,25 @@ public class Jp2ConverterUsingOpj2Test {
 	}
 
 	private String getTimestampFromFileName(String tempFilePath) {
-		return tempFilePath.substring("/tmp/".length(), tempFilePath.length() - (".tiff".length()));
+		return tempFilePath.substring("/tmp/".length(), tempFilePath.length() - (".tif".length()));
+	}
+
+	@Test
+	public void testExceptionOnCreateSymbolicLink() throws Exception {
+
+		createFile("/tmp/nonExistingInput.png");
+		try {
+			converter.convert("/tmp/nonExistingInput", SOME_TEMP_OUTPUT_PATH, "image/png");
+			fail("it should throw exception");
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(),
+					"Error converting to OpenJpg2, could not create symbolic link for file /tmp/nonExistingInput");
+			assertEquals(e.getCause().toString(),
+					"java.nio.file.FileAlreadyExistsException: /tmp/nonExistingInput.png");
+		} finally {
+			deleteFileIfExists("/tmp/nonExistingInput.png");
+		}
 	}
 
 }
