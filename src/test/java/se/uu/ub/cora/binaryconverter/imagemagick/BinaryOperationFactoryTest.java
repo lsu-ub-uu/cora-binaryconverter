@@ -31,6 +31,7 @@ import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapper;
 import se.uu.ub.cora.binaryconverter.openjpeg2.Jp2ConverterUsingOpj2;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
 import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
@@ -108,6 +109,9 @@ public class BinaryOperationFactoryTest {
 
 		ImageConverter imageConverter = jp2Converter.onlyForTestGetImageConverter();
 		assertNotNull(imageConverter);
+
+		FilesWrapper filesWrapper = jp2Converter.onlyForTestGetFilesWrapper();
+		assertNotNull(filesWrapper);
 
 	}
 

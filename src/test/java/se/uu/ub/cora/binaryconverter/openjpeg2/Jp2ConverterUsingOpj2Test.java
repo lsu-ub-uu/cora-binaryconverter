@@ -19,23 +19,18 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
-import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ParametersSpy;
+import se.uu.ub.cora.binaryconverter.spy.FilesWrapperSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 
 public class Jp2ConverterUsingOpj2Test {
@@ -45,6 +40,7 @@ public class Jp2ConverterUsingOpj2Test {
 	private Opj2CommandSpy opj2Command;
 	private Opj2ParametersSpy opj2Parameters;
 	private ImageConverterSpy converterToTiff;
+	private FilesWrapperSpy filesWrapper;
 
 	private static final String SOME_TEMP_INPUT_PATH = "./someTempInputPath";
 	private static final String SOME_TEMP_OUTPUT_PATH = "./someTempOutputPath";
@@ -54,38 +50,13 @@ public class Jp2ConverterUsingOpj2Test {
 		opj2Command = new Opj2CommandSpy();
 		opj2Parameters = new Opj2ParametersSpy();
 		converterToTiff = new ImageConverterSpy();
+		filesWrapper = new FilesWrapperSpy();
 
 		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getOutputPath",
 				() -> SOME_TEMP_OUTPUT_PATH + ".jp2");
 
-		createFile(SOME_TEMP_INPUT_PATH);
-		converter = new Jp2ConverterUsingOpj2(opj2Command, opj2Parameters, converterToTiff);
-	}
-
-	private void createFile(String pathToFile) {
-		Path path = Paths.get(pathToFile);
-		try {
-			Files.createFile(path);
-		} catch (IOException e) {
-			fail("It could not create file: " + pathToFile);
-		}
-	}
-
-	@AfterMethod
-	private void afterMethod() {
-		deleteFileIfExists(SOME_TEMP_INPUT_PATH);
-		deleteFileIfExists(SOME_TEMP_OUTPUT_PATH);
-	}
-
-	private void deleteFileIfExists(String fileToDelete) {
-		Path path = Paths.get(fileToDelete);
-		try {
-			if (Files.exists(path)) {
-				Files.delete(path);
-			}
-		} catch (Exception e) {
-			fail("It failed cleaning up the tests. " + e.getMessage());
-		}
+		converter = new Jp2ConverterUsingOpj2(opj2Command, opj2Parameters, converterToTiff,
+				filesWrapper);
 	}
 
 	@Test
@@ -115,12 +86,14 @@ public class Jp2ConverterUsingOpj2Test {
 
 		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, mimeType);
 
+		filesWrapper.MCR.assertParameters("createSymbolicLink", callNr,
+				SOME_TEMP_INPUT_PATH + extension);
 		assertOpj2Parameters(callNr, SOME_TEMP_INPUT_PATH + extension);
-
 		opj2Command.MCR.assertParameters("compress", callNr, opj2Parameters);
 
-		Path pathWithExtension = Paths.get(SOME_TEMP_INPUT_PATH + extension);
-		assertFalse(Files.exists(pathWithExtension));
+		filesWrapper.MCR.assertParameters("move", callNr, SOME_TEMP_OUTPUT_PATH + ".jp2",
+				SOME_TEMP_OUTPUT_PATH);
+		filesWrapper.MCR.assertParameters("delete", callNr, SOME_TEMP_INPUT_PATH + extension);
 	}
 
 	private void assertOpj2Parameters(int callNr, String inputPath) {
@@ -155,17 +128,6 @@ public class Jp2ConverterUsingOpj2Test {
 	}
 
 	@Test
-	public void testOuptutFileJp2MovedToFileWithoutExtension() throws Exception {
-		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/bmp");
-
-		Path pathWithJp2 = Paths.get(SOME_TEMP_OUTPUT_PATH + ".jp2");
-		assertFalse(Files.exists(pathWithJp2));
-
-		Path path = Paths.get(SOME_TEMP_OUTPUT_PATH);
-		assertTrue(Files.exists(path));
-	}
-
-	@Test
 	public void testMimeTypeNotAcceptedConvertToTiff() throws Exception {
 
 		long before = System.currentTimeMillis();
@@ -173,27 +135,28 @@ public class Jp2ConverterUsingOpj2Test {
 		long after = System.currentTimeMillis();
 
 		converterToTiff.MCR.assertParameters("convertToTiff", 0, SOME_TEMP_INPUT_PATH);
-		String tempFilePath = assertTempFilePathCreation(before, after);
-		assertOpj2Parameters(0, tempFilePath);
+		String tempTifFile = assertTempTifFileCreationAndFetch(before, after);
+		assertOpj2Parameters(0, tempTifFile);
 		opj2Command.MCR.assertParameters("compress", 0, opj2Parameters);
-
-		Path path = Paths.get(tempFilePath);
-		assertFalse(Files.exists(path));
+		filesWrapper.MCR.assertParameters("delete", 0, tempTifFile);
+		filesWrapper.MCR.assertParameters("move", 0, SOME_TEMP_OUTPUT_PATH + ".jp2",
+				SOME_TEMP_OUTPUT_PATH);
 	}
 
-	private String assertTempFilePathCreation(long before, long after) {
-		String tempFilePath = (String) converterToTiff.MCR
+	private String assertTempTifFileCreationAndFetch(long before, long after) {
+		String tempTifFile = (String) converterToTiff.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("convertToTiff", 0,
 						"outputPath");
 
-		assertTrue(tempFilePath.startsWith("/tmp/"));
-		assertTrue(tempFilePath.endsWith(".tif"));
-		String outputFileName = getTimestampFromFileName(tempFilePath);
+		assertTrue(tempTifFile.startsWith("/tmp/"));
+		assertTrue(tempTifFile.endsWith(".tif"));
+		String outputFileName = getTimestampFromFileName(tempTifFile);
 
 		Long outputFileNameAsLong = Long.valueOf(outputFileName);
 		assertTrue(before <= outputFileNameAsLong);
 		assertTrue(after >= outputFileNameAsLong);
-		return tempFilePath;
+
+		return tempTifFile;
 	}
 
 	private String getTimestampFromFileName(String tempFilePath) {
@@ -203,18 +166,16 @@ public class Jp2ConverterUsingOpj2Test {
 	@Test
 	public void testExceptionOnCreateSymbolicLink() throws Exception {
 
-		createFile("/tmp/nonExistingInput.png");
+		filesWrapper.MRV.setAlwaysThrowException("delete",
+				BinaryConverterException.withMessage("someSpyException"));
 		try {
-			converter.convert("/tmp/nonExistingInput", SOME_TEMP_OUTPUT_PATH, "image/png");
+			converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/png");
 			fail("it should throw exception");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(),
-					"Error converting to OpenJpg2, could not create symbolic link for file /tmp/nonExistingInput");
+			assertEquals(e.getMessage(), "Error converting to jp2: someSpyException");
 			assertEquals(e.getCause().toString(),
-					"java.nio.file.FileAlreadyExistsException: /tmp/nonExistingInput.png");
-		} finally {
-			deleteFileIfExists("/tmp/nonExistingInput.png");
+					"se.uu.ub.cora.binaryconverter.internal.BinaryConverterException: someSpyException");
 		}
 	}
 
