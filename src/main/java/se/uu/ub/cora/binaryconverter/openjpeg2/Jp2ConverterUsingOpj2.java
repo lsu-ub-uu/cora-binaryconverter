@@ -45,26 +45,23 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 
 	@Override
 	public void convert(String inputPath, String outputPath, String mimeType) {
+		tryToConvertToJp2(inputPath, outputPath, mimeType);
+	}
 
-		/**
-		 * TODO:
-		 * 
-		 * 1 Handle exceptions on Files operations.
-		 * 
-		 * When viewer is on place
-		 * <p>
-		 * 1. calculate numOfResolutions based on reslotuion
-		 */
+	private void tryToConvertToJp2(String inputPath, String outputPath, String mimeType) {
 		try {
-			String temporalyFile = createTempFileForConvertion(inputPath, mimeType);
-			convertToJp2UsingOpenJpeg(temporalyFile, outputPath);
-			filesWrapper.delete(temporalyFile);
+			convertToJp2(inputPath, outputPath, mimeType);
 		} catch (Exception e) {
 			String errorMessage = "Error converting to jp2: {0}";
 			throw BinaryConverterException
 					.withMessageAndException(MessageFormat.format(errorMessage, e.getMessage()), e);
 		}
+	}
 
+	private void convertToJp2(String inputPath, String outputPath, String mimeType) {
+		String temporalyFile = createTempFileForConvertion(inputPath, mimeType);
+		convertToJp2UsingOpenJpeg(temporalyFile, outputPath);
+		filesWrapper.delete(temporalyFile);
 	}
 
 	private String createTempFileForConvertion(String inputPath, String mimeType) {
