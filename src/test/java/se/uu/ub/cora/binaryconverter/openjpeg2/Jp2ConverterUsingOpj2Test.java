@@ -84,16 +84,30 @@ public class Jp2ConverterUsingOpj2Test {
 		opj2Parameters.MRV.setDefaultReturnValuesSupplier("getInputPath",
 				() -> SOME_TEMP_INPUT_PATH + extension);
 
+		long before = System.currentTimeMillis();
 		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, mimeType);
+		long after = System.currentTimeMillis();
 
-		filesWrapper.MCR.assertParameters("createSymbolicLink", callNr,
-				SOME_TEMP_INPUT_PATH + extension);
-		assertOpj2Parameters(callNr, SOME_TEMP_INPUT_PATH + extension);
+		String tempSymbolicLink = assertCallToCreateSymbolicLink(callNr, extension, before, after);
+
+		assertOpj2Parameters(callNr, tempSymbolicLink);
 		opj2Command.MCR.assertParameters("compress", callNr, opj2Parameters);
 
 		filesWrapper.MCR.assertParameters("move", callNr, SOME_TEMP_OUTPUT_PATH + ".jp2",
 				SOME_TEMP_OUTPUT_PATH);
-		filesWrapper.MCR.assertParameters("delete", callNr, SOME_TEMP_INPUT_PATH + extension);
+		filesWrapper.MCR.assertParameters("delete", callNr, tempSymbolicLink);
+	}
+
+	private String assertCallToCreateSymbolicLink(int callNr, String extension, long before,
+			long after) {
+		String tempSymbolicLink = (String) filesWrapper.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("createSymbolicLink", callNr,
+						"link");
+
+		assertCreationOfTempFile(tempSymbolicLink, extension, before, after);
+		filesWrapper.MCR.assertParameter("createSymbolicLink", callNr, "target",
+				SOME_TEMP_INPUT_PATH);
+		return tempSymbolicLink;
 	}
 
 	private void assertOpj2Parameters(int callNr, String inputPath) {
@@ -103,7 +117,7 @@ public class Jp2ConverterUsingOpj2Test {
 		assertParameterArrayValues("precinctSize", "precinctSize", List.of(256, 256));
 		opj2Parameters.MCR.assertParameters("tileSize", callNr, 1024, 1024);
 		opj2Parameters.MCR.assertParameters("numOfResolutions", callNr, 7);
-		assertParameterArrayValues("psnrQuality", "psnrLayers", List.of(25, 28, 30, 35, 40));
+		assertParameterArrayValues("psnrQuality", "psnrLayers", List.of(60));
 		opj2Parameters.MCR.assertParameters("progressionOrder", callNr, "RPCL");
 		opj2Parameters.MCR.assertParameters("enableEph", callNr);
 		opj2Parameters.MCR.assertParameters("enableSop", callNr);
@@ -135,7 +149,11 @@ public class Jp2ConverterUsingOpj2Test {
 		long after = System.currentTimeMillis();
 
 		converterToTiff.MCR.assertParameters("convertToTiff", 0, SOME_TEMP_INPUT_PATH);
-		String tempTifFile = assertTempTifFileCreationAndFetch(before, after);
+		String tempTifFile = (String) converterToTiff.MCR
+				.getValueForMethodNameAndCallNumberAndParameterName("convertToTiff", 0,
+						"outputPath");
+		assertCreationOfTempFile(tempTifFile, ".tif", before, after);
+
 		assertOpj2Parameters(0, tempTifFile);
 		opj2Command.MCR.assertParameters("compress", 0, opj2Parameters);
 		filesWrapper.MCR.assertParameters("delete", 0, tempTifFile);
@@ -143,24 +161,20 @@ public class Jp2ConverterUsingOpj2Test {
 				SOME_TEMP_OUTPUT_PATH);
 	}
 
-	private String assertTempTifFileCreationAndFetch(long before, long after) {
-		String tempTifFile = (String) converterToTiff.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("convertToTiff", 0,
-						"outputPath");
+	private void assertCreationOfTempFile(String tempFile, String extension, long before,
+			long after) {
+		assertTrue(tempFile.startsWith("/tmp/"));
+		assertTrue(tempFile.endsWith(extension));
 
-		assertTrue(tempTifFile.startsWith("/tmp/"));
-		assertTrue(tempTifFile.endsWith(".tif"));
-		String outputFileName = getTimestampFromFileName(tempTifFile);
-
-		Long outputFileNameAsLong = Long.valueOf(outputFileName);
+		Long outputFileNameAsLong = getTimestampFromFileName(tempFile);
 		assertTrue(before <= outputFileNameAsLong);
 		assertTrue(after >= outputFileNameAsLong);
-
-		return tempTifFile;
 	}
 
-	private String getTimestampFromFileName(String tempFilePath) {
-		return tempFilePath.substring("/tmp/".length(), tempFilePath.length() - (".tif".length()));
+	private Long getTimestampFromFileName(String tempFilePath) {
+		String timestamp = tempFilePath.substring("/tmp/".length(),
+				tempFilePath.length() - (".tif".length()));
+		return Long.valueOf(timestamp);
 	}
 
 	@Test

@@ -30,10 +30,8 @@ public class Jp2ConverterUsingOpj2RealTest {
 		// TODO Auto-generated method stub
 		BinaryOperationFactoryImp factory = new BinaryOperationFactoryImp();
 		Jp2Converter jp2Converter = factory.factorJp2Converter();
-		jp2Converter.convert(
-				"/tmp/sharedFileStorage/systemOne/streams/systemOne/binary:binary:1296451868274422-large",
-				"/tmp/sharedFileStorage/systemOne/streams/systemOne/binary:binary:1296451868274422-jp2",
-				"image/jpeg");
+		jp2Converter.convert("/tmp/sharedFileStorage/systemOne/streams/systemOne/goku",
+				"/tmp/sharedFileStorage/systemOne/streams/systemOne/goku-jp2", "image/jpeg");
 		// "/tmp/sharedFileStorage/systemOne/streams/systemOne/binary:binary:1296461930134329-jp2",
 	}
 }

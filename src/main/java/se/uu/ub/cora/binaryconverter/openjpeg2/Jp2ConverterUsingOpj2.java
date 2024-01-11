@@ -73,7 +73,7 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 
 	private String createSymbolicLinkForInputPath(String inputPath, String mimeType) {
 		String extension = Opj2MimeType.getExtensionForMimeType(mimeType);
-		String symbolicLink = inputPath + extension;
+		String symbolicLink = generateTempFileName(extension);
 
 		filesWrapper.createSymbolicLink(symbolicLink, inputPath);
 
@@ -81,11 +81,13 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 	}
 
 	private String convertInputPathToTempTif(String inputPath) {
-		String tempTif = "/tmp/" + System.currentTimeMillis() + TIF_EXTENSION;
-
+		String tempTif = generateTempFileName(TIF_EXTENSION);
 		imageConverter.convertToTiff(inputPath, tempTif);
-
 		return tempTif;
+	}
+
+	private String generateTempFileName(String extension) {
+		return "/tmp/" + System.currentTimeMillis() + extension;
 	}
 
 	private void convertToJp2UsingOpenJpeg(String tempFile, String outputPath) {
@@ -106,7 +108,7 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		opj2Parameters.precinctSize(256, 256);
 		opj2Parameters.tileSize(1024, 1024);
 		opj2Parameters.numOfResolutions(7); // <-- Value is variable depending on resolution
-		opj2Parameters.psnrQuality(25, 28, 30, 35, 40); // <-- tweak when viewer is in place
+		opj2Parameters.psnrQuality(60); // <-- (0-100 higher numer better quality and bigger file)
 		opj2Parameters.progressionOrder("RPCL");
 		opj2Parameters.enableEph();
 		opj2Parameters.enableSop();
