@@ -26,11 +26,15 @@ import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
+import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg2.Jp2ConverterUsingOpj2;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
 
 public class BinaryOperationFactoryTest {
 
@@ -77,17 +81,38 @@ public class BinaryOperationFactoryTest {
 		assertNotNull(command);
 	}
 
+	// @Test
+	// public void testFactorJp2Converter() throws Exception {
+	// Jp2ConverterImp jp2Converter = (Jp2ConverterImp) factory.factorJp2Converter();
+	//
+	// assertNotNull(jp2Converter);
+	//
+	// IMOperationFactory factory = jp2Converter.onlyForTestGetImOperationFactory();
+	// assertTrue(factory instanceof IMOperationFactoryImp);
+	//
+	// ConvertCmd command = jp2Converter.onlyForTestGetConvertCmd();
+	// assertNotNull(command);
+	// }
 	@Test
 	public void testFactorJp2Converter() throws Exception {
-		Jp2ConverterImp jp2Converter = (Jp2ConverterImp) factory.factorJp2Converter();
+		Jp2ConverterUsingOpj2 jp2Converter = (Jp2ConverterUsingOpj2) factory.factorJp2Converter();
 
 		assertNotNull(jp2Converter);
 
-		IMOperationFactory factory = jp2Converter.onlyForTestGetImOperationFactory();
-		assertTrue(factory instanceof IMOperationFactoryImp);
-
-		ConvertCmd command = jp2Converter.onlyForTestGetConvertCmd();
+		Opj2CommandImp command = (Opj2CommandImp) jp2Converter.onlyForTestGetOpj2Command();
 		assertNotNull(command);
+
+		command.onlyForTestGetOpj2ProcessRunnerFactory();
+
+		Opj2Parameters parameters = jp2Converter.onlyForTestGetOpj2Parameters();
+		assertNotNull(parameters);
+
+		ImageConverter imageConverter = jp2Converter.onlyForTestGetImageConverter();
+		assertNotNull(imageConverter);
+
+		FilesWrapper filesWrapper = jp2Converter.onlyForTestGetFilesWrapper();
+		assertNotNull(filesWrapper);
+
 	}
 
 }

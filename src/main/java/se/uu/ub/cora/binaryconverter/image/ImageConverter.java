@@ -29,7 +29,7 @@ import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 public interface ImageConverter {
 
 	/**
-	 * convertUsingWidth converts a master image to a jpg image. The supplied width is used and
+	 * convertAndResizeUsingWidth converts an image to a jpg image. The supplied width is used and
 	 * height is relative to the original.
 	 * 
 	 * @param inputPath
@@ -43,5 +43,15 @@ public interface ImageConverter {
 	 *             if the conversion fails
 	 */
 
-	void convertUsingWidth(String inputPath, String outputPath, int width);
+	void convertAndResizeUsingWidth(String inputPath, String outputPath, int width);
+
+	/**
+	 * convertToTiff converts an image to TIFF.
+	 * 
+	 * @param inputPath
+	 *            A String with the path of the image to be converted.
+	 * @param outputPath
+	 *            A string where the TIFF image is stored.
+	 */
+	void convertToTiff(String inputPath, String outputPath);
 }

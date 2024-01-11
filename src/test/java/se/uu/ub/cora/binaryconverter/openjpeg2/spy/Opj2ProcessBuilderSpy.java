@@ -16,23 +16,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg2.spy;
 
-import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessBuilder;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class Jp2ConverterSpy implements Jp2Converter {
+public class Opj2ProcessBuilderSpy implements Opj2ProcessBuilder {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public Jp2ConverterSpy() {
+	public Opj2ProcessBuilderSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("start", ProcessSpy::new);
+		MRV.setDefaultReturnValuesSupplier("inheritIO", Opj2ProcessBuilderSpy::new);
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath, String mimeType) {
-		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "mimeType", mimeType);
+	public Process start() {
+		return (Process) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public Opj2ProcessBuilder inheritIO() {
+		return (Opj2ProcessBuilder) MCR.addCallAndReturnFromMRV();
 	}
 }

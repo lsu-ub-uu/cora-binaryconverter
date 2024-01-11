@@ -40,7 +40,7 @@ public class Jp2ConverterImp implements Jp2Converter {
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath) {
+	public void convert(String inputPath, String outputPath, String mimeType) {
 		IMOperation imOperation = imOperationFactory.factor();
 		imOperation.addImage(inputPath);
 		addJpeg2000Defintions(imOperation);

@@ -33,7 +33,12 @@ public class ImageConverterSpy implements ImageConverter {
 	}
 
 	@Override
-	public void convertUsingWidth(String inputPath, String outputPath, int width) {
+	public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
 		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "width", width);
+	}
+
+	@Override
+	public void convertToTiff(String inputPath, String outputPath) {
+		MCR.addCall("inputPath", inputPath, "outputPath", outputPath);
 	}
 }

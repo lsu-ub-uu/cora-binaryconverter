@@ -16,23 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg2.spy;
 
-import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunner;
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class Jp2ConverterSpy implements Jp2Converter {
+public class Opj2ProcessRunnerFactorySpy implements Opj2ProcessRunnerFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public Jp2ConverterSpy() {
+	public Opj2ProcessRunnerFactorySpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("factor", Opj2ProcessRunnerSpy::new);
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath, String mimeType) {
-		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "mimeType", mimeType);
+	public Opj2ProcessRunner factor(Opj2Parameters parameters) {
+		return (Opj2ProcessRunner) MCR.addCallAndReturnFromMRV("parameters", parameters);
 	}
+
 }

@@ -31,7 +31,6 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactoryImp;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.Jp2ConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ConvertCmdSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
@@ -55,7 +54,7 @@ public class Jp2ConverterTest {
 
 	@Test
 	public void testConvertImage() throws Exception {
-		jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
+		jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "someMimetype");
 
 		imOperationFactory.MCR.assertParameters("factor", 0);
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
@@ -88,7 +87,7 @@ public class Jp2ConverterTest {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
 		try {
-			jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
+			jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "someMimetype");
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
@@ -108,7 +107,7 @@ public class Jp2ConverterTest {
 
 		imageMagickReal.convert(
 				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
-				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b.jp2");
+				"/home/marcus/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b.jp2", "");
 	}
 
 	@Test

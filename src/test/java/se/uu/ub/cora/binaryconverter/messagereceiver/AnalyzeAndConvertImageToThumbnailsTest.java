@@ -249,7 +249,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		binaryOperationFactory.MCR.assertParameters("factorImageConverter", fImageConverterCallNr);
 		ImageConverterSpy imageConverter = (ImageConverterSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageConverter", fImageConverterCallNr);
-		imageConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath,
+		imageConverter.MCR.assertParameters("convertAndResizeUsingWidth", 0, inputPath,
 				pathToFileRepresentation, width);
 	}
 

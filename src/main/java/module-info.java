@@ -1,4 +1,4 @@
-module se.uu.ub.cora.classicfedorasynchronizer {
+module se.uu.ub.cora.binaryconverter {
 
 	requires se.uu.ub.cora.javaclient;
 	requires se.uu.ub.cora.logger;

@@ -16,24 +16,19 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.image;
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
-import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+public class Opj2ProcessRunnerFactoryImp implements Opj2ProcessRunnerFactory {
 
-public interface Jp2Converter {
+	@Override
+	public Opj2ProcessRunner factor(Opj2Parameters parameters) {
+		Opj2ProcessBuilder processBuilder = createNewProcessBuilder(parameters);
+		processBuilder.inheritIO();
+		return new Opj2ProcessRunnerImp(processBuilder, 5000, 900);
+	}
 
-	/**
-	 * convert a master image to a jpeg2000 image.
-	 * 
-	 * @param inputPath
-	 *            Path to the file to convert from.
-	 * @param outputPath
-	 *            Path where to store the converted file.
-	 * @param mimeType
-	 *            MimeType of the file to convert
-	 *
-	 * @throws BinaryConverterException
-	 *             if the conversion fails
-	 */
-	void convert(String inputPath, String outputPath, String mimeType);
+	// Needed for test
+	Opj2ProcessBuilder createNewProcessBuilder(Opj2Parameters parameters) {
+		return new Opj2ProcessBuilderImp(parameters);
+	}
 }

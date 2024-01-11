@@ -16,24 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.image;
+package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
-import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+public class OpenJpeg2Exception extends RuntimeException {
 
-public interface Jp2Converter {
+	private static final long serialVersionUID = -255261285196817577L;
 
-	/**
-	 * convert a master image to a jpeg2000 image.
-	 * 
-	 * @param inputPath
-	 *            Path to the file to convert from.
-	 * @param outputPath
-	 *            Path where to store the converted file.
-	 * @param mimeType
-	 *            MimeType of the file to convert
-	 *
-	 * @throws BinaryConverterException
-	 *             if the conversion fails
-	 */
-	void convert(String inputPath, String outputPath, String mimeType);
+	private OpenJpeg2Exception(String message) {
+		super(message);
+	}
+
+	private OpenJpeg2Exception(String message, Exception e) {
+		super(message, e);
+	}
+
+	public static OpenJpeg2Exception withMessage(String message) {
+		return new OpenJpeg2Exception(message);
+	}
+
+	public static OpenJpeg2Exception withMessageAndException(String message, Exception e) {
+		return new OpenJpeg2Exception(message, e);
+	}
+
 }

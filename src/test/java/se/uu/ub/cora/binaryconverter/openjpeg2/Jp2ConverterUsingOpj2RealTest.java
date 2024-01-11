@@ -16,24 +16,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.image;
+package se.uu.ub.cora.binaryconverter.openjpeg2;
 
-import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
+import org.testng.annotations.Test;
 
-public interface Jp2Converter {
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 
-	/**
-	 * convert a master image to a jpeg2000 image.
-	 * 
-	 * @param inputPath
-	 *            Path to the file to convert from.
-	 * @param outputPath
-	 *            Path where to store the converted file.
-	 * @param mimeType
-	 *            MimeType of the file to convert
-	 *
-	 * @throws BinaryConverterException
-	 *             if the conversion fails
-	 */
-	void convert(String inputPath, String outputPath, String mimeType);
+public class Jp2ConverterUsingOpj2RealTest {
+
+	@Test(enabled = true)
+	public void realTest() {
+		// TODO Auto-generated method stub
+		BinaryOperationFactoryImp factory = new BinaryOperationFactoryImp();
+		Jp2Converter jp2Converter = factory.factorJp2Converter();
+		jp2Converter.convert("/tmp/sharedFileStorage/systemOne/streams/systemOne/goku",
+				"/tmp/sharedFileStorage/systemOne/streams/systemOne/goku-jp2", "image/jpeg");
+		// "/tmp/sharedFileStorage/systemOne/streams/systemOne/binary:binary:1296461930134329-jp2",
+	}
 }

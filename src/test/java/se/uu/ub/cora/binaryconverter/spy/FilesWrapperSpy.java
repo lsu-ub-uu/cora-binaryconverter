@@ -18,21 +18,31 @@
  */
 package se.uu.ub.cora.binaryconverter.spy;
 
-import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapper;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class Jp2ConverterSpy implements Jp2Converter {
+public class FilesWrapperSpy implements FilesWrapper {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public Jp2ConverterSpy() {
+	public FilesWrapperSpy() {
 		MCR.useMRV(MRV);
 	}
 
 	@Override
-	public void convert(String inputPath, String outputPath, String mimeType) {
-		MCR.addCall("inputPath", inputPath, "outputPath", outputPath, "mimeType", mimeType);
+	public void createSymbolicLink(String link, String target) {
+		MCR.addCall("link", link, "target", target);
+	}
+
+	@Override
+	public void move(String target, String newTarget) {
+		MCR.addCall("target", target, "newTarget", newTarget);
+	}
+
+	@Override
+	public void delete(String target) {
+		MCR.addCall("target", target);
 	}
 }
