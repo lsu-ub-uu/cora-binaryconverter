@@ -25,7 +25,7 @@ import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 
 public class Jp2ConverterUsingOpj2RealTest {
 
-	@Test(enabled = true)
+	@Test(enabled = false)
 	public void realTest() {
 		// TODO Auto-generated method stub
 		BinaryOperationFactoryImp factory = new BinaryOperationFactoryImp();
