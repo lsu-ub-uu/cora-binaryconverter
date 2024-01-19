@@ -27,16 +27,18 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.basicstorage.path.StreamPathBuilderImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreatorImp;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.JavaClientFactorySpy;
+import se.uu.ub.cora.fedoraarchive.path.ArchivePathBuilderImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.StreamPathBuilder;
+import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class MessageReceiverFactoryTest {
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
@@ -88,14 +90,30 @@ public class MessageReceiverFactoryTest {
 				.onlyForTestGetBinaryOperationFactory() instanceof BinaryOperationFactory);
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
-		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+		assertTrue(
+				messageReceiver.onlyForTestGetArchivePathBuilder() instanceof ArchivePathBuilder);
+		assertTrue(messageReceiver.onlyForTestGetStreamPathBuilder() instanceof StreamPathBuilder);
 	}
 
 	private void assertPathBuilder(AnalyzeAndConvertImageToThumbnails messageReceiver) {
-		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
-		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
-		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
-		assertTrue(pathBuilder instanceof PathBuilderImp);
+		ArchivePathBuilderImp archivePathBuilder = (ArchivePathBuilderImp) messageReceiver
+				.onlyForTestGetArchivePathBuilder();
+		assertArchivePathBuilder(archivePathBuilder);
+
+		StreamPathBuilderImp streamPathBuilder = (StreamPathBuilderImp) messageReceiver
+				.onlyForTestGetStreamPathBuilder();
+		assertStreamPathBuilder(streamPathBuilder);
+	}
+
+	private void assertArchivePathBuilder(ArchivePathBuilderImp archivePathBuilder) {
+		assertEquals(archivePathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
+		assertTrue(archivePathBuilder instanceof ArchivePathBuilder);
+	}
+
+	private void assertStreamPathBuilder(StreamPathBuilderImp streamPathBuilder) {
+		assertEquals(streamPathBuilder.onlyForTestGetFileSystemBasePath(),
+				SOME_FILE_STORAGE_BASE_PATH);
+		assertTrue(streamPathBuilder instanceof StreamPathBuilder);
 	}
 
 	@Test
@@ -124,12 +142,22 @@ public class MessageReceiverFactoryTest {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
-		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+		assertTrue(
+				messageReceiver.onlyForTestGetArchivePathBuilder() instanceof ArchivePathBuilder);
+		assertTrue(messageReceiver.onlyForTestGetStreamPathBuilder() instanceof StreamPathBuilder);
 
-		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
+		assertPathBuilderUsingConvertPdfToThumbnails(messageReceiver);
+	}
 
-		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
-		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
+	private void assertPathBuilderUsingConvertPdfToThumbnails(
+			ConvertPdfToThumbnails messageReceiver) {
+		ArchivePathBuilderImp archivePathBuilder = (ArchivePathBuilderImp) messageReceiver
+				.onlyForTestGetArchivePathBuilder();
+		assertArchivePathBuilder(archivePathBuilder);
+
+		StreamPathBuilderImp streamPathBuilder = (StreamPathBuilderImp) messageReceiver
+				.onlyForTestGetStreamPathBuilder();
+		assertStreamPathBuilder(streamPathBuilder);
 	}
 
 	@Test
@@ -144,12 +172,21 @@ public class MessageReceiverFactoryTest {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), getDataClientSpyFromeReturn());
 		assertTrue(messageReceiver
 				.onlyForTestGetResourceMetadataCreator() instanceof ResourceMetadataCreatorImp);
-		assertTrue(messageReceiver.onlyForTestGetPathBuilder() instanceof PathBuilder);
+		assertTrue(
+				messageReceiver.onlyForTestGetArchivePathBuilder() instanceof ArchivePathBuilder);
+		assertTrue(messageReceiver.onlyForTestGetStreamPathBuilder() instanceof StreamPathBuilder);
 
-		PathBuilderImp pathBuilder = (PathBuilderImp) messageReceiver.onlyForTestGetPathBuilder();
+		assertPathBuilderUsingConvertImageToJp2(messageReceiver);
+	}
 
-		assertEquals(pathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
-		assertEquals(pathBuilder.onlyForTestGetFileSystemBasePath(), SOME_FILE_STORAGE_BASE_PATH);
+	private void assertPathBuilderUsingConvertImageToJp2(ConvertImageToJp2 messageReceiver) {
+		ArchivePathBuilderImp archivePathBuilder = (ArchivePathBuilderImp) messageReceiver
+				.onlyForTestGetArchivePathBuilder();
+		assertArchivePathBuilder(archivePathBuilder);
+
+		StreamPathBuilderImp streamPathBuilder = (StreamPathBuilderImp) messageReceiver
+				.onlyForTestGetStreamPathBuilder();
+		assertStreamPathBuilder(streamPathBuilder);
 	}
 
 }

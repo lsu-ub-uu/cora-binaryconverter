@@ -24,26 +24,30 @@ import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.StreamPathBuilder;
+import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
 	private BinaryOperationFactory binaryOperationFactory;
 	private DataClient dataClient;
 	private ResourceMetadataCreator resourceMetadataCreator;
-	private PathBuilder pathBuilder;
+	private ArchivePathBuilder archivePathBuilder;
+	private StreamPathBuilder streamPathBuilder;
 
 	public ConvertImageToJp2(BinaryOperationFactory binaryOperationFactory, DataClient dataClient,
-			ResourceMetadataCreator resourceMetadataCreator, PathBuilder pathBuilder) {
+			ResourceMetadataCreator resourceMetadataCreator, ArchivePathBuilder archivePathBuilder,
+			StreamPathBuilder streamPathBuilder) {
 		this.binaryOperationFactory = binaryOperationFactory;
 		this.dataClient = dataClient;
 		this.resourceMetadataCreator = resourceMetadataCreator;
-		this.pathBuilder = pathBuilder;
+		this.archivePathBuilder = archivePathBuilder;
+		this.streamPathBuilder = streamPathBuilder;
 
 	}
 
@@ -53,7 +57,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
 		String mimeType = headers.get("mimeType");
-		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
+		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
 		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
@@ -68,8 +72,8 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
 			String inputPath, String mimeType) {
-		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-jp2");
+		String largePath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-jp2");
 
 		return convertToJp2AndAnalyze(inputPath, largePath, mimeType);
 	}
@@ -119,8 +123,12 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return resourceMetadataCreator;
 	}
 
-	public PathBuilder onlyForTestGetPathBuilder() {
-		return pathBuilder;
+	ArchivePathBuilder onlyForTestGetArchivePathBuilder() {
+		return archivePathBuilder;
+	}
+
+	StreamPathBuilder onlyForTestGetStreamPathBuilder() {
+		return streamPathBuilder;
 	}
 
 }

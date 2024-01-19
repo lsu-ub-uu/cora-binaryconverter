@@ -33,13 +33,14 @@ import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
-import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
+import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class AnalyzeAndConvertImageToThumbnailsTest {
 
@@ -66,7 +67,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 			"sizeMedium");
 	private ImageData imageDataLarge = new ImageData("resLarge", "widthLarge", "heightLarge",
 			"sizeLarge");
-	private PathBuilderSpy pathBuilder;
+	private ArchivePathBuilderSpy archivePathBuilder;
+	private StreamPathBuilderSpy streamPathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	@BeforeMethod
@@ -74,10 +76,12 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
+		archivePathBuilder = new ArchivePathBuilderSpy();
+		streamPathBuilder = new StreamPathBuilderSpy();
 		setUpImageAnalyzerFactory();
 
 		converter = new AnalyzeAndConvertImageToThumbnails(dataClient, binaryOperationFactory,
-				pathBuilder, resourceMetadataCreator);
+				archivePathBuilder, streamPathBuilder, resourceMetadataCreator);
 
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
@@ -104,13 +108,15 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		binaryOperationFactory.MRV.setSpecificReturnValuesSupplier("factorImageAnalyzer",
 				() -> analyzerLarge, "aPath-large");
 
-		pathBuilder = new PathBuilderSpy();
-		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
-				() -> "aPath-thumbnail", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-thumbnail");
-		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
-				() -> "aPath-medium", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-medium");
-		pathBuilder.MRV.setSpecificReturnValuesSupplier("buildPathToAFileAndEnsureFolderExists",
-				() -> "aPath-large", SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-large");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "aPath-thumbnail", SOME_DATA_DIVIDER,
+				SOME_TYPE, SOME_ID + "-thumbnail");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "aPath-medium", SOME_DATA_DIVIDER,
+				SOME_TYPE, SOME_ID + "-medium");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "aPath-large", SOME_DATA_DIVIDER,
+				SOME_TYPE, SOME_ID + "-large");
 	}
 
 	private void setMessageHeaders() {
@@ -130,7 +136,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	public void testCallFactoryWithCorrectPath() throws Exception {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		String resourceMasterPath = (String) pathBuilder.MCR
+		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
 		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", 0, resourceMasterPath);
@@ -141,8 +147,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		pathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, SOME_DATA_DIVIDER,
-				SOME_TYPE, SOME_ID);
+		archivePathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0,
+				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID);
 	}
 
 	@Test
@@ -195,7 +201,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
-		String resourceMasterPath = (String) pathBuilder.MCR
+		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 4);
@@ -255,10 +261,10 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private String assertPathBuilderBuildFileSystemFilePath(String representation,
 			int pathBuilderCallNr) {
-		pathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
-		pathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr,
-				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
-		String pathToFileRepresentation = (String) pathBuilder.MCR
+		streamPathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
+		streamPathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists",
+				pathBuilderCallNr, SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
+		String pathToFileRepresentation = (String) streamPathBuilder.MCR
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr);
 		return pathToFileRepresentation;
 	}
@@ -277,7 +283,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
-		assertEquals(converter.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(converter.onlyForTestGetArchivePathBuilder(), archivePathBuilder);
 		assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
 	}
 }

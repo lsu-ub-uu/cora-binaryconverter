@@ -19,24 +19,26 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import se.uu.ub.cora.basicstorage.path.StreamPathBuilderImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilderImp;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreatorImp;
+import se.uu.ub.cora.fedoraarchive.path.ArchivePathBuilderImp;
 import se.uu.ub.cora.javaclient.JavaClientAppTokenCredentials;
 import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
 	private BinaryOperationFactory binaryOperationFactory;
 	private ResourceMetadataCreator resourceMetadataCreator;
-	private PathBuilder pathBuilder;
+	private ArchivePathBuilder archivepathBuilder;
 	private DataClient dataClient;
+	private StreamPathBuilderImp streamPathBuilder;
 
 	public MessageReceiverFactoryImp() {
 		binaryOperationFactory = new BinaryOperationFactoryImp();
@@ -57,7 +59,8 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 			String fileStorageBasePath) {
 		dataClient = JavaClientProvider
 				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
-		pathBuilder = new PathBuilderImp(archiveBasePath, fileStorageBasePath);
+		archivepathBuilder = new ArchivePathBuilderImp(archiveBasePath);
+		streamPathBuilder = new StreamPathBuilderImp(fileStorageBasePath);
 	}
 
 	private MessageReceiver factorMessageReceiverUsingQueueName(String queueName) {
@@ -83,7 +86,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 	private MessageReceiver factorAnalyzeAndConvertImageToThumbnails() {
 
 		return new AnalyzeAndConvertImageToThumbnails(dataClient, binaryOperationFactory,
-				pathBuilder, resourceMetadataCreator);
+				archivepathBuilder, streamPathBuilder, resourceMetadataCreator);
 	}
 
 	private boolean isPdfConverterQueue(String queueName) {
@@ -92,7 +95,7 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
 	private MessageReceiver factorConvertPdfToThumbnails() {
 		return new ConvertPdfToThumbnails(binaryOperationFactory, dataClient,
-				resourceMetadataCreator, pathBuilder);
+				resourceMetadataCreator, archivepathBuilder, streamPathBuilder);
 	}
 
 	private boolean isJp2ConverterQueue(String queueName) {
@@ -101,6 +104,6 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
 	private MessageReceiver factorConvertImageToJp2() {
 		return new ConvertImageToJp2(binaryOperationFactory, dataClient, resourceMetadataCreator,
-				pathBuilder);
+				archivepathBuilder, streamPathBuilder);
 	}
 }

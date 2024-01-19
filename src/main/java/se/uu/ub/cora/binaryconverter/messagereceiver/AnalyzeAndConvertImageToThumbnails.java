@@ -24,26 +24,29 @@ import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.StreamPathBuilder;
+import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
-	private PathBuilder pathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
+	private ArchivePathBuilder archivePathBuilder;
+	private StreamPathBuilder streamPathBuilder;
 
 	public AnalyzeAndConvertImageToThumbnails(DataClient dataClient,
-			BinaryOperationFactory binaryOperationFactory, PathBuilder pathBuilder,
-			ResourceMetadataCreator resourceMetadataCreator) {
+			BinaryOperationFactory binaryOperationFactory, ArchivePathBuilder archivePathBuilder,
+			StreamPathBuilder streamPathBuilder, ResourceMetadataCreator resourceMetadataCreator) {
 		this.dataClient = dataClient;
 		this.binaryOperationFactory = binaryOperationFactory;
-		this.pathBuilder = pathBuilder;
+		this.archivePathBuilder = archivePathBuilder;
+		this.streamPathBuilder = streamPathBuilder;
 		this.resourceMetadataCreator = resourceMetadataCreator;
 	}
 
@@ -52,7 +55,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
-		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
+		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
@@ -85,12 +88,12 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 	private void convertAndCreateMetadataForRepresentations(String dataDivider, String type,
 			String recordId, String inputPath, ClientDataRecordGroup binaryRecordGroup) {
-		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-large");
-		String mediumPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-medium");
-		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-thumbnail");
+		String largePath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-large");
+		String mediumPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-medium");
+		String thumbnailPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-thumbnail");
 
 		ClientDataGroup largeG = convertImageUsingResourceTypeNameAndWidth(recordId, inputPath,
 				largePath, "large", 600);
@@ -134,8 +137,12 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return binaryOperationFactory;
 	}
 
-	PathBuilder onlyForTestGetPathBuilder() {
-		return pathBuilder;
+	ArchivePathBuilder onlyForTestGetArchivePathBuilder() {
+		return archivePathBuilder;
+	}
+
+	StreamPathBuilder onlyForTestGetStreamPathBuilder() {
+		return streamPathBuilder;
 	}
 
 	ResourceMetadataCreator onlyForTestGetResourceMetadataCreator() {

@@ -32,12 +32,13 @@ import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterSpy;
-import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
+import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class ConvertImageToJp2Test {
 
@@ -52,7 +53,8 @@ public class ConvertImageToJp2Test {
 	private ClientDataFactorySpy clientDataFactory;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
-	private PathBuilderSpy pathBuilder;
+	private ArchivePathBuilderSpy archivePathBuilder;
+	private StreamPathBuilderSpy streamPathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	private ConvertImageToJp2 messageReceiver;
@@ -62,7 +64,8 @@ public class ConvertImageToJp2Test {
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 
-		pathBuilder = new PathBuilderSpy();
+		archivePathBuilder = new ArchivePathBuilderSpy();
+		streamPathBuilder = new StreamPathBuilderSpy();
 
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
@@ -70,7 +73,7 @@ public class ConvertImageToJp2Test {
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
 		messageReceiver = new ConvertImageToJp2(binaryOperationFactory, dataClient,
-				resourceMetadataCreator, pathBuilder);
+				resourceMetadataCreator, archivePathBuilder, streamPathBuilder);
 
 		setMessageHeaders();
 	}
@@ -86,7 +89,7 @@ public class ConvertImageToJp2Test {
 	public void testConvertImageToJp2Called() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
-		String resourceMasterPath = (String) pathBuilder.MCR
+		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
 		assertAnalyzeAndConvertToRepresentation("jp2", 600, resourceMasterPath, 0);
@@ -127,8 +130,8 @@ public class ConvertImageToJp2Test {
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
 			int callNr) {
 
-		String pathToFileRepresentation = assertPathBuilderBuildFileSystemFilePath(representation,
-				callNr);
+		String pathToFileRepresentation = assertStreamPathBuilderBuildFileSystemFilePath(
+				representation, callNr);
 		assertCallToConvert(width, inputPath, callNr, pathToFileRepresentation);
 		return pathToFileRepresentation;
 	}
@@ -142,11 +145,12 @@ public class ConvertImageToJp2Test {
 				SOME_MIME_TYPE);
 	}
 
-	private String assertPathBuilderBuildFileSystemFilePath(String representation, int callNr) {
-		pathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
-		pathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", callNr,
+	private String assertStreamPathBuilderBuildFileSystemFilePath(String representation,
+			int callNr) {
+		streamPathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
+		streamPathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", callNr,
 				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
-		String pathToFileRepresentation = (String) pathBuilder.MCR
+		String pathToFileRepresentation = (String) streamPathBuilder.MCR
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", callNr);
 		return pathToFileRepresentation;
 	}
@@ -193,7 +197,7 @@ public class ConvertImageToJp2Test {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
 		assertEquals(messageReceiver.onlyForTestGetBinaryOperationFactory(),
 				binaryOperationFactory);
-		assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(messageReceiver.onlyForTestGetArchivePathBuilder(), archivePathBuilder);
 		assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
 				resourceMetadataCreator);
 	}

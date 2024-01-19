@@ -24,27 +24,30 @@ import se.uu.ub.cora.binaryconverter.document.PdfConverter;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.internal.PathBuilder;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
+import se.uu.ub.cora.storage.StreamPathBuilder;
+import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertPdfToThumbnails implements MessageReceiver {
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
-	private PathBuilder pathBuilder;
+	private ArchivePathBuilder archivePathBuilder;
 	private ResourceMetadataCreator resourceMetadataCreator;
+	private StreamPathBuilder streamPathBuilder;
 
 	public ConvertPdfToThumbnails(BinaryOperationFactory binaryOperationFactory,
 			DataClient dataClient, ResourceMetadataCreator resourceMetadataCreator,
-			PathBuilder pathBuilder) {
+			ArchivePathBuilder archivePathBuilder, StreamPathBuilder streamPathBuilder) {
 		this.binaryOperationFactory = binaryOperationFactory;
 		this.dataClient = dataClient;
 		this.resourceMetadataCreator = resourceMetadataCreator;
-		this.pathBuilder = pathBuilder;
+		this.archivePathBuilder = archivePathBuilder;
+		this.streamPathBuilder = streamPathBuilder;
 	}
 
 	@Override
@@ -52,7 +55,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		String recordType = headers.get("type");
 		String recordId = headers.get("id");
 		String dataDivider = headers.get("dataDivider");
-		String originalImagePath = pathBuilder.buildPathToAResourceInArchive(dataDivider,
+		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
 		ClientDataRecordGroup binaryRecordGroup = convertAndCreateMetadataForRepresentations(
@@ -68,25 +71,25 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 	private ClientDataRecordGroup convertAndCreateMetadataForRepresentations(String dataDivider,
 			String type, String recordId, String inputPath) {
-		String largePath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-large");
-		String mediumPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-medium");
-		String thumbnailPath = pathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-thumbnail");
+		String largePath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-large");
+		String mediumPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-medium");
+		String thumbnailPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
+				type, recordId + "-thumbnail");
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(type, recordId);
 
-		ClientDataGroup largeDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, inputPath,
-				largePath, "large", 600);
+		ClientDataGroup largeDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
+				recordId, inputPath, largePath, "large", 600);
 		/**
 		 * To increase speed and efficiency of the conversion process we use the large preview
 		 * version to convert the medium and thumbnail versions instead of the archived version.
 		 */
-		ClientDataGroup mediumDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, largePath,
-				mediumPath, "medium", 300);
-		ClientDataGroup thumbnailDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, largePath,
-				thumbnailPath, "thumbnail", 100);
+		ClientDataGroup mediumDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
+				recordId, largePath, mediumPath, "medium", 300);
+		ClientDataGroup thumbnailDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
+				recordId, largePath, thumbnailPath, "thumbnail", 100);
 
 		binaryRecordGroup.addChild(largeDG);
 		binaryRecordGroup.addChild(mediumDG);
@@ -95,8 +98,9 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		return binaryRecordGroup;
 	}
 
-	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(String recordId,
-			String pathToImage, String outputPath, String representation, int convertToWidth) {
+	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
+			String recordId, String pathToImage, String outputPath, String representation,
+			int convertToWidth) {
 
 		PdfConverter pdfConverter = binaryOperationFactory.factorPdfConverter();
 		pdfConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
@@ -130,8 +134,12 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		return resourceMetadataCreator;
 	}
 
-	public PathBuilder onlyForTestGetPathBuilder() {
-		return pathBuilder;
+	ArchivePathBuilder onlyForTestGetArchivePathBuilder() {
+		return archivePathBuilder;
+	}
+
+	StreamPathBuilder onlyForTestGetStreamPathBuilder() {
+		return streamPathBuilder;
 	}
 
 }

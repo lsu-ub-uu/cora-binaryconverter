@@ -30,13 +30,14 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
-import se.uu.ub.cora.binaryconverter.spy.PathBuilderSpy;
 import se.uu.ub.cora.binaryconverter.spy.PdfConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
+import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class ConvertPdfToThumbnailsTest {
 
@@ -50,17 +51,19 @@ public class ConvertPdfToThumbnailsTest {
 	private ClientDataFactorySpy clientDataFactory;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
-	private PathBuilderSpy pathBuilder;
+	private ArchivePathBuilderSpy archivePathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	private ConvertPdfToThumbnails messageReceiver;
+	private StreamPathBuilderSpy streamPathBuilder;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 
-		pathBuilder = new PathBuilderSpy();
+		archivePathBuilder = new ArchivePathBuilderSpy();
+		streamPathBuilder = new StreamPathBuilderSpy();
 
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
@@ -68,7 +71,7 @@ public class ConvertPdfToThumbnailsTest {
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
 		messageReceiver = new ConvertPdfToThumbnails(binaryOperationFactory, dataClient,
-				resourceMetadataCreator, pathBuilder);
+				resourceMetadataCreator, archivePathBuilder, streamPathBuilder);
 
 		setMessageHeaders();
 	}
@@ -83,7 +86,7 @@ public class ConvertPdfToThumbnailsTest {
 	public void testConvertPDfToThumbnailCalled() throws Exception {
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 
-		String resourceMasterPath = (String) pathBuilder.MCR
+		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
 		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0);
@@ -139,8 +142,8 @@ public class ConvertPdfToThumbnailsTest {
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
 			int callNr) {
 
-		String pathToFileRepresentation = assertPathBuilderBuildFileSystemFilePath(representation,
-				callNr);
+		String pathToFileRepresentation = assertStreamPathBuilderBuildFileSystemFilePath(
+				representation, callNr);
 		assertCallToConvert(width, inputPath, callNr, pathToFileRepresentation);
 		return pathToFileRepresentation;
 	}
@@ -154,11 +157,12 @@ public class ConvertPdfToThumbnailsTest {
 				width);
 	}
 
-	private String assertPathBuilderBuildFileSystemFilePath(String representation, int callNr) {
-		pathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
-		pathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", callNr,
+	private String assertStreamPathBuilderBuildFileSystemFilePath(String representation,
+			int callNr) {
+		streamPathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
+		streamPathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", callNr,
 				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
-		String pathToFileRepresentation = (String) pathBuilder.MCR
+		String pathToFileRepresentation = (String) streamPathBuilder.MCR
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", callNr);
 		return pathToFileRepresentation;
 	}
@@ -198,7 +202,7 @@ public class ConvertPdfToThumbnailsTest {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
 		assertEquals(messageReceiver.onlyForTestGetBinaryOperationFactory(),
 				binaryOperationFactory);
-		assertEquals(messageReceiver.onlyForTestGetPathBuilder(), pathBuilder);
+		assertEquals(messageReceiver.onlyForTestGetArchivePathBuilder(), archivePathBuilder);
 		assertEquals(messageReceiver.onlyForTestGetResourceMetadataCreator(),
 				resourceMetadataCreator);
 	}
