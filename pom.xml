@@ -69,37 +69,34 @@
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>initialize</artifactId>
 			<version>${initialize.version}</version>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>coradata</artifactId>
 			<version>${coradata.version}</version>
-			<scope>provided</scope>
+			<scope>runtime</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>storage</artifactId>
 			<version>${storage.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>storage-spies</artifactId>
 			<version>${storagespies.version}</version>
-			<scope>provided</scope>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>basicstorage</artifactId>
 			<version>${basicstorage.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
 			<artifactId>fedoraarchive</artifactId>
 			<version>${fedoraarchive.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>
