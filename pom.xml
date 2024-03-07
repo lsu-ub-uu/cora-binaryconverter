@@ -23,17 +23,17 @@
 	<name>Binary Converter</name>
 
 	<properties>
-		<coralog4j.version>2.15.0</coralog4j.version>
+		<coralog4j.version>2.16.0</coralog4j.version>
 		<im4java.version>1.4.0</im4java.version>
-		<initialize.version>1.5.0</initialize.version>
-		<coradata.version>8.0.0</coradata.version>
-		<storage.version>9.1-SNAPSHOT</storage.version>
-		<storagespies.version>1.7-SNAPSHOT</storagespies.version>
+		<initialize.version>1.6.0</initialize.version>
+		<coradata.version>9.0.0</coradata.version>
+		<storage.version>9.1.0</storage.version>
+		<storagespies.version>1.7.0</storagespies.version>
 		<fedoraarchive.version>1.12-SNAPSHOT</fedoraarchive.version>
 		<basicstorage.version>7.10-SNAPSHOT</basicstorage.version>
-		<messaging.version>3.0-SNAPSHOT</messaging.version>
+		<messaging.version>3.0.0</messaging.version>
 		<javaclient.version>3.2.0</javaclient.version>
-		<rabbitmq.version>3.0-SNAPSHOT</rabbitmq.version>
+		<rabbitmq.version>3.0.0</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>
 		<clientdata-spies.version>1.5.0</clientdata-spies.version>
