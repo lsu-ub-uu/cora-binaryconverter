@@ -32,11 +32,11 @@
 		<fedoraarchive.version>1.12-SNAPSHOT</fedoraarchive.version>
 		<basicstorage.version>7.10-SNAPSHOT</basicstorage.version>
 		<messaging.version>3.0-SNAPSHOT</messaging.version>
-		<javaclient.version>3.0-SNAPSHOT</javaclient.version>
+		<javaclient.version>3.2.0</javaclient.version>
 		<rabbitmq.version>3.0-SNAPSHOT</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>
-		<clientdata-spies.version>1.4-SNAPSHOT</clientdata-spies.version>
+		<clientdata-spies.version>1.5.0</clientdata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 	</properties>
 
