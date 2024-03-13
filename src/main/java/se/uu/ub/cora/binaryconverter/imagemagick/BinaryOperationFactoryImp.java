@@ -58,14 +58,6 @@ public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 		return new PdfConverterImp(factory, command);
 	}
 
-	// Jp2 converter using ImageMagick
-	// @Override
-	// public Jp2Converter factorJp2Converter() {
-	// IMOperationFactory imOperationFactory = new IMOperationFactoryImp();
-	// ConvertCmd command = new ConvertCmd();
-	// return new Jp2ConverterImp(imOperationFactory, command);
-	// }
-
 	@Override
 	public Jp2Converter factorJp2Converter() {
 		Opj2ProcessRunnerFactory processRunnerFactory = new Opj2ProcessRunnerFactoryImp();
