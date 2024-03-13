@@ -185,7 +185,7 @@ public class Opj2ProcessRunnerTest {
 			assertTrue(Thread.currentThread().isInterrupted());
 
 			assertException(e);
-			assertEquals(e.getCause(), "someInterruptedException");
+			assertEquals(e.getCause().getMessage(), "someInterruptedException");
 		}
 	}
 
