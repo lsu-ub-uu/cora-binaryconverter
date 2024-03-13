@@ -27,9 +27,6 @@ import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ParametersImp;
-
 public class Opj2ParametersTest {
 
 	Opj2Parameters params;
@@ -96,6 +93,12 @@ public class Opj2ParametersTest {
 		params.numOfResolutions(7);
 		assertOpsPresentInParamListAndInOrder("-n", "7");
 	}
+
+	// @Test
+	// public void testPrecinctSizeNoValueIsRepeatedToCreateAPair() throws Exception {
+	// params.precinctSize();
+	// assertOpsPresentInParamListAndInOrder("-c", "");
+	// }
 
 	@Test
 	public void testPrecinctSizeOnlyOneValueIsRepeatedToCreateAPair() throws Exception {

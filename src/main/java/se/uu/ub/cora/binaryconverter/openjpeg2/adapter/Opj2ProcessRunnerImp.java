@@ -20,6 +20,7 @@ package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 
+	private static final int TO_SECOND = 1000;
 	private final Opj2ProcessBuilder builder;
 	private int pollSleepTime;
 	private long timeout;
@@ -40,7 +41,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 	}
 
 	private long calculateTimeout(int timeoutInSeconds) {
-		return System.currentTimeMillis() + timeoutInSeconds * 1000;
+		return System.currentTimeMillis() + timeoutInSeconds * TO_SECOND;
 	}
 
 	private void waitForConvertingToFinish(Process process) {

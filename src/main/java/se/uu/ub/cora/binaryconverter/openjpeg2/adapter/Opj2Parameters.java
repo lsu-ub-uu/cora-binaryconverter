@@ -68,7 +68,7 @@ public interface Opj2Parameters {
 
 	/**
 	 * Different psnr for successive layers (e.g. 30, 40, 50).<br>
-	 * <br>
+	 * (0-100 higher numer better quality and bigger file) <br>
 	 * 
 	 * Increasing PSNR values required, except 0 which can be used for the last layer to indicate it
 	 * is lossless. <br>
@@ -111,7 +111,7 @@ public interface Opj2Parameters {
 
 	/**
 	 * Number of resolutions<br>
-	 * <br>
+	 * Value is variable depending on resolution <br>
 	 * 
 	 * Should be relative to the image size. As an example 5 levels should be enough for 2000x2000,
 	 * 6 levels for 4000x4000 and 7 levels for 8000x8000 and so forth. <br>
@@ -220,7 +220,8 @@ public interface Opj2Parameters {
 	void tilePartDivider(String type);
 
 	/**
-	 * Number of threads for opj2 to use. Setting this to 0 enables all available cores.
+	 * Number of threads for opj2 to use. Setting this to 0 enables all available cores.<br>
+	 * One way to calculate it would be: Runtime.getRuntime().availableProcessors() / 2
 	 * 
 	 * @param numOfThreads
 	 *            The amount of threads the opj2 command should utilize.

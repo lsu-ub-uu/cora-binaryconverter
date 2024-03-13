@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -36,7 +37,7 @@ public class Opj2ParametersImp implements Opj2Parameters {
 
 	@Override
 	public List<String> getParamsList() {
-		return params;
+		return Collections.unmodifiableList(params);
 	}
 
 	@Override
@@ -120,7 +121,10 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	}
 
 	private boolean isNotARealPair(int[] sizes, int i) {
-		return i == sizes.length - 1 && sizes.length % PAIR != 0;
+		boolean isLastPosition = i == sizes.length - 1;
+		boolean unevenNumberOfSizesInArray = sizes.length % PAIR != 0;
+		// System.out.println(isLastPosition + " : " + unevenNumberOfSizesInArray);
+		return isLastPosition && unevenNumberOfSizesInArray;
 	}
 
 	private void possiblyAddCommaBetweenPairs(int[] sizes, StringBuilder stringOfPrecinctValues,

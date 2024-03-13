@@ -107,15 +107,15 @@ public class Jp2ConverterUsingOpj2 implements Jp2Converter {
 		opj2Parameters.codeBlockSize(64, 64);
 		opj2Parameters.precinctSize(256, 256);
 		opj2Parameters.tileSize(1024, 1024);
-		opj2Parameters.numOfResolutions(7); // <-- Value is variable depending on resolution
-		opj2Parameters.psnrQuality(60); // <-- (0-100 higher numer better quality and bigger file)
+		opj2Parameters.numOfResolutions(7);
+		opj2Parameters.psnrQuality(60);
 		opj2Parameters.progressionOrder("RPCL");
 		opj2Parameters.enableEph();
 		opj2Parameters.enableSop();
 		opj2Parameters.enableTlm();
 		opj2Parameters.enablePlt();
 		opj2Parameters.tilePartDivider("R");
-		opj2Parameters.numberOfThreads(6); // Runtime.getRuntime().availableProcessors() / 2;
+		opj2Parameters.numberOfThreads(6);
 	}
 
 	public Opj2Command onlyForTestGetOpj2Command() {
