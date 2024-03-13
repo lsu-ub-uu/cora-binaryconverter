@@ -69,8 +69,8 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 			threadSleep();
 		} catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			throw OpenJpeg2Exception
-					.withMessage("Converting image using openjpeg2 failed or timed out");
+			throw OpenJpeg2Exception.withMessageAndException(
+					"Converting image using openjpeg2 failed or timed out", e);
 		}
 	}
 

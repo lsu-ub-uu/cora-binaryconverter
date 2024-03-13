@@ -185,6 +185,7 @@ public class Opj2ProcessRunnerTest {
 			assertTrue(Thread.currentThread().isInterrupted());
 
 			assertException(e);
+			assertEquals(e.getCause(), "someInterruptedException");
 		}
 	}
 
@@ -196,7 +197,7 @@ public class Opj2ProcessRunnerTest {
 
 		@Override
 		protected void threadSleep() throws InterruptedException {
-			throw new InterruptedException("someException");
+			throw new InterruptedException("someInterruptedException");
 		}
 	}
 
