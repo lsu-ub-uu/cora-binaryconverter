@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
@@ -42,6 +43,7 @@ public class PdfConverterTest {
 
 	private static final String SOME_OUTPUT_PATH = "someOutputPath";
 	private static final String SOME_INPUT_PATH = "someInputPath";
+	private static final int SOME_WIDTH = 100;
 	private static final String OUTPUT_FORMAT = "JPG:";
 	private PdfConverterImp pdfConverter;
 	private ConvertCmdSpy convertCmd;
@@ -64,15 +66,14 @@ public class PdfConverterTest {
 
 	@Test
 	public void testConvertPdf() throws Exception {
-		int width = 100;
 
-		pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, width);
+		pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, SOME_WIDTH);
 
 		imOperationFactory.MCR.assertParameters("factor", 0);
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
 				.getReturnValue("factor", 0);
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
-		imOperation.MCR.assertParameters("resize", 0, width);
+		imOperation.MCR.assertParameters("resize", 0, SOME_WIDTH);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
 		imOperation.MCR.assertParameters("alpha", 0, "remove");
 		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
@@ -88,19 +89,37 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testError() throws Exception {
-		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
-
-		int width = 100;
+	public void testInterrumped() throws Exception {
+		convertCmd.throwInterruptException = Optional
+				.of(new InterruptedException("someInterruptException"));
 
 		try {
-			pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, width);
+			pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, SOME_WIDTH);
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(Thread.currentThread().isInterrupted());
+
+			assertTrue(e instanceof BinaryConverterException);
+			assertException(e, "someInterruptException");
+		}
+	}
+
+	private void assertException(Exception e, String thrownExceptionMessage) {
+		String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
+		assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_INPUT_PATH, SOME_WIDTH));
+		assertEquals(e.getCause().getMessage(), thrownExceptionMessage);
+	}
+
+	@Test
+	public void testAnyExceptionInconvertUsingWidth() throws Exception {
+		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
+
+		try {
+			pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, SOME_WIDTH);
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
-			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_INPUT_PATH, width));
-			assertEquals(e.getCause().getMessage(), "someSpyException");
+			assertException(e, "someSpyException");
 		}
 	}
 
@@ -118,13 +137,11 @@ public class PdfConverterTest {
 
 	@Test(enabled = false)
 	public void testRealPere() throws Exception {
-
 		String input = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
 		String output = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputSmall.jpg";
 
 		PdfConverter converter = binaryOperation.factorPdfConverter();
 		converter.convertUsingWidth(input, output, 600);
-
 	}
 
 	@Test(enabled = false)

@@ -45,11 +45,19 @@ public class PdfConverterImp implements PdfConverter {
 		IMOperation imOperation = createImOperationForPdfConverter(inputPath, outputPath, width);
 		try {
 			convertCmd.run(imOperation);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw createBinaryConverterException(inputPath, width, e);
 		} catch (Exception e) {
-			String errorMsg = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
-			String message = MessageFormat.format(errorMsg, inputPath, width);
-			throw BinaryConverterException.withMessageAndException(message, e);
+			throw createBinaryConverterException(inputPath, width, e);
 		}
+	}
+
+	private BinaryConverterException createBinaryConverterException(String inputPath, int width,
+			Exception e) {
+		String errorMessage = "Error creating first page thumbnail of a PDF on path {0} and width {1}";
+		String formattedMessage = MessageFormat.format(errorMessage, inputPath, width);
+		return BinaryConverterException.withMessageAndException(formattedMessage, e);
 	}
 
 	private IMOperation createImOperationForPdfConverter(String inputPath, String outputPath,
