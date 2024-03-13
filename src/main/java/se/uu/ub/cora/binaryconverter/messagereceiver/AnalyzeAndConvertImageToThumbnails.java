@@ -34,6 +34,9 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
+	private static final int THUMBNAIL_SIZE = 100;
+	private static final int THUMBNAIL_SIZE_MEDIUM = 300;
+	private static final int THUMBNAIL_SIZE_LARGE = 600;
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
 	private ResourceMetadataCreator resourceMetadataCreator;
@@ -96,15 +99,15 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 				type, recordId + "-thumbnail");
 
 		ClientDataGroup largeG = convertImageUsingResourceTypeNameAndWidth(recordId, inputPath,
-				largePath, "large", 600);
+				largePath, "large", THUMBNAIL_SIZE_LARGE);
 		/**
 		 * To increase speed and efficiency of the conversion process we use the large preview
 		 * version to convert the medium and thumbnail versions instead of the archived version.
 		 */
 		ClientDataGroup mediumG = convertImageUsingResourceTypeNameAndWidth(recordId, largePath,
-				mediumPath, "medium", 300);
+				mediumPath, "medium", THUMBNAIL_SIZE_MEDIUM);
 		ClientDataGroup thumbnailG = convertImageUsingResourceTypeNameAndWidth(recordId, largePath,
-				thumbnailPath, "thumbnail", 100);
+				thumbnailPath, "thumbnail", THUMBNAIL_SIZE);
 
 		binaryRecordGroup.addChild(largeG);
 		binaryRecordGroup.addChild(mediumG);

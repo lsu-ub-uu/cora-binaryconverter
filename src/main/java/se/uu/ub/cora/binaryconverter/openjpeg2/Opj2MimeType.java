@@ -20,6 +20,8 @@ package se.uu.ub.cora.binaryconverter.openjpeg2;
 
 import java.util.EnumSet;
 
+import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.OpenJpeg2Exception;
+
 public enum Opj2MimeType {
 	BMP("image/bmp", ".bmp"), GRAYMAP("image/x-portable-graymap", ".pgm"), PNG("image/png",
 			".png"), ANYMAP("image/x-portable-anymap", ".pnm"), PIXMAP("image/x-portable-pixmap",
@@ -42,17 +44,22 @@ public enum Opj2MimeType {
 		return extension;
 	}
 
+	private boolean mimeTypeMatches(String mimeType) {
+		return getMimeType().equalsIgnoreCase(mimeType);
+	}
+
 	public static boolean isAcceptedForOpenJpeg2(String mimeType) {
 		return EnumSet.allOf(Opj2MimeType.class).stream().map(Opj2MimeType::getMimeType)
 				.anyMatch(mimeType::equalsIgnoreCase);
 	}
 
 	public static String getExtensionForMimeType(String mimeType) {
-		for (Opj2MimeType imageMimeType : values()) {
-			if (imageMimeType.getMimeType().equalsIgnoreCase(mimeType)) {
-				return imageMimeType.getExtension();
+		for (Opj2MimeType opj2MimeType : values()) {
+			if (opj2MimeType.mimeTypeMatches(mimeType)) {
+				return opj2MimeType.getExtension();
 			}
 		}
-		return ".tif"; // Default extension if not found
+		throw OpenJpeg2Exception.withMessage(
+				"Could not match any extension beacause mimeType " + mimeType + " do not match.");
 	}
 }

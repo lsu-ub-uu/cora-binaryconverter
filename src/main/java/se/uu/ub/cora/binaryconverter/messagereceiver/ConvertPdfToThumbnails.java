@@ -34,6 +34,9 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertPdfToThumbnails implements MessageReceiver {
+	private static final int THUMBNAIL_SIZE = 100;
+	private static final int THUMBNAIL_SIZE_MEDIUM = 300;
+	private static final int THUMBNAIL_SIZE_LARGE = 600;
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
 	private ArchivePathBuilder archivePathBuilder;
@@ -81,15 +84,15 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(type, recordId);
 
 		ClientDataGroup largeDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
-				recordId, inputPath, largePath, "large", 600);
+				recordId, inputPath, largePath, "large", THUMBNAIL_SIZE_LARGE);
 		/**
 		 * To increase speed and efficiency of the conversion process we use the large preview
 		 * version to convert the medium and thumbnail versions instead of the archived version.
 		 */
 		ClientDataGroup mediumDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
-				recordId, largePath, mediumPath, "medium", 300);
+				recordId, largePath, mediumPath, "medium", THUMBNAIL_SIZE_MEDIUM);
 		ClientDataGroup thumbnailDG = convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
-				recordId, largePath, thumbnailPath, "thumbnail", 100);
+				recordId, largePath, thumbnailPath, "thumbnail", THUMBNAIL_SIZE);
 
 		binaryRecordGroup.addChild(largeDG);
 		binaryRecordGroup.addChild(mediumDG);
