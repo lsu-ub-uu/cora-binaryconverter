@@ -35,7 +35,8 @@ public class Opj2ProcessBuilderImp implements Opj2ProcessBuilder {
 		try {
 			return runStart();
 		} catch (IOException e) {
-			throw OpenJpeg2Exception.withMessage(e.getMessage());
+			throw OpenJpeg2Exception
+					.withMessageAndException("Cannot start process builder for Opj2", e);
 		}
 	}
 

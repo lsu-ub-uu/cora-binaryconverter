@@ -29,7 +29,6 @@ import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class PdfConverterImp implements PdfConverter {
-
 	private ConvertCmd convertCmd;
 	private IMOperationFactory imOperationFactory;
 	private static final double QUALITY = 90.0;

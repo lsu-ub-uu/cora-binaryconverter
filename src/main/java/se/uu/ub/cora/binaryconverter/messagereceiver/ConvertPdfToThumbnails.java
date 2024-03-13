@@ -29,6 +29,8 @@ import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
@@ -37,6 +39,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private static final int THUMBNAIL_SIZE = 100;
 	private static final int THUMBNAIL_SIZE_MEDIUM = 300;
 	private static final int THUMBNAIL_SIZE_LARGE = 600;
+	private Logger logger = LoggerProvider.getLoggerForClass(ConvertPdfToThumbnails.class);
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
 	private ArchivePathBuilder archivePathBuilder;
@@ -104,7 +107,6 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
 			String recordId, String pathToImage, String outputPath, String representation,
 			int convertToWidth) {
-
 		PdfConverter pdfConverter = binaryOperationFactory.factorPdfConverter();
 		pdfConverter.convertUsingWidth(pathToImage, outputPath, convertToWidth);
 
@@ -121,8 +123,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 	@Override
 	public void topicClosed() {
-		// TODO Auto-generated method stub
-
+		logger.logFatalUsingMessage("Topic is closed!");
 	}
 
 	public BinaryOperationFactory onlyForTestGetBinaryOperationFactory() {

@@ -37,11 +37,13 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
 import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class ConvertImageToJp2Test {
-
 	private static final String JP2_MIME_TYPE = "image/jp2";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
@@ -49,6 +51,7 @@ public class ConvertImageToJp2Test {
 	private static final String SOME_MIME_TYPE = "someMimeType";
 	private static final String SOME_MESSAGE = "someMessage";
 
+	private LoggerFactorySpy loggerFactorySpy;
 	private Map<String, String> some_headers = new HashMap<>();
 	private ClientDataFactorySpy clientDataFactory;
 	private DataClientSpy dataClient;
@@ -61,6 +64,8 @@ public class ConvertImageToJp2Test {
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 
@@ -83,6 +88,11 @@ public class ConvertImageToJp2Test {
 		some_headers.put("type", SOME_TYPE);
 		some_headers.put("id", SOME_ID);
 		some_headers.put("mimeType", SOME_MIME_TYPE);
+	}
+
+	@Test
+	public void testLoggerStarted() throws Exception {
+		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, ConvertImageToJp2.class);
 	}
 
 	@Test
@@ -110,7 +120,6 @@ public class ConvertImageToJp2Test {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		binaryRecordGroup.MCR.assertParameters("addChild", 0, jp2G);
-
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -121,7 +130,6 @@ public class ConvertImageToJp2Test {
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
 			String inputPath, int callNr) {
-
 		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
 				inputPath, callNr);
 		assertAnalyzeRepresentation(representation, callNr, pathToFileRepresentation);
@@ -129,7 +137,6 @@ public class ConvertImageToJp2Test {
 
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
 			int callNr) {
-
 		String pathToFileRepresentation = assertStreamPathBuilderBuildFileSystemFilePath(
 				representation, callNr);
 		assertCallToConvert(width, inputPath, callNr, pathToFileRepresentation);
@@ -173,7 +180,6 @@ public class ConvertImageToJp2Test {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
-
 	}
 
 	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
@@ -187,9 +193,7 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testUpdateReturn_Conflict_409() throws Exception {
-
 		dataClient.MRV.setReturnValues("update", List.of(new RuntimeException()));
-
 	}
 
 	@Test
@@ -202,4 +206,11 @@ public class ConvertImageToJp2Test {
 				resourceMetadataCreator);
 	}
 
+	@Test
+	public void testTopicClosed() throws Exception {
+		messageReceiver.topicClosed();
+		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
+
+		loggerSpy.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");
+	}
 }

@@ -29,6 +29,8 @@ import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
@@ -37,6 +39,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private static final int THUMBNAIL_SIZE = 100;
 	private static final int THUMBNAIL_SIZE_MEDIUM = 300;
 	private static final int THUMBNAIL_SIZE_LARGE = 600;
+	private Logger logger = LoggerProvider
+			.getLoggerForClass(AnalyzeAndConvertImageToThumbnails.class);
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
 	private ResourceMetadataCreator resourceMetadataCreator;
@@ -112,12 +116,10 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		binaryRecordGroup.addChild(largeG);
 		binaryRecordGroup.addChild(mediumG);
 		binaryRecordGroup.addChild(thumbnailG);
-
 	}
 
 	private ClientDataGroup convertImageUsingResourceTypeNameAndWidth(String recordId,
 			String pathToImage, String outputPath, String representation, int convertToWidth) {
-
 		ImageConverter imageConverter = binaryOperationFactory.factorImageConverter();
 		imageConverter.convertAndResizeUsingWidth(pathToImage, outputPath, convertToWidth);
 
@@ -129,7 +131,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 	@Override
 	public void topicClosed() {
-		// TODO Auto-generated method stub
+		logger.logFatalUsingMessage("Topic is closed!");
 	}
 
 	DataClient onlyForTestGetDataClient() {

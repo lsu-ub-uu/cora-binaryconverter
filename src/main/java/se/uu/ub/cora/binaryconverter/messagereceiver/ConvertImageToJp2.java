@@ -29,11 +29,14 @@ import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.logger.Logger;
+import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
+	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
 	private BinaryOperationFactory binaryOperationFactory;
 	private DataClient dataClient;
 	private ResourceMetadataCreator resourceMetadataCreator;
@@ -48,7 +51,6 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		this.resourceMetadataCreator = resourceMetadataCreator;
 		this.archivePathBuilder = archivePathBuilder;
 		this.streamPathBuilder = streamPathBuilder;
-
 	}
 
 	@Override
@@ -67,7 +69,6 @@ public class ConvertImageToJp2 implements MessageReceiver {
 				recordId, imageData, "image/jp2");
 
 		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2G);
-
 	}
 
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
@@ -107,8 +108,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 	@Override
 	public void topicClosed() {
-		// TODO Auto-generated method stub
-
+		logger.logFatalUsingMessage("Topic is closed!");
 	}
 
 	public BinaryOperationFactory onlyForTestGetBinaryOperationFactory() {

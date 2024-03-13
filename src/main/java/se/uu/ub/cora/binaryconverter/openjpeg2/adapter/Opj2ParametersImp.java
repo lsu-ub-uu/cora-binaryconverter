@@ -25,6 +25,7 @@ import java.util.stream.IntStream;
 
 public class Opj2ParametersImp implements Opj2Parameters {
 
+	private static final int PAIR = 2;
 	private List<String> params;
 	private String inputPath;
 	private String outputPath;
@@ -98,7 +99,7 @@ public class Opj2ParametersImp implements Opj2Parameters {
 
 	private String parsePrecinctSizes(int[] sizes) {
 		StringBuilder stringOfPrecinctValues = new StringBuilder();
-		for (int i = 0; i < sizes.length; i += 2) {
+		for (int i = 0; i < sizes.length; i += PAIR) {
 			stringPrefix(sizes, stringOfPrecinctValues, i);
 			createPairs(sizes, stringOfPrecinctValues, i);
 			possiblyAddCommaBetweenPairs(sizes, stringOfPrecinctValues, i);
@@ -119,18 +120,18 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	}
 
 	private boolean isNotARealPair(int[] sizes, int i) {
-		return i == sizes.length - 1 && sizes.length % 2 != 0;
+		return i == sizes.length - 1 && sizes.length % PAIR != 0;
 	}
 
 	private void possiblyAddCommaBetweenPairs(int[] sizes, StringBuilder stringOfPrecinctValues,
 			int i) {
 		if (existsNewPair(sizes, i)) {
-			stringOfPrecinctValues.append(",");
+			stringOfPrecinctValues.append(',');
 		}
 	}
 
 	private boolean existsNewPair(int[] sizes, int i) {
-		return i + 2 < sizes.length;
+		return i + PAIR < sizes.length;
 	}
 
 	@Override

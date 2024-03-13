@@ -49,7 +49,7 @@ public interface Opj2Command {
 	 * Note: The markers written to the main_header are : SOC SIZ COD QCD COM. COD and QCD never
 	 * appear in the tile_header. <br>
 	 * <br>
-	 * Valid input image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif<br>
+	 * Valid input image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .tga, .tif<br>
 	 * Valid output image extensions are .j2k, .jp2
 	 * 
 	 * @param parameters
@@ -65,7 +65,7 @@ public interface Opj2Command {
 	 * Note: For decompress the only available parameters are inputPath, outputPath and threads<br>
 	 * <br>
 	 * Valid input image extensions are .j2k, .jp2, .j2c, .jpt<br>
-	 * Valid output image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .raw, .tga, .tif
+	 * Valid output image extensions are .bmp, .pgm, .pgx, .png, .pnm, .ppm, .tga, .tif
 	 * 
 	 * @param parameters
 	 *            The parameters opj2_decompress should use to run

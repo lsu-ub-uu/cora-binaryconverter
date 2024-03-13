@@ -22,7 +22,6 @@ import java.text.MessageFormat;
 
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
-import org.im4java.process.ArrayListOutputConsumer;
 
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
@@ -31,8 +30,6 @@ import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 public class Jp2ConverterImp implements Jp2Converter {
 	private IMOperationFactory imOperationFactory;
 	private ConvertCmd convertCmd;
-
-	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
 
 	public Jp2ConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
 		this.imOperationFactory = imOperationFactory;
@@ -47,11 +44,19 @@ public class Jp2ConverterImp implements Jp2Converter {
 		imOperation.addImage("JP2:" + outputPath);
 		try {
 			convertCmd.run(imOperation);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw createBinaryConverterException(inputPath, e);
+
 		} catch (Exception e) {
-			String errorMsg = "Error converting to Jpeg2000 image on path {0}";
-			String message = MessageFormat.format(errorMsg, inputPath);
-			throw BinaryConverterException.withMessageAndException(message, e);
+			throw createBinaryConverterException(inputPath, e);
 		}
+	}
+
+	private BinaryConverterException createBinaryConverterException(String inputPath, Exception e) {
+		String errorMsg = "Error converting to Jpeg2000 image on path {0}";
+		String message = MessageFormat.format(errorMsg, inputPath);
+		return BinaryConverterException.withMessageAndException(message, e);
 	}
 
 	/*

@@ -22,7 +22,6 @@ import java.text.MessageFormat;
 
 import org.im4java.core.ConvertCmd;
 import org.im4java.core.IMOperation;
-import org.im4java.process.ArrayListOutputConsumer;
 
 import se.uu.ub.cora.binaryconverter.image.ImageConverter;
 import se.uu.ub.cora.binaryconverter.imagemagick.IMOperationFactory;
@@ -32,8 +31,6 @@ public class ImageConverterImp implements ImageConverter {
 	private static final double QUALITY = 90.0;
 	private IMOperationFactory imOperationFactory;
 	private ConvertCmd convertCmd;
-
-	ArrayListOutputConsumer outputConsumer = new ArrayListOutputConsumer();
 
 	public ImageConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
 		this.imOperationFactory = imOperationFactory;
@@ -60,6 +57,9 @@ public class ImageConverterImp implements ImageConverter {
 	private void tryToRunImageMagickJpeg(IMOperation imOperation, String message) {
 		try {
 			convertCmd.run(imOperation);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw BinaryConverterException.withMessageAndException(message, e);
 		} catch (Exception e) {
 			throw BinaryConverterException.withMessageAndException(message, e);
 		}
@@ -82,11 +82,6 @@ public class ImageConverterImp implements ImageConverter {
 	private String createErrorMessageConvertToTiff(String inputPath) {
 		String errorMsg = "Error converting image to TIFF on path {0}";
 		return MessageFormat.format(errorMsg, inputPath);
-	}
-
-	void onlyForTestSetConvertCmd(ConvertCmd convertCmd) {
-		this.convertCmd = convertCmd;
-
 	}
 
 	public IMOperationFactory onlyForTestGetImOperationFactory() {

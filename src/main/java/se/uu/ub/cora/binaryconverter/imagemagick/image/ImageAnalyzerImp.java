@@ -59,10 +59,17 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 		try {
 			List<String> output = executeAnalyzeCommandInImageMagick(format);
 			return parseImageData(output);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			throw createBinaryException(e);
 		} catch (Exception e) {
-			throw BinaryConverterException.withMessageAndException(
-					"Error when analyzing image, with path: " + imagePath, e);
+			throw createBinaryException(e);
 		}
+	}
+
+	private BinaryConverterException createBinaryException(Exception e) {
+		String errorMessage = "Error when analyzing image, with path: " + imagePath;
+		return BinaryConverterException.withMessageAndException(errorMessage, e);
 	}
 
 	private List<String> executeAnalyzeCommandInImageMagick(IMOps format)

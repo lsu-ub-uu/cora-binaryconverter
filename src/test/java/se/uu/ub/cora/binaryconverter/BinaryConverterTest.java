@@ -20,15 +20,13 @@
 package se.uu.ub.cora.binaryconverter;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.binaryconverter.messagereceiver.ConvertPdfToThumbnails;
 import se.uu.ub.cora.binaryconverter.spy.MessageListenerSpy;
 import se.uu.ub.cora.binaryconverter.spy.MessageReceiverFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.MessagingFactorySpy;
@@ -40,7 +38,6 @@ import se.uu.ub.cora.messaging.AmqpMessageListenerRoutingInfo;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverterTest {
-
 	private static final String SOME_RABBIT_MQ_QUEUE_NAME = "pdfConverterQueue";
 	private static final String SOME_RABBIT_VIRTUAL_HOST = "someVirtualHost";
 	private static final String SOME_RABBIT_MQ_PORT = "12345";
@@ -51,38 +48,31 @@ public class BinaryConverterTest {
 	private static final String SOME_APPTOKEN = "someAppToken";
 	private static final String SOME_OCFL_HOME = "/someOcfl/Home/Path/From/Fedora";
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/someOutputPath/";
-	private LoggerFactorySpy loggerFactorySpy = new LoggerFactorySpy();
+	private LoggerFactorySpy loggerFactorySpy;
 
 	private String[] args;
 	private MessagingFactorySpy messagingFactory;
 
 	@BeforeMethod
 	public void setUp() {
+		messagingFactory = new MessagingFactorySpy();
+		MessagingProvider.setMessagingFactory(messagingFactory);
 		args = new String[] { SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN,
 				SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT, SOME_RABBIT_VIRTUAL_HOST,
 				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH };
 
+		callOnceToGetUnrelatedLogsStarted();
+		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-
-		messagingFactory = new MessagingFactorySpy();
-		MessagingProvider.setMessagingFactory(messagingFactory);
 	}
 
-	@Test
-	public void testConstructorIsPrivate() throws Exception {
-		Constructor<BinaryConverter> constructor = BinaryConverter.class.getDeclaredConstructor();
-		assertFalse(constructorIsPublic(constructor));
-		constructor.setAccessible(true);
-		constructor.newInstance();
-	}
-
-	private boolean constructorIsPublic(Constructor<BinaryConverter> constructor) {
-		return Modifier.isPublic(constructor.getModifiers());
+	private void callOnceToGetUnrelatedLogsStarted() {
+		BinaryConverter.main(args);
 	}
 
 	@Test
 	public void testCallBinaryConverterStarter() throws Exception {
-		BinaryConverter.main(args);
+		callOnceToGetUnrelatedLogsStarted();
 
 		AmqpMessageListenerRoutingInfo routingInfo = (AmqpMessageListenerRoutingInfo) messagingFactory.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factorTopicMessageListener", 0,
@@ -92,18 +82,17 @@ public class BinaryConverterTest {
 		assertEquals(routingInfo.port, 12345);
 		assertEquals(routingInfo.virtualHost, SOME_RABBIT_VIRTUAL_HOST);
 		assertEquals(routingInfo.queueName, SOME_RABBIT_MQ_QUEUE_NAME);
-
 	}
 
 	@Test
 	public void testStartListening() throws Exception {
 		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
-		BinaryConverter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
-
-		BinaryConverter.main(args);
+		BinaryConverter converter = new BinaryConverter();
+		converter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
+		converter.startBinaryConverter(args);
 
 		MessageListenerSpy listener = (MessageListenerSpy) messagingFactory.MCR
-				.getReturnValue("factorTopicMessageListener", 0);
+				.getReturnValue("factorTopicMessageListener", 1);
 
 		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
 				SOME_CORA_URL, SOME_APPTOKEN_URL, SOME_USER_ID, SOME_APPTOKEN);
@@ -122,29 +111,18 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testLoggerInit() throws Exception {
-		assertLoggerForClassName(0, "se.uu.ub.cora.messaging.starter.MessagingModuleStarterImp");
-		assertLoggerForClassName(1, "se.uu.ub.cora.messaging.MessagingProvider");
+		callOnceToGetUnrelatedLogsStarted();
 
-		BinaryConverter.main(args);
-
-		loggerFactorySpy.MCR.assertNumberOfCallsToMethod("factorForClass", 3);
-		loggerFactorySpy.MCR.methodWasCalled("factorForClass");
-		assertLoggerForClassName(2, "se.uu.ub.cora.binaryconverter.BinaryConverter");
-	}
-
-	private void assertLoggerForClassName(int callNumber, String className) {
-		Class<?> javaClass = (Class<?>) loggerFactorySpy.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factorForClass", callNumber,
-						"javaClass");
-
-		assertEquals(javaClass.getName(), className);
+		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, BinaryConverter.class);
+		loggerFactorySpy.MCR.assertParameters("factorForClass", 1, ConvertPdfToThumbnails.class);
+		loggerFactorySpy.MCR.assertNumberOfCallsToMethod("factorForClass", 2);
 	}
 
 	@Test
 	public void testLogs() throws Exception {
-		BinaryConverter.main(args);
+		callOnceToGetUnrelatedLogsStarted();
 
-		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 2);
+		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
 
 		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
 				+ "virtualHost: {2} and queueName: {3}.";
@@ -162,5 +140,4 @@ public class BinaryConverterTest {
 				MessageFormat.format(logAnalyzeAndConvertStarter, SOME_USER_ID, SOME_APPTOKEN,
 						SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH));
 	}
-
 }

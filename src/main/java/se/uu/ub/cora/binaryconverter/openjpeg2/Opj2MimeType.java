@@ -25,8 +25,7 @@ import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.OpenJpeg2Exception;
 public enum Opj2MimeType {
 	BMP("image/bmp", ".bmp"), GRAYMAP("image/x-portable-graymap", ".pgm"), PNG("image/png",
 			".png"), ANYMAP("image/x-portable-anymap", ".pnm"), PIXMAP("image/x-portable-pixmap",
-					".ppm"), RAW("image/x-raw-panasonic",
-							".raw"), TGA("image/x-tga", ".tga"), TIFF("image/tiff", ".tif");
+					".ppm"), TGA("image/x-tga", ".tga"), TIFF("image/tiff", ".tif");
 
 	private final String mimeType;
 	private final String extension;

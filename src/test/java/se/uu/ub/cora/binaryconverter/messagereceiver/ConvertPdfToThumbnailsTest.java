@@ -36,16 +36,19 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
 import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class ConvertPdfToThumbnailsTest {
-
 	private static final String JPEG_MIME_TYPE = "image/jpeg";
 	private static final String SOME_DATA_DIVIDER = "someDataDivider";
 	private static final String SOME_TYPE = "someType";
 	private static final String SOME_ID = "someId";
 	private static final String SOME_MESSAGE = "someMessage";
+	private LoggerFactorySpy loggerFactorySpy;
 
 	private Map<String, String> some_headers = new HashMap<>();
 	private ClientDataFactorySpy clientDataFactory;
@@ -59,6 +62,9 @@ public class ConvertPdfToThumbnailsTest {
 
 	@BeforeMethod
 	public void beforeMethod() {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 
@@ -80,6 +86,11 @@ public class ConvertPdfToThumbnailsTest {
 		some_headers.put("dataDivider", SOME_DATA_DIVIDER);
 		some_headers.put("type", SOME_TYPE);
 		some_headers.put("id", SOME_ID);
+	}
+
+	@Test
+	public void testLoggerStarted() throws Exception {
+		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, ConvertPdfToThumbnails.class);
 	}
 
 	@Test
@@ -122,7 +133,6 @@ public class ConvertPdfToThumbnailsTest {
 		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
-
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -133,7 +143,6 @@ public class ConvertPdfToThumbnailsTest {
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
 			String inputPath, int callNr) {
-
 		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
 				inputPath, callNr);
 		assertAnalyzeRepresentation(representation, callNr, pathToFileRepresentation);
@@ -141,7 +150,6 @@ public class ConvertPdfToThumbnailsTest {
 
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
 			int callNr) {
-
 		String pathToFileRepresentation = assertStreamPathBuilderBuildFileSystemFilePath(
 				representation, callNr);
 		assertCallToConvert(width, inputPath, callNr, pathToFileRepresentation);
@@ -185,7 +193,6 @@ public class ConvertPdfToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
-
 	}
 
 	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
@@ -207,4 +214,11 @@ public class ConvertPdfToThumbnailsTest {
 				resourceMetadataCreator);
 	}
 
+	@Test
+	public void testTopicClosed() throws Exception {
+		messageReceiver.topicClosed();
+		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
+
+		loggerSpy.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");
+	}
 }

@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
@@ -83,6 +84,28 @@ public class Jp2ConverterTest {
 	}
 
 	@Test
+	public void testInterrumpedException() throws Exception {
+		convertCmd.throwInterruptException = Optional
+				.of(new InterruptedException("someInterruptException"));
+
+		try {
+			jp2Converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "someMimetype");
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(Thread.currentThread().isInterrupted());
+
+			assertTrue(e instanceof BinaryConverterException);
+			assertException(e, "someInterruptException");
+		}
+	}
+
+	private void assertException(Exception e, String thrownExceptionMessage) {
+		String errorMsg = "Error converting to Jpeg2000 image on path {0}";
+		assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
+		assertEquals(e.getCause().getMessage(), thrownExceptionMessage);
+	}
+
+	@Test
 	public void testError() throws Exception {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
@@ -91,9 +114,7 @@ public class Jp2ConverterTest {
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			String errorMsg = "Error converting to Jpeg2000 image on path {0}";
-			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
-			assertEquals(e.getCause().getMessage(), "someSpyException");
+			assertException(e, "someSpyException");
 		}
 	}
 

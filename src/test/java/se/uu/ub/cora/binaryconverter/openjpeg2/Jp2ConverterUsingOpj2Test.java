@@ -67,16 +67,14 @@ public class Jp2ConverterUsingOpj2Test {
 		assertConvertToJp2UsingKnownMimeType(2, ".png", "image/png");
 		assertConvertToJp2UsingKnownMimeType(3, ".pnm", "image/x-portable-anymap");
 		assertConvertToJp2UsingKnownMimeType(4, ".ppm", "image/x-portable-pixmap");
-		assertConvertToJp2UsingKnownMimeType(5, ".raw", "image/x-raw-panasonic");
-		assertConvertToJp2UsingKnownMimeType(6, ".tga", "image/x-tga");
-		assertConvertToJp2UsingKnownMimeType(7, ".tif", "image/tiff");
+		assertConvertToJp2UsingKnownMimeType(5, ".tga", "image/x-tga");
+		assertConvertToJp2UsingKnownMimeType(6, ".tif", "image/tiff");
 		// assertConvertToJp2UsingKnownMimeType(8, ".pgx", "Not found by tika");
 		// assertConvertToJp2UsingKnownMimeType(9, ".rawl", "Not found by tika");
 
-		opj2Command.MCR.assertNumberOfCallsToMethod("compress", 8);
+		opj2Command.MCR.assertNumberOfCallsToMethod("compress", 7);
 
 		converterToTiff.MCR.assertMethodNotCalled("convertToTiff");
-
 	}
 
 	private void assertConvertToJp2UsingKnownMimeType(int callNr, String extension,
@@ -143,7 +141,6 @@ public class Jp2ConverterUsingOpj2Test {
 
 	@Test
 	public void testMimeTypeNotAcceptedConvertToTiff() throws Exception {
-
 		long before = System.currentTimeMillis();
 		converter.convert(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH, "image/nonAcceptedMimeType");
 		long after = System.currentTimeMillis();
@@ -179,7 +176,6 @@ public class Jp2ConverterUsingOpj2Test {
 
 	@Test
 	public void testExceptionOnCreateSymbolicLink() throws Exception {
-
 		filesWrapper.MRV.setAlwaysThrowException("delete",
 				BinaryConverterException.withMessage("someSpyException"));
 		try {

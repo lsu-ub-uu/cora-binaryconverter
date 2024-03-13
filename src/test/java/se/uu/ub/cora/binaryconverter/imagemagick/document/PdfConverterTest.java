@@ -89,7 +89,7 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testInterrumped() throws Exception {
+	public void testInterrumpedException() throws Exception {
 		convertCmd.throwInterruptException = Optional
 				.of(new InterruptedException("someInterruptException"));
 

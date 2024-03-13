@@ -19,7 +19,6 @@
 package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Optional;
 
 import org.im4java.core.ConvertCmd;
@@ -30,10 +29,10 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class ConvertCmdSpy extends ConvertCmd {
+	public Optional<InterruptedException> throwInterruptException = Optional.empty();
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
-	public ArrayList<String> callsInOrder = new ArrayList<>();
-	public Optional<InterruptedException> throwInterruptException = Optional.empty();
 
 	public ConvertCmdSpy() {
 		MCR.useMRV(MRV);

@@ -24,6 +24,7 @@ import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
 import java.text.MessageFormat;
+import java.util.Optional;
 
 import org.im4java.core.ConvertCmd;
 import org.testng.annotations.BeforeMethod;
@@ -112,9 +113,6 @@ public class ImageConverterTest {
 		imageMagickReal.convertAndResizeUsingWidth(
 				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/sagradaFamilia.tiff",
 				"/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/b", 600);
-
-		// "/home/pere/workspace/cora-fitnesseIMG_20161005_130203.jpg");
-
 	}
 
 	@Test
@@ -127,6 +125,28 @@ public class ImageConverterTest {
 	public void testOnlyForTestGetConvertCmd() throws Exception {
 		ConvertCmd convertCmd1 = imageConverter.onlyForTestGetConvertCmd();
 		assertSame(convertCmd1, convertCmd);
+	}
+
+	@Test
+	public void testInterrumpedException() throws Exception {
+		convertCmd.throwInterruptException = Optional
+				.of(new InterruptedException("someInterruptException"));
+
+		try {
+			imageConverter.convertToTiff(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(Thread.currentThread().isInterrupted());
+
+			assertTrue(e instanceof BinaryConverterException);
+			assertException(e, "someInterruptException");
+		}
+	}
+
+	private void assertException(Exception e, String thrownExceptionMessage) {
+		String errorMsg = "Error converting image to TIFF on path {0}";
+		assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
+		assertEquals(e.getCause().getMessage(), thrownExceptionMessage);
 	}
 
 	@Test
@@ -155,10 +175,7 @@ public class ImageConverterTest {
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			String errorMsg = "Error converting image to TIFF on path {0}";
-			assertEquals(e.getMessage(), MessageFormat.format(errorMsg, SOME_TEMP_INPUT_PATH));
-			assertEquals(e.getCause().getMessage(), "someSpyException");
+			assertException(e, "someSpyException");
 		}
 	}
-
 }

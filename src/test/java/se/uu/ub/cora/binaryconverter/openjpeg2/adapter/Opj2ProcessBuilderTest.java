@@ -31,10 +31,6 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.OpenJpeg2Exception;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessBuilder;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessBuilderImp;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ParametersSpy;
 
 public class Opj2ProcessBuilderTest {
@@ -77,7 +73,8 @@ public class Opj2ProcessBuilderTest {
 			fail();
 		} catch (Exception e) {
 			assertTrue(e instanceof OpenJpeg2Exception);
-			assertEquals(e.getMessage(), "spyException");
+			assertEquals(e.getMessage(), "Cannot start process builder for Opj2");
+			assertEquals(e.getCause().getMessage(), "spyException");
 		}
 
 	}

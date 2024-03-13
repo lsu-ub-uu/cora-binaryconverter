@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.imagemagick.spy;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import org.im4java.core.IM4JavaException;
 import org.im4java.core.IdentifyCmd;
@@ -29,6 +30,8 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class IdentifyCmdSpy extends IdentifyCmd {
+	public Optional<InterruptedException> throwInterruptException = Optional.empty();
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
@@ -40,6 +43,10 @@ public class IdentifyCmdSpy extends IdentifyCmd {
 	public void run(Operation arg0, Object... arg1)
 			throws IOException, InterruptedException, IM4JavaException {
 		MCR.addCall("arg0", arg0, "arg1", arg1);
+
+		if (throwInterruptException.isPresent()) {
+			throw throwInterruptException.get();
+		}
 	}
 
 	@Override
@@ -54,5 +61,4 @@ public class IdentifyCmdSpy extends IdentifyCmd {
 		}
 		MCR.addCall("arg0", arg0);
 	}
-
 }

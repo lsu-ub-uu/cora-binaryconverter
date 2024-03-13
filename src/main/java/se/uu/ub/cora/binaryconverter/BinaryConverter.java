@@ -33,29 +33,31 @@ import se.uu.ub.cora.messaging.MessageRoutingInfo;
 import se.uu.ub.cora.messaging.MessagingProvider;
 
 public class BinaryConverter {
+	private Logger logger;
+	private MessageReceiverFactory messageReceiverFactory;
+	private String coraUrl;
+	private String appTokenUrl;
+	private String userId;
+	private String appToken;
+	private String hostName;
+	private int port;
+	private String virtualHost;
+	private String queueName;
+	private String ocflHome;
+	private String fileStorageBasePath;
 
-	private static Logger logger = LoggerProvider.getLoggerForClass(BinaryConverter.class);
-	private static MessageReceiverFactory messageReceiverFactory = new MessageReceiverFactoryImp();
-	private static String coraUrl;
-	private static String appTokenUrl;
-	private static String userId;
-	private static String appToken;
-	private static String hostName;
-	private static int port;
-	private static String virtualHost;
-	private static String queueName;
-	private static String ocflHome;
-	private static String fileStorageBasePath;
-
-	private BinaryConverter() {
+	public BinaryConverter() {
+		logger = LoggerProvider.getLoggerForClass(BinaryConverter.class);
+		messageReceiverFactory = new MessageReceiverFactoryImp();
 	}
 
 	public static void main(String[] args) {
-		logger.logInfoUsingMessage("BinaryConverter starting...");
-		startBinaryConverter(args);
+		BinaryConverter converter = new BinaryConverter();
+		converter.startBinaryConverter(args);
 	}
 
-	private static void startBinaryConverter(String[] args) {
+	void startBinaryConverter(String[] args) {
+		logger.logInfoUsingMessage("BinaryConverter starting...");
 		coraUrl = args[0];
 		appTokenUrl = args[1];
 		userId = args[2];
@@ -81,34 +83,33 @@ public class BinaryConverter {
 		logAnalyzeAndConverterStarter();
 	}
 
-	private static MessageListener getMessageListener() {
+	private MessageListener getMessageListener() {
 		MessageRoutingInfo routingInfo = new AmqpMessageListenerRoutingInfo(hostName, port,
 				virtualHost, queueName);
 		return MessagingProvider.getTopicMessageListener(routingInfo);
 	}
 
-	private static void logMessagingLister() {
+	private void logMessagingLister() {
 		String logMessagingListener = "Start MessagingListener with hostname: {0}, port: {1}, "
 				+ "virtualHost: {2} and queueName: {3}.";
 		logger.logInfoUsingMessage(MessageFormat.format(logMessagingListener, hostName,
 				String.valueOf(port), virtualHost, queueName));
 	}
 
-	private static void logCoraClientFactory() {
+	private void logCoraClientFactory() {
 		String logCoraClientFactory = "Start CoraClientFactory with cora url: {0} and appTokenUrl: {1}.";
 		logger.logInfoUsingMessage(
 				MessageFormat.format(logCoraClientFactory, coraUrl, appTokenUrl));
 	}
 
-	private static void logAnalyzeAndConverterStarter() {
+	private void logAnalyzeAndConverterStarter() {
 		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
 				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath: {3}";
 		logger.logInfoUsingMessage(MessageFormat.format(logAnalyzeAndConvertStarter, userId,
 				appToken, ocflHome, fileStorageBasePath));
 	}
 
-	static void onlyForTestSetMessageReceiverFactory(
-			MessageReceiverFactory messageReceiverFactorySpy) {
+	void onlyForTestSetMessageReceiverFactory(MessageReceiverFactory messageReceiverFactorySpy) {
 		messageReceiverFactory = messageReceiverFactorySpy;
 	}
 }

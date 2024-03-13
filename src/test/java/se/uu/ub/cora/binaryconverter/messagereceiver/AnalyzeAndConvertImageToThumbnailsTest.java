@@ -38,6 +38,9 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.spies.path.ArchivePathBuilderSpy;
 import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
@@ -50,6 +53,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	private static final String SOME_ID = "someId";
 	private static final String SOME_MESSAGE = "someMessage";
 
+	private LoggerFactorySpy loggerFactorySpy;
 	private AnalyzeAndConvertImageToThumbnails converter;
 	private Map<String, String> some_headers = new HashMap<>();
 	private BinaryOperationFactorySpy binaryOperationFactory;
@@ -73,6 +77,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@BeforeMethod
 	public void beforeMethod() throws Exception {
+		loggerFactorySpy = new LoggerFactorySpy();
+		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
@@ -126,6 +132,12 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
+	public void testLoggerStarted() throws Exception {
+		loggerFactorySpy.MCR.assertParameters("factorForClass", 0,
+				AnalyzeAndConvertImageToThumbnails.class);
+	}
+
+	@Test
 	public void testImageAnalyzerFactoryInitialized() throws Exception {
 		assertTrue(converter instanceof MessageReceiver);
 		var factory = converter.onlyForTestGetBinaryOperationFactory();
@@ -144,7 +156,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallPathBuilderBuild() throws Exception {
-
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		archivePathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0,
@@ -153,7 +164,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallAnalyze() throws Exception {
-
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
@@ -171,7 +181,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = assertUpdateRecordAfterAnalyze();
 
 		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
-
 	}
 
 	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze() {
@@ -229,13 +238,11 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
-
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
 			String inputPath, int fImageConverterCallNr, int fAnalyzerCallNr,
 			int pathBuilderCallNr) {
-
 		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
 				inputPath, fImageConverterCallNr, pathBuilderCallNr);
 		assertAnalyzeRepresentation(representation, fAnalyzerCallNr, pathToFileRepresentation);
@@ -243,7 +250,6 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
 			int fImageConverterCallNr, int pathBuilderCallNr) {
-
 		String pathToFileRepresentation = assertPathBuilderBuildFileSystemFilePath(representation,
 				pathBuilderCallNr);
 		assertCallToConvert(width, inputPath, fImageConverterCallNr, pathToFileRepresentation);
@@ -285,5 +291,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetArchivePathBuilder(), archivePathBuilder);
 		assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
+	}
+
+	@Test
+	public void testTopicClosed() throws Exception {
+		converter.topicClosed();
+		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
+
+		loggerSpy.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");
 	}
 }

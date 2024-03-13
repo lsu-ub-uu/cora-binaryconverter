@@ -25,12 +25,12 @@ import static org.testng.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
-import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.ArrayListOutputConsumerSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IMOperationSpy;
 import se.uu.ub.cora.binaryconverter.imagemagick.spy.IdentifyCmdSpy;
@@ -40,11 +40,10 @@ public class ImageAnalyzerTest {
 
 	private static final String FORMAT_DPI_WIDTH_HEIGHT_SIZE = "%xx%y %w %h %B";
 	private static final String SOME_TEMP_PATH = "/someTempPath";
-	ImageAnalyzerImp imageMagick;
-
 	private IdentifyCmdSpy identifyCmd;
 	private IMOperationSpy imOperation;
 	private ArrayListOutputConsumerSpy outputConsumer;
+	ImageAnalyzerImp imageMagick;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -114,10 +113,31 @@ public class ImageAnalyzerTest {
 			fail("It failed");
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(),
-					"Error when analyzing image, with path: " + SOME_TEMP_PATH);
-			assertEquals(e.getCause().getMessage(), "Error from spy");
+			assertException(e, "Error from spy");
 		}
+	}
+
+	@Test
+	public void testInterrumpedException() throws Exception {
+		setUpSpies();
+		identifyCmd.throwInterruptException = Optional
+				.of(new InterruptedException("someInterruptException"));
+
+		try {
+			imageMagick.analyze();
+			fail("It failed");
+		} catch (Exception e) {
+			assertTrue(Thread.currentThread().isInterrupted());
+
+			assertTrue(e instanceof BinaryConverterException);
+			assertException(e, "someInterruptException");
+		}
+	}
+
+	private void assertException(Exception e, String thrownExceptionMessage) {
+		String errorMessage = "Error when analyzing image, with path: " + SOME_TEMP_PATH;
+		assertEquals(e.getMessage(), errorMessage);
+		assertEquals(e.getCause().getMessage(), thrownExceptionMessage);
 	}
 
 	@Test

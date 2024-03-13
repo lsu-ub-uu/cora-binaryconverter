@@ -42,7 +42,6 @@ public class Opj2MimeTypeTest {
 		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/png"));
 		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/x-portable-anymap"));
 		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/x-portable-pixmap"));
-		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/x-raw-panasonic"));
 		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/x-tga"));
 		assertTrue(Opj2MimeType.isAcceptedForOpenJpeg2("image/tiff"));
 	}
@@ -61,13 +60,11 @@ public class Opj2MimeTypeTest {
 
 	@Test
 	public void testGetExtensionForMimeType_Found() throws Exception {
-
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/bmp"), ".bmp");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/x-portable-graymap"), ".pgm");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/png"), ".png");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/x-portable-anymap"), ".pnm");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/x-portable-pixmap"), ".ppm");
-		assertEquals(Opj2MimeType.getExtensionForMimeType("image/x-raw-panasonic"), ".raw");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/x-tga"), ".tga");
 		assertEquals(Opj2MimeType.getExtensionForMimeType("image/tiff"), ".tif");
 	}
