@@ -19,7 +19,7 @@
 package se.uu.ub.cora.binaryconverter.imagemagick.image;
 
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.im4java.core.IM4JavaException;
 import org.im4java.core.IMOperation;
@@ -33,6 +33,10 @@ import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 
 public class ImageAnalyzerImp implements ImageAnalyzer {
 
+	private static final int IMAGE_DATA_RESOLUTION = 0;
+	private static final int IMAGE_DATA_WIDTH = 1;
+	private static final int IMAGE_DATA_HEIGHT = 2;
+	private static final int IMAGE_DATA_SIZE = 3;
 	private static final String FORMAT_DPI_WIDTH_HEIGHT_SIZE = "%xx%y %w %h %B";
 	private static final String SPLIT_REGEX = " ";
 	private String imagePath;
@@ -53,7 +57,7 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 
 	private ImageData tryToAnalyzeImageUsingImageMagick(IMOps format) {
 		try {
-			ArrayList<String> output = executeAnalyzeCommandInImageMagick(format);
+			List<String> output = executeAnalyzeCommandInImageMagick(format);
 			return parseImageData(output);
 		} catch (Exception e) {
 			throw BinaryConverterException.withMessageAndException(
@@ -61,7 +65,7 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 		}
 	}
 
-	private ArrayList<String> executeAnalyzeCommandInImageMagick(IMOps format)
+	private List<String> executeAnalyzeCommandInImageMagick(IMOps format)
 			throws IOException, InterruptedException, IM4JavaException {
 		identifyCmd.setOutputConsumer(outputConsumer);
 		identifyCmd.run(format);
@@ -74,12 +78,13 @@ public class ImageAnalyzerImp implements ImageAnalyzer {
 		return imOperation;
 	}
 
-	private ImageData parseImageData(ArrayList<String> result) {
+	private ImageData parseImageData(List<String> result) {
 		String[] imageData = prepareOutputFromImageMagick(result);
-		return new ImageData(imageData[0], imageData[1], imageData[2], imageData[3]);
+		return new ImageData(imageData[IMAGE_DATA_RESOLUTION], imageData[IMAGE_DATA_WIDTH],
+				imageData[IMAGE_DATA_HEIGHT], imageData[IMAGE_DATA_SIZE]);
 	}
 
-	private String[] prepareOutputFromImageMagick(ArrayList<String> result) {
+	private String[] prepareOutputFromImageMagick(List<String> result) {
 		String rawOutput = result.get(0);
 		return rawOutput.split(SPLIT_REGEX);
 	}
