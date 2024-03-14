@@ -128,7 +128,7 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	}
 
 	private List<String> createListOfStringPairsInBrackets(int[] precinctSizesPairs) {
-		List<String> stringOfPrecinctPairs = new ArrayList<>();
+		List<String> stringOfPrecinctPairs = createListOfExpectedSize(precinctSizesPairs);
 		for (int i = 0; i < precinctSizesPairs.length; i += PAIR) {
 			Integer firstValue = precinctSizesPairs[i];
 			Integer secondValue = precinctSizesPairs[i + 1];
@@ -138,12 +138,17 @@ public class Opj2ParametersImp implements Opj2Parameters {
 		return stringOfPrecinctPairs;
 	}
 
+	private List<String> createListOfExpectedSize(int[] precinctSizesPairs) {
+		int initialCapacity = precinctSizesPairs.length / PAIR;
+		return new ArrayList<>(initialCapacity);
+	}
+
 	private String createStringPairInBrackets(Integer firstValueInPair, Integer secondValueInPair) {
 		return "[" + firstValueInPair + "," + secondValueInPair + "]";
 	}
 
 	private String createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(
-			List<String> precinctStringPairs) {
+			Iterable<String> precinctStringPairs) {
 		return String.join(",", precinctStringPairs);
 	}
 
