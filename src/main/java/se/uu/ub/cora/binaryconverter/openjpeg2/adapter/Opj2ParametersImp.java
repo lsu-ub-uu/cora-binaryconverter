@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,49 +94,57 @@ public class Opj2ParametersImp implements Opj2Parameters {
 	}
 
 	@Override
-	public void precinctSize(int... precinctSize) {
+	public void precinctSize(int... precinctSizes) {
 		params.add("-c");
-		params.add(parsePrecinctSizes(precinctSize));
+		params.add(precinctArrayToStringWithCommaSeparatedPairsInBrackets(precinctSizes));
 	}
 
-	private String parsePrecinctSizes(int[] sizes) {
-		StringBuilder stringOfPrecinctValues = new StringBuilder();
-		for (int i = 0; i < sizes.length; i += PAIR) {
-			stringPrefix(sizes, stringOfPrecinctValues, i);
-			createPairs(sizes, stringOfPrecinctValues, i);
-			possiblyAddCommaBetweenPairs(sizes, stringOfPrecinctValues, i);
+	private String precinctArrayToStringWithCommaSeparatedPairsInBrackets(int[] precinctSizes) {
+		int[] precinctSizesPairs = createArrayOfEvenPairsFromArray(precinctSizes);
+		return createStringWithCommaSeparatedParisInBracketsFromPairs(precinctSizesPairs);
+	}
+
+	private int[] createArrayOfEvenPairsFromArray(int[] precinctIntArray) {
+		if (evenNumberOfSizesInArray(precinctIntArray)) {
+			return precinctIntArray;
 		}
-		return stringOfPrecinctValues.toString();
+		return doubleLastEntryInArray(precinctIntArray);
 	}
 
-	private void stringPrefix(int[] sizes, StringBuilder stringOfPrecinctValues, int i) {
-		stringOfPrecinctValues.append("[" + sizes[i] + ",");
+	private boolean evenNumberOfSizesInArray(int[] precinctIntArray) {
+		return precinctIntArray.length % PAIR == 0;
 	}
 
-	private void createPairs(int[] sizes, StringBuilder stringOfPrecinctValues, int i) {
-		if (isNotARealPair(sizes, i)) {
-			stringOfPrecinctValues.append(sizes[i] + "]");
-		} else {
-			stringOfPrecinctValues.append(sizes[i + 1] + "]");
+	private int[] doubleLastEntryInArray(int[] precinctIntArray) {
+		int[] precinctIntArray2 = Arrays.copyOf(precinctIntArray, precinctIntArray.length + 1);
+		precinctIntArray2[precinctIntArray.length] = precinctIntArray[precinctIntArray.length - 1];
+		return precinctIntArray2;
+	}
+
+	private String createStringWithCommaSeparatedParisInBracketsFromPairs(
+			int[] precinctSizesPairs) {
+		List<String> precinctStringPairs = createListOfStringPairsInBrackets(precinctSizesPairs);
+		return createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(precinctStringPairs);
+	}
+
+	private List<String> createListOfStringPairsInBrackets(int[] precinctSizesPairs) {
+		List<String> stringOfPrecinctPairs = new ArrayList<>();
+		for (int i = 0; i < precinctSizesPairs.length; i += PAIR) {
+			Integer firstValue = precinctSizesPairs[i];
+			Integer secondValue = precinctSizesPairs[i + 1];
+			String pairInBrackets = createStringPairInBrackets(firstValue, secondValue);
+			stringOfPrecinctPairs.add(pairInBrackets);
 		}
+		return stringOfPrecinctPairs;
 	}
 
-	private boolean isNotARealPair(int[] sizes, int i) {
-		boolean isLastPosition = i == sizes.length - 1;
-		boolean unevenNumberOfSizesInArray = sizes.length % PAIR != 0;
-		// System.out.println(isLastPosition + " : " + unevenNumberOfSizesInArray);
-		return isLastPosition && unevenNumberOfSizesInArray;
+	private String createStringPairInBrackets(Integer firstValueInPair, Integer secondValueInPair) {
+		return "[" + firstValueInPair + "," + secondValueInPair + "]";
 	}
 
-	private void possiblyAddCommaBetweenPairs(int[] sizes, StringBuilder stringOfPrecinctValues,
-			int i) {
-		if (existsNewPair(sizes, i)) {
-			stringOfPrecinctValues.append(',');
-		}
-	}
-
-	private boolean existsNewPair(int[] sizes, int i) {
-		return i + PAIR < sizes.length;
+	private String createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(
+			List<String> precinctStringPairs) {
+		return String.join(",", precinctStringPairs);
 	}
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -139,10 +139,10 @@ public interface Opj2Parameters {
 	 * 
 	 * Default: 2^15x2^15 at each resolution.
 	 * 
-	 * @param precinctSize
+	 * @param precinctSizes
 	 *            The precinct sizes to use
 	 */
-	void precinctSize(int... precinctSize);
+	void precinctSize(int... precinctSizes);
 
 	/**
 	 * Code-block size. The dimension must respect the constraint defined in the JPEG-2000 standard

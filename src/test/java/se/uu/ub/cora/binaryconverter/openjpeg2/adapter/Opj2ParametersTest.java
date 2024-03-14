@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -93,12 +93,6 @@ public class Opj2ParametersTest {
 		params.numOfResolutions(7);
 		assertOpsPresentInParamListAndInOrder("-n", "7");
 	}
-
-	// @Test
-	// public void testPrecinctSizeNoValueIsRepeatedToCreateAPair() throws Exception {
-	// params.precinctSize();
-	// assertOpsPresentInParamListAndInOrder("-c", "");
-	// }
 
 	@Test
 	public void testPrecinctSizeOnlyOneValueIsRepeatedToCreateAPair() throws Exception {
