@@ -30,8 +30,8 @@
 		<coradata.version>9.0.0</coradata.version>
 		<storage.version>9.1.0</storage.version>
 		<storagespies.version>1.7.0</storagespies.version>
-		<fedoraarchive.version>1.13-SNAPSHOT</fedoraarchive.version>
-		<fedora.version>4.2-SNAPSHOT</fedora.version> 
+		<fedoraarchive.version>1.13.0</fedoraarchive.version>
+		<fedora.version>4.2.0</fedora.version> 
 		<basicstorage.version>7.10.0</basicstorage.version>
 		<messaging.version>3.0.0</messaging.version>
 		<javaclient.version>3.3.0</javaclient.version>
