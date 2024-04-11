@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,14 +19,17 @@
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
@@ -36,6 +39,7 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.javaclient.data.DataClientException;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
@@ -59,10 +63,13 @@ public class ConvertPdfToThumbnailsTest {
 
 	private ConvertPdfToThumbnails messageReceiver;
 	private StreamPathBuilderSpy streamPathBuilder;
+	private LoggerSpy logger;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		logger = new LoggerSpy();
 		loggerFactorySpy = new LoggerFactorySpy();
+		loggerFactorySpy.MRV.setDefaultReturnValuesSupplier("factorForClass", () -> logger);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
 		dataClient = new DataClientSpy();
@@ -100,9 +107,9 @@ public class ConvertPdfToThumbnailsTest {
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0);
-		assertAnalyzeAndConvertToRepresentation("medium", 300, "somePathToAFile", 1);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "somePathToAFile", 2);
+		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 0);
+		assertAnalyzeAndConvertToRepresentation("medium", 300, "somePathToAFile", 1, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "somePathToAFile", 2, 3);
 	}
 
 	@Test
@@ -142,16 +149,16 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
-			String inputPath, int callNr) {
+			String inputPath, int callNr, int pathBuilderCallNr) {
 		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
-				inputPath, callNr);
+				inputPath, callNr, pathBuilderCallNr);
 		assertAnalyzeRepresentation(representation, callNr, pathToFileRepresentation);
 	}
 
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
-			int callNr) {
+			int callNr, int pathBuilderCallNr) {
 		String pathToFileRepresentation = assertStreamPathBuilderBuildFileSystemFilePath(
-				representation, callNr);
+				representation, pathBuilderCallNr);
 		assertCallToConvert(width, inputPath, callNr, pathToFileRepresentation);
 		return pathToFileRepresentation;
 	}
@@ -202,6 +209,67 @@ public class ConvertPdfToThumbnailsTest {
 		ClientDataRecordGroupSpy binaryRecordGroup = (ClientDataRecordGroupSpy) dataRecord.MCR
 				.getReturnValue("getDataRecordGroup", 0);
 		return binaryRecordGroup;
+	}
+
+	@Test
+	public void testUpdateReturn_Conflict_409() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 409);
+
+		Supplier<?> supplierThrowConflictExceptionOnFirstCall = () -> {
+			return throwConflictExceptionOnFirstCall(conflictException);
+		};
+		dataClient.MRV.setDefaultReturnValuesSupplier("update",
+				supplierThrowConflictExceptionOnFirstCall);
+
+		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+
+		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
+		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
+		logger.MCR.assertParameters("logInfoUsingMessage", 0, "Binary record with id: " + SOME_ID
+				+ " could not be updated due to record conflict. Retrying record update.");
+	}
+
+	int supplierCount = 0;
+
+	private Object throwConflictExceptionOnFirstCall(DataClientException conflictException) {
+		supplierCount++;
+		if (supplierCount == 1) {
+			throw conflictException;
+		}
+		return new ClientDataRecordSpy();
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessage("someConflictError");
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherException() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 401);
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
 	}
 
 	@Test

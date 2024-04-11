@@ -34,7 +34,7 @@
 		<fedora.version>4.2.0</fedora.version> 
 		<basicstorage.version>7.10.0</basicstorage.version>
 		<messaging.version>3.0.0</messaging.version>
-		<javaclient.version>3.3.0</javaclient.version>
+		<javaclient.version>3.4-SNAPSHOT</javaclient.version>
 		<rabbitmq.version>3.0.0</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.11.0</testutils.version>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,11 +18,11 @@
  */
 package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
+import static org.testng.Assert.assertEquals;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Command;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ParametersSpy;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ProcessRunnerFactorySpy;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ProcessRunnerSpy;
@@ -51,8 +51,7 @@ public class Opj2CommandImpTest {
 
 		runnerFactory.MCR.assertParameters("factor", 0, parameters);
 
-		Opj2ProcessRunnerSpy processRunner = (Opj2ProcessRunnerSpy) runnerFactory.MCR
-				.getReturnValue("factor", 0);
+		Opj2ProcessRunnerSpy processRunner = getProcesseRunner();
 		processRunner.MCR.assertParameters("runOpj2Process", 0);
 
 	}
@@ -66,9 +65,22 @@ public class Opj2CommandImpTest {
 
 		runnerFactory.MCR.assertParameters("factor", 0, parameters);
 
+		Opj2ProcessRunnerSpy processRunner = getProcesseRunner();
+		processRunner.MCR.assertParameters("runOpj2Process", 0);
+
+	}
+
+	private Opj2ProcessRunnerSpy getProcesseRunner() {
 		Opj2ProcessRunnerSpy processRunner = (Opj2ProcessRunnerSpy) runnerFactory.MCR
 				.getReturnValue("factor", 0);
-		processRunner.MCR.assertParameters("runOpj2Process", 0);
+		return processRunner;
+	}
+
+	@Test
+	public void testOnlyForTest() throws Exception {
+
+		Opj2CommandImp commandImp = (Opj2CommandImp) command;
+		assertEquals(commandImp.onlyForTestGetOpj2ProcessRunnerFactory(), runnerFactory);
 
 	}
 }

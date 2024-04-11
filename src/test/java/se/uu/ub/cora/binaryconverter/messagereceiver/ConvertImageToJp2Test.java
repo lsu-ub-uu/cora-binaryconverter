@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,15 +19,17 @@
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
@@ -37,6 +39,7 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.javaclient.data.DataClientException;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
@@ -61,10 +64,13 @@ public class ConvertImageToJp2Test {
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 
 	private ConvertImageToJp2 messageReceiver;
+	private LoggerSpy logger;
 
 	@BeforeMethod
 	public void beforeMethod() {
+		logger = new LoggerSpy();
 		loggerFactorySpy = new LoggerFactorySpy();
+		loggerFactorySpy.MRV.setDefaultReturnValuesSupplier("factorForClass", () -> logger);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
@@ -193,9 +199,64 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testUpdateReturn_Conflict_409() throws Exception {
-		dataClient.MRV.setReturnValues("update", List.of(new RuntimeException()));
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 409);
+
+		Supplier<?> supplierThrowConflictExceptionOnFirstCall = () -> {
+			return throwConflictExceptionOnFirstCall(conflictException);
+		};
+		dataClient.MRV.setDefaultReturnValuesSupplier("update",
+				supplierThrowConflictExceptionOnFirstCall);
 
 		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+
+		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
+		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
+		logger.MCR.assertParameters("logInfoUsingMessage", 0, "Binary record with id: " + SOME_ID
+				+ " could not be updated due to record conflict. Retrying record update.");
+	}
+
+	int supplierCount = 0;
+
+	private Object throwConflictExceptionOnFirstCall(DataClientException conflictException) {
+		supplierCount++;
+		if (supplierCount == 1) {
+			throw conflictException;
+		}
+		return new ClientDataRecordSpy();
+
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherExceptionWithResponseCode() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 401);
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with jp2 conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessage("someConflictError");
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with jp2 conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
 	}
 
 	@Test
