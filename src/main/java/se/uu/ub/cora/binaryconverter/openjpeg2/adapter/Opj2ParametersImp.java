@@ -127,29 +127,28 @@ public class Opj2ParametersImp implements Opj2Parameters {
 		return createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(precinctStringPairs);
 	}
 
+	private String createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(
+			Iterable<String> precinctStringPairs) {
+		return String.join(",", precinctStringPairs);
+	}
+
 	private List<String> createListOfStringPairsInBrackets(int[] precinctSizesPairs) {
-		List<String> stringOfPrecinctPairs = createListOfExpectedSize(precinctSizesPairs);
+		List<String> stringOfPrecinctPairs = new ArrayList<>();
 		for (int i = 0; i < precinctSizesPairs.length; i += PAIR) {
-			Integer firstValue = precinctSizesPairs[i];
-			Integer secondValue = precinctSizesPairs[i + 1];
-			String pairInBrackets = createStringPairInBrackets(firstValue, secondValue);
+			String pairInBrackets = createPairInBrakets(precinctSizesPairs, i);
 			stringOfPrecinctPairs.add(pairInBrackets);
 		}
 		return stringOfPrecinctPairs;
 	}
 
-	private List<String> createListOfExpectedSize(int[] precinctSizesPairs) {
-		int initialCapacity = precinctSizesPairs.length / PAIR;
-		return new ArrayList<>(initialCapacity);
+	private String createPairInBrakets(int[] precinctSizesPairs, int i) {
+		Integer firstValue = precinctSizesPairs[i];
+		Integer secondValue = precinctSizesPairs[i + 1];
+		return createStringPairInBrackets(firstValue, secondValue);
 	}
 
 	private String createStringPairInBrackets(Integer firstValueInPair, Integer secondValueInPair) {
 		return "[" + firstValueInPair + "," + secondValueInPair + "]";
-	}
-
-	private String createCommaSeparatedStringOfPairsInBracketsFromListOfPairs(
-			Iterable<String> precinctStringPairs) {
-		return String.join(",", precinctStringPairs);
 	}
 
 	@Override

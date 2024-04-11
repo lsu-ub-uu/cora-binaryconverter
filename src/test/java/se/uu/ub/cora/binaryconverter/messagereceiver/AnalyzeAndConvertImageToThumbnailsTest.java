@@ -1,5 +1,6 @@
 /*
- * Copyright 2023 Uppsala University Library
+
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -24,11 +25,13 @@ import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.spy.BinaryOperationFactorySpy;
 import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
@@ -38,6 +41,7 @@ import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
+import se.uu.ub.cora.javaclient.data.DataClientException;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.logger.spies.LoggerSpy;
@@ -74,10 +78,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	private ArchivePathBuilderSpy archivePathBuilder;
 	private StreamPathBuilderSpy streamPathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
+	private LoggerSpy logger;
 
 	@BeforeMethod
 	public void beforeMethod() throws Exception {
+		logger = new LoggerSpy();
 		loggerFactorySpy = new LoggerFactorySpy();
+		loggerFactorySpy.MRV.setDefaultReturnValuesSupplier("factorForClass", () -> logger);
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 		dataClient = new DataClientSpy();
 		binaryOperationFactory = new BinaryOperationFactorySpy();
@@ -216,8 +223,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 4);
 
 		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1, 0);
-		assertAnalyzeAndConvertToRepresentation("medium", 300, "aPath-large", 1, 2, 1);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "aPath-large", 2, 3, 2);
+		assertAnalyzeAndConvertToRepresentation("medium", 300, "aPath-large", 1, 2, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "aPath-large", 2, 3, 3);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
 				SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
@@ -285,19 +292,80 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
+	public void testUpdateReturn_Conflict_409() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 409);
+
+		Supplier<?> supplierThrowConflictExceptionOnFirstCall = () -> {
+			return throwConflictExceptionOnFirstCall(conflictException);
+		};
+		dataClient.MRV.setDefaultReturnValuesSupplier("update",
+				supplierThrowConflictExceptionOnFirstCall);
+
+		converter.receiveMessage(some_headers, SOME_MESSAGE);
+
+		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
+		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
+		logger.MCR.assertParameters("logInfoUsingMessage", 0, "Binary record with id: " + SOME_ID
+				+ " could not be updated due to record conflict. Retrying record update.");
+	}
+
+	int supplierCount = 0;
+
+	private Object throwConflictExceptionOnFirstCall(DataClientException conflictException) {
+		supplierCount++;
+		if (supplierCount == 1) {
+			throw conflictException;
+		}
+		return new ClientDataRecordSpy();
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessage("someConflictError");
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			converter.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherException() throws Exception {
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 401);
+
+		dataClient.MRV.setAlwaysThrowException("update", conflictException);
+		try {
+			converter.receiveMessage(some_headers, SOME_MESSAGE);
+		} catch (Exception e) {
+			assertTrue(e instanceof BinaryConverterException);
+			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
+					+ " could not be updated with conversion data.");
+			assertEquals(e.getCause(), conflictException);
+		}
+	}
+
+	@Test
 	public void testOnlyForTestGet() throws Exception {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetArchivePathBuilder(), archivePathBuilder);
 		assertEquals(converter.onlyForTestGetResourceMetadataCreator(), resourceMetadataCreator);
+		assertEquals(converter.onlyForTestGetStreamPathBuilder(), streamPathBuilder);
 	}
 
 	@Test
 	public void testTopicClosed() throws Exception {
 		converter.topicClosed();
-		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
 
-		loggerSpy.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");
+		logger.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");
 	}
 }

@@ -62,10 +62,14 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 	}
 
 	private boolean waitingForProcessToFinish(int exitCode) {
-		return System.currentTimeMillis() < timeout && exitCode != 0;
+		return checkTimeout(System.currentTimeMillis(), timeout) && exitCode != 0;
 	}
 
-	private void sleep() {
+	boolean checkTimeout(long currentTimeMillis, long timeout) {
+		return currentTimeMillis <= timeout;
+	}
+
+	void sleep() {
 		try {
 			threadSleep();
 		} catch (InterruptedException e) {
@@ -75,7 +79,7 @@ public class Opj2ProcessRunnerImp implements Opj2ProcessRunner {
 		}
 	}
 
-	protected void threadSleep() throws InterruptedException {
+	void threadSleep() throws InterruptedException {
 		Thread.sleep(pollSleepTime);
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -23,12 +23,14 @@ import java.util.Map;
 import se.uu.ub.cora.binaryconverter.image.ImageAnalyzer;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
+import se.uu.ub.cora.javaclient.data.DataClientException;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
@@ -36,6 +38,7 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
+	private static final int HTTP_CONFLICT = 409;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
 	private BinaryOperationFactory binaryOperationFactory;
 	private DataClient dataClient;
@@ -64,11 +67,10 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
 				originalImagePath, mimeType);
-
-		ClientDataGroup jp2G = resourceMetadataCreator.createMetadataForRepresentation("jp2",
+		ClientDataGroup jp2Group = resourceMetadataCreator.createMetadataForRepresentation("jp2",
 				recordId, imageData, "image/jp2");
 
-		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2G);
+		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2Group);
 	}
 
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
@@ -87,13 +89,16 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return analyzeImage(outputPath);
 	}
 
+	private ImageData analyzeImage(String pathToImage) {
+		ImageAnalyzer analyzer = binaryOperationFactory.factorImageAnalyzer(pathToImage);
+		return analyzer.analyze();
+	}
+
 	private void updateRecordUsingRepresentationDataGroup(String recordType, String recordId,
-			ClientDataGroup jp2G) {
+			ClientDataGroup jp2Group) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-
-		binaryRecordGroup.addChild(jp2G);
-
-		dataClient.update(recordType, recordId, binaryRecordGroup);
+		binaryRecordGroup.addChild(jp2Group);
+		tryToUpdateRecord(recordType, recordId, jp2Group, binaryRecordGroup);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
@@ -101,9 +106,41 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private ImageData analyzeImage(String pathToImage) {
-		ImageAnalyzer analyzer = binaryOperationFactory.factorImageAnalyzer(pathToImage);
-		return analyzer.analyze();
+	private void tryToUpdateRecord(String recordType, String recordId, ClientDataGroup jp2Group,
+			ClientDataRecordGroup binaryRecordGroup) {
+		try {
+			dataClient.update(recordType, recordId, binaryRecordGroup);
+		} catch (DataClientException dataClientException) {
+			throwExceptionIfNotConflict(recordId, dataClientException);
+			retryRecordUpdate(recordType, recordId, jp2Group);
+		}
+	}
+
+	private void throwExceptionIfNotConflict(String recordId,
+			DataClientException dataClientException) {
+		if (isDifferentThanRecordConflict(dataClientException)) {
+			throw createBinaryConverterException(recordId, dataClientException);
+		}
+	}
+
+	private void retryRecordUpdate(String recordType, String recordId, ClientDataGroup jp2Group) {
+		logger.logInfoUsingMessage("Binary record with id: " + recordId
+				+ " could not be updated due to record conflict. Retrying record update.");
+		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2Group);
+	}
+
+	private boolean isDifferentThanRecordConflict(DataClientException dataClientException) {
+		var optionalResponseCode = dataClientException.getResponseCode();
+		if (optionalResponseCode.isEmpty()) {
+			return true;
+		}
+		return optionalResponseCode.get() != HTTP_CONFLICT;
+	}
+
+	private BinaryConverterException createBinaryConverterException(String recordId,
+			DataClientException dataClientException) {
+		return BinaryConverterException.withMessageAndException("Binary record with id: " + recordId
+				+ " could not be updated with jp2 conversion data.", dataClientException);
 	}
 
 	@Override

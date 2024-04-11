@@ -61,18 +61,13 @@ public class BinaryConverterTest {
 				SOME_RABBIT_MQ_HOST, SOME_RABBIT_MQ_PORT, SOME_RABBIT_VIRTUAL_HOST,
 				SOME_RABBIT_MQ_QUEUE_NAME, SOME_OCFL_HOME, SOME_FILE_STORAGE_BASE_PATH };
 
-		callOnceToGetUnrelatedLogsStarted();
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 	}
 
-	private void callOnceToGetUnrelatedLogsStarted() {
-		BinaryConverter.main(args);
-	}
-
 	@Test
 	public void testCallBinaryConverterStarter() throws Exception {
-		callOnceToGetUnrelatedLogsStarted();
+		BinaryConverter.main(args);
 
 		AmqpMessageListenerRoutingInfo routingInfo = (AmqpMessageListenerRoutingInfo) messagingFactory.MCR
 				.getValueForMethodNameAndCallNumberAndParameterName("factorTopicMessageListener", 0,
@@ -86,6 +81,8 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testStartListening() throws Exception {
+		BinaryConverter.main(args);
+
 		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
 		BinaryConverter converter = new BinaryConverter();
 		converter.onlyForTestSetMessageReceiverFactory(messageReceiverFactory);
@@ -111,7 +108,7 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testLoggerInit() throws Exception {
-		callOnceToGetUnrelatedLogsStarted();
+		BinaryConverter.main(args);
 
 		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, BinaryConverter.class);
 		loggerFactorySpy.MCR.assertParameters("factorForClass", 1, ConvertPdfToThumbnails.class);
@@ -120,7 +117,7 @@ public class BinaryConverterTest {
 
 	@Test
 	public void testLogs() throws Exception {
-		callOnceToGetUnrelatedLogsStarted();
+		BinaryConverter.main(args);
 
 		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
 

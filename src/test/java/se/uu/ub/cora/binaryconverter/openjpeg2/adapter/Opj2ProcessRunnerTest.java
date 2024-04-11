@@ -19,6 +19,7 @@
 package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -29,6 +30,8 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.Opj2ProcessBuilderSpy;
 import se.uu.ub.cora.binaryconverter.openjpeg2.spy.ProcessSpy;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class Opj2ProcessRunnerTest {
 
@@ -142,7 +145,8 @@ public class Opj2ProcessRunnerTest {
 		processSpy.MRV.setAlwaysThrowException("exitValue", new IllegalThreadStateException());
 		processSpy.MRV.setDefaultReturnValuesSupplier("isAlive", () -> false);
 		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
-
+		Opj2ProcessRunnerImpDestroyOnlyForTest processRunner = new Opj2ProcessRunnerImpDestroyOnlyForTest(
+				processBuilder, POLL_SLEEP_TIME_MILLISECONDS, TIMEOUT_IN_SECONDS);
 		long timeBeforeTest = 0L;
 		try {
 			timeBeforeTest = System.currentTimeMillis();
@@ -156,8 +160,26 @@ public class Opj2ProcessRunnerTest {
 			assertException(e);
 
 			processSpy.MCR.assertMethodWasCalled("destroy");
+			processRunner.MCR.assertNumberOfCallsToMethod("sleep", 11);
 			processSpy.MCR.assertMethodWasCalled("isAlive");
 			processSpy.MCR.assertMethodNotCalled("destroyForcibly");
+		}
+	}
+
+	class Opj2ProcessRunnerImpDestroyOnlyForTest extends Opj2ProcessRunnerImp {
+		public MethodCallRecorder MCR = new MethodCallRecorder();
+		public MethodReturnValues MRV = new MethodReturnValues();
+
+		public Opj2ProcessRunnerImpDestroyOnlyForTest(Opj2ProcessBuilder builder,
+				int pollSleepTimeInMillisecond, int timeoutInSeconds) {
+			super(builder, pollSleepTimeInMillisecond, timeoutInSeconds);
+			MCR.useMRV(MRV);
+		}
+
+		@Override
+		void sleep() {
+			MCR.addCall();
+			super.sleep();
 		}
 	}
 
@@ -168,6 +190,13 @@ public class Opj2ProcessRunnerTest {
 		int noSleepsBeforeDestroy = 1;
 		assertWaitingTimeForExitValueSuccessfulCall(timeBeforeTest, timeAfterTest,
 				callsToExitValue + noSleepsBeforeDestroy);
+	}
+
+	@Test
+	public void testCheckTimeOut() throws Exception {
+		assertTrue(processRunner.checkTimeout(0, 1));
+		assertTrue(processRunner.checkTimeout(1, 1));
+		assertFalse(processRunner.checkTimeout(2, 1));
 	}
 
 	@Test
