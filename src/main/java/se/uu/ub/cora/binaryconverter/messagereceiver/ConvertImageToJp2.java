@@ -93,7 +93,12 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 		binaryRecordGroup.addChild(jp2G);
 
+		// try {
 		dataClient.update(recordType, recordId, binaryRecordGroup);
+		// }catch(409 exception) {
+		// updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2G);
+		//
+		// }
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {

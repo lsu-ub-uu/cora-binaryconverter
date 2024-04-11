@@ -194,6 +194,8 @@ public class ConvertImageToJp2Test {
 	@Test
 	public void testUpdateReturn_Conflict_409() throws Exception {
 		dataClient.MRV.setReturnValues("update", List.of(new RuntimeException()));
+
+		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
 	}
 
 	@Test
