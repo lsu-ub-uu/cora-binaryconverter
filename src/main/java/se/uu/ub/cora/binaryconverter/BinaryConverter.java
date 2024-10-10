@@ -37,7 +37,7 @@ public class BinaryConverter {
 	private MessageReceiverFactory messageReceiverFactory;
 	private String coraUrl;
 	private String appTokenUrl;
-	private String userId;
+	private String loginId;
 	private String appToken;
 	private String hostName;
 	private int port;
@@ -60,7 +60,7 @@ public class BinaryConverter {
 		logger.logInfoUsingMessage("BinaryConverter starting...");
 		coraUrl = args[0];
 		appTokenUrl = args[1];
-		userId = args[2];
+		loginId = args[2];
 		appToken = args[3];
 		hostName = args[4];
 		port = Integer.parseInt(args[5]);
@@ -70,7 +70,7 @@ public class BinaryConverter {
 		fileStorageBasePath = args[9];
 
 		JavaClientAppTokenCredentials appTokenCredentials = new JavaClientAppTokenCredentials(
-				coraUrl, appTokenUrl, userId, appToken);
+				coraUrl, appTokenUrl, loginId, appToken);
 
 		logCoraClientFactory();
 
@@ -105,7 +105,7 @@ public class BinaryConverter {
 	private void logAnalyzeAndConverterStarter() {
 		String logAnalyzeAndConvertStarter = "Create AnalyzeAndConvertStarter with userId: {0}, "
 				+ "appToken: {1} and ocflHome: {2} and fileStorageBasePath: {3}";
-		logger.logInfoUsingMessage(MessageFormat.format(logAnalyzeAndConvertStarter, userId,
+		logger.logInfoUsingMessage(MessageFormat.format(logAnalyzeAndConvertStarter, loginId,
 				appToken, ocflHome, fileStorageBasePath));
 	}
 
