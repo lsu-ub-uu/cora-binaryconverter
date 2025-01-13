@@ -25,7 +25,7 @@ package se.uu.ub.cora.binaryconverter.openjpeg2.adapter;
 public interface Opj2Command {
 
 	/**
-	 * Compress to JPEG2000 using opj2_compress<br>
+	 * Compress to JPEG2000 using opj_compress<br>
 	 * 
 	 * Default encoding options if no Opj2Parameters are defined:<br>
 	 * <ul>
@@ -53,7 +53,7 @@ public interface Opj2Command {
 	 * Valid output image extensions are .j2k, .jp2
 	 * 
 	 * @param parameters
-	 *            The parameters opj2_compress should use to run
+	 *            The parameters opj_compress should use to run
 	 * @throws OpenJpeg2Exception
 	 *             When something goes wrong
 	 * 

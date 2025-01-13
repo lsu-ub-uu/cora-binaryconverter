@@ -47,7 +47,7 @@ public class Opj2CommandImpTest {
 
 		command.compress(parameters);
 
-		parameters.MCR.assertParameters("opj2Command", 0, "opj2_compress");
+		parameters.MCR.assertParameters("opj2Command", 0, "opj_compress");
 
 		runnerFactory.MCR.assertParameters("factor", 0, parameters);
 
@@ -61,7 +61,7 @@ public class Opj2CommandImpTest {
 
 		command.decompress(parameters);
 
-		parameters.MCR.assertParameters("opj2Command", 0, "opj2_decompress");
+		parameters.MCR.assertParameters("opj2Command", 0, "opj_decompress");
 
 		runnerFactory.MCR.assertParameters("factor", 0, parameters);
 

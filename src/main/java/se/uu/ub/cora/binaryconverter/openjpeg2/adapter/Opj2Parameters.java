@@ -229,7 +229,7 @@ public interface Opj2Parameters {
 	void numberOfThreads(int numOfThreads);
 
 	/**
-	 * add a command for the process to run (e.g. opj2_compress)
+	 * add a command for the process to run (e.g. opj_compress)
 	 */
 	void opj2Command(String command);
 }

@@ -28,7 +28,7 @@ public class Opj2CommandImp implements Opj2Command {
 
 	@Override
 	public void compress(Opj2Parameters parameters) {
-		runProcess(parameters, "opj2_compress");
+		runProcess(parameters, "opj_compress");
 	}
 
 	private void runProcess(Opj2Parameters parameters, String command) {
@@ -39,7 +39,7 @@ public class Opj2CommandImp implements Opj2Command {
 
 	@Override
 	public void decompress(Opj2Parameters parameters) {
-		runProcess(parameters, "opj2_decompress");
+		runProcess(parameters, "opj_decompress");
 	}
 
 	public Opj2ProcessRunnerFactory onlyForTestGetOpj2ProcessRunnerFactory() {
