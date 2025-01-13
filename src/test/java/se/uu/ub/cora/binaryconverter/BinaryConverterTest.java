@@ -70,7 +70,7 @@ public class BinaryConverterTest {
 		BinaryConverter.main(args);
 
 		AmqpMessageListenerRoutingInfo routingInfo = (AmqpMessageListenerRoutingInfo) messagingFactory.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("factorTopicMessageListener", 0,
+				.getParameterForMethodAndCallNumberAndParameter("factorTopicMessageListener", 0,
 						"messagingRoutingInfo");
 
 		assertEquals(routingInfo.hostname, SOME_RABBIT_MQ_HOST);

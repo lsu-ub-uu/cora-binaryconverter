@@ -16,33 +16,65 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg.spy;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class FilesWrapperSpy implements FilesWrapper {
+public class ProcessSpy extends Process {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public FilesWrapperSpy() {
+	public ProcessSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("waitFor", () -> 0);
+		MRV.setDefaultReturnValuesSupplier("exitValue", () -> 0);
+		MRV.setDefaultReturnValuesSupplier("isAlive", () -> true);
+		MRV.setDefaultReturnValuesSupplier("destroyForcibly", ProcessSpy::new);
 	}
 
 	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	public OutputStream getOutputStream() {
+		return null;
 	}
 
 	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
+	public InputStream getInputStream() {
+		return null;
 	}
 
 	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
+	public InputStream getErrorStream() {
+		return null;
+	}
+
+	@Override
+	public int waitFor() throws InterruptedException {
+		return (int) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public int exitValue() {
+		return (int) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public void destroy() {
+		MCR.addCall();
+
+	}
+
+	@Override
+	public boolean isAlive() {
+		return (boolean) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public Process destroyForcibly() {
+		return (Process) MCR.addCallAndReturnFromMRV();
 	}
 }

@@ -92,7 +92,7 @@ public class ImageAnalyzerTest {
 		imageMagick.analyze();
 
 		String[] pathAsArray = (String[]) imOperation.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addImage", 0, "arg0");
+				.getParameterForMethodAndCallNumberAndParameter("addImage", 0, "arg0");
 
 		assertEquals(pathAsArray[0], SOME_TEMP_PATH);
 		imOperation.MCR.assertParameters("format", 0, FORMAT_DPI_WIDTH_HEIGHT_SIZE);

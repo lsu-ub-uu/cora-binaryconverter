@@ -16,33 +16,30 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg.spy;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjProcessBuilder;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class FilesWrapperSpy implements FilesWrapper {
+public class OpjProcessBuilderSpy implements OpjProcessBuilder {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public FilesWrapperSpy() {
+	public OpjProcessBuilderSpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("start", ProcessSpy::new);
+		MRV.setDefaultReturnValuesSupplier("inheritIO", OpjProcessBuilderSpy::new);
 	}
 
 	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	public Process start() {
+		return (Process) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
-	}
-
-	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
+	public OpjProcessBuilder inheritIO() {
+		return (OpjProcessBuilder) MCR.addCallAndReturnFromMRV();
 	}
 }

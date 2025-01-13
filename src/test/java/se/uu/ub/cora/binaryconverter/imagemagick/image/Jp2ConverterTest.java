@@ -79,7 +79,7 @@ public class Jp2ConverterTest {
 
 	private void assertFirstArgumentAddImage(IMOperationSpy imOperation, int callNr, String value) {
 		String[] arg = (String[]) imOperation.MCR
-				.getValueForMethodNameAndCallNumberAndParameterName("addImage", callNr, "arg0");
+				.getParameterForMethodAndCallNumberAndParameter("addImage", callNr, "arg0");
 		assertEquals(arg[0], value);
 	}
 

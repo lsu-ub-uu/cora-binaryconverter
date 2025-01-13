@@ -16,33 +16,32 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjCommand;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjParameters;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class FilesWrapperSpy implements FilesWrapper {
-
+public class OpjCommandSpy implements OpjCommand {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public FilesWrapperSpy() {
+	public boolean createOutputFile = true;
+
+	public OpjCommandSpy() {
 		MCR.useMRV(MRV);
 	}
 
 	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	public void compress(OpjParameters parameters) {
+		MCR.addCall("parameters", parameters);
+
 	}
 
 	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
+	public void decompress(OpjParameters parameters) {
+		MCR.addCall("parameters", parameters);
 	}
 
-	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
-	}
 }

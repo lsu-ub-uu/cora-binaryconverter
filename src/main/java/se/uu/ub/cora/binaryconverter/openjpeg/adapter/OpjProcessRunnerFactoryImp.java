@@ -16,33 +16,23 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public class OpjProcessRunnerFactoryImp implements OpjProcessRunnerFactory {
 
-public class FilesWrapperSpy implements FilesWrapper {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public FilesWrapperSpy() {
-		MCR.useMRV(MRV);
-	}
+	private static final int TIMEOUT_IN_SECONDS = 900;
+	private static final int POLL_SLEEP_IN_MILLISECONDS = 5000;
 
 	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	public OpjProcessRunner factor(OpjParameters parameters) {
+		OpjProcessBuilder processBuilder = createNewProcessBuilder(parameters);
+		processBuilder.inheritIO();
+		return new OpjProcessRunnerImp(processBuilder, POLL_SLEEP_IN_MILLISECONDS,
+				TIMEOUT_IN_SECONDS);
 	}
 
-	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
-	}
-
-	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
+	// Needed for test
+	OpjProcessBuilder createNewProcessBuilder(OpjParameters parameters) {
+		return new OpjProcessBuilderImp(parameters);
 	}
 }

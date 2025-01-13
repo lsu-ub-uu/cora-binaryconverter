@@ -16,36 +16,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.imagemagick;
+package se.uu.ub.cora.binaryconverter.openjpeg;
 
-import static org.testng.Assert.assertNotSame;
-import static org.testng.Assert.assertTrue;
-
-import org.im4java.core.IMOperation;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-public class IMOperationFactoryTest {
+import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
+import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 
-	private IMOperationFactory factory;
+public class Jp2ConverterUsingOpjRealTest {
 
-	@BeforeMethod
-	private void beforeMethod() {
-		factory = new IMOperationFactoryImp();
-	}
-
-	@Test
-	public void testFactor() throws Exception {
-		IMOperation imOperation = factory.factor();
-
-		assertTrue(imOperation instanceof IMOperation);
-	}
-
-	@Test
-	public void testFactorCreatesNewImOperation() throws Exception {
-		IMOperation imOperation1 = factory.factor();
-		IMOperation imOperation2 = factory.factor();
-
-		assertNotSame(imOperation1, imOperation2);
+	@Test(enabled = false)
+	public void realTest() {
+		// TODO Auto-generated method stub
+		BinaryOperationFactoryImp factory = new BinaryOperationFactoryImp();
+		Jp2Converter jp2Converter = factory.factorJp2Converter();
+		jp2Converter.convert("/tmp/sharedFileStorage/systemOne/streams/systemOne/goku",
+				"/tmp/sharedFileStorage/systemOne/streams/systemOne/goku-jp2", "image/jpeg");
+		// "/tmp/sharedFileStorage/systemOne/streams/systemOne/binary:binary:1296461930134329-jp2",
 	}
 }

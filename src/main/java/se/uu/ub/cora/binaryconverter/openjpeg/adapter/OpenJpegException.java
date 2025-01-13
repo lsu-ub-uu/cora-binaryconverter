@@ -16,33 +16,26 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public class OpenJpegException extends RuntimeException {
 
-public class FilesWrapperSpy implements FilesWrapper {
+	private static final long serialVersionUID = -255261285196817577L;
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public FilesWrapperSpy() {
-		MCR.useMRV(MRV);
+	private OpenJpegException(String message) {
+		super(message);
 	}
 
-	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	private OpenJpegException(String message, Exception e) {
+		super(message, e);
 	}
 
-	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
+	public static OpenJpegException withMessage(String message) {
+		return new OpenJpegException(message);
 	}
 
-	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
+	public static OpenJpegException withMessageAndException(String message, Exception e) {
+		return new OpenJpegException(message, e);
 	}
+
 }

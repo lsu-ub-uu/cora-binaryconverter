@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2024 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,29 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.internal;
+package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.Test;
 
-public class BinaryConverterExceptionTest {
+public class OpenJpegExceptionTest {
 	@Test
 	public void testInit() {
-		String message = "message";
-		BinaryConverterException exception = BinaryConverterException.withMessage(message);
-		assertEquals(exception.getMessage(), "message");
-		assertTrue(exception instanceof RuntimeException);
+		OpenJpegException notFound = OpenJpegException.withMessage("message");
+
+		assertEquals(notFound.getMessage(), "message");
 	}
 
 	@Test
-	public void testMessageAndError() throws Exception {
-		String message = "message";
-		Exception exception = new RuntimeException();
-		BinaryConverterException storageException = BinaryConverterException
-				.withMessageAndException(message, exception);
-		assertEquals(storageException.getMessage(), "message");
-		assertEquals(storageException.getCause(), exception);
+	public void testInitWithException() {
+		Exception exception = new Exception();
+		OpenJpegException notFound = OpenJpegException.withMessageAndException("message",
+				exception);
+
+		assertEquals(notFound.getMessage(), "message");
+		assertEquals(notFound.getCause(), exception);
 	}
 }

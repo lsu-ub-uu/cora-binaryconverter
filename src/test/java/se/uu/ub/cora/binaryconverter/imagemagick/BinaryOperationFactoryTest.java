@@ -31,10 +31,10 @@ import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapper;
-import se.uu.ub.cora.binaryconverter.openjpeg2.Jp2ConverterUsingOpj2;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
+import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg.Jp2ConverterUsingOpj;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjCommandImp;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjParameters;
 
 public class BinaryOperationFactoryTest {
 
@@ -95,16 +95,16 @@ public class BinaryOperationFactoryTest {
 	// }
 	@Test
 	public void testFactorJp2Converter() throws Exception {
-		Jp2ConverterUsingOpj2 jp2Converter = (Jp2ConverterUsingOpj2) factory.factorJp2Converter();
+		Jp2ConverterUsingOpj jp2Converter = (Jp2ConverterUsingOpj) factory.factorJp2Converter();
 
 		assertNotNull(jp2Converter);
 
-		Opj2CommandImp command = (Opj2CommandImp) jp2Converter.onlyForTestGetOpj2Command();
+		OpjCommandImp command = (OpjCommandImp) jp2Converter.onlyForTestGetOpjCommand();
 		assertNotNull(command);
 
-		command.onlyForTestGetOpj2ProcessRunnerFactory();
+		command.onlyForTestGetOpjProcessRunnerFactory();
 
-		Opj2Parameters parameters = jp2Converter.onlyForTestGetOpj2Parameters();
+		OpjParameters parameters = jp2Converter.onlyForTestGetOpjParameters();
 		assertNotNull(parameters);
 
 		ImageConverter imageConverter = jp2Converter.onlyForTestGetImageConverter();

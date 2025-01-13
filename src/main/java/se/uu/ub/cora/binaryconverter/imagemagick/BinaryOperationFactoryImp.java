@@ -27,15 +27,15 @@ import se.uu.ub.cora.binaryconverter.imagemagick.document.PdfConverterImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageAnalyzerImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.image.ImageConverterImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
-import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapper;
-import se.uu.ub.cora.binaryconverter.openjpeg2.FilesWrapperImp;
-import se.uu.ub.cora.binaryconverter.openjpeg2.Jp2ConverterUsingOpj2;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Command;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2CommandImp;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2Parameters;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ParametersImp;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactory;
-import se.uu.ub.cora.binaryconverter.openjpeg2.adapter.Opj2ProcessRunnerFactoryImp;
+import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapperImp;
+import se.uu.ub.cora.binaryconverter.openjpeg.Jp2ConverterUsingOpj;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjCommand;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjCommandImp;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjParameters;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjParametersImp;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjProcessRunnerFactory;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjProcessRunnerFactoryImp;
 
 public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 
@@ -60,13 +60,13 @@ public class BinaryOperationFactoryImp implements BinaryOperationFactory {
 
 	@Override
 	public Jp2Converter factorJp2Converter() {
-		Opj2ProcessRunnerFactory processRunnerFactory = new Opj2ProcessRunnerFactoryImp();
-		Opj2Command command = new Opj2CommandImp(processRunnerFactory);
-		Opj2Parameters parameters = new Opj2ParametersImp();
+		OpjProcessRunnerFactory processRunnerFactory = new OpjProcessRunnerFactoryImp();
+		OpjCommand command = new OpjCommandImp(processRunnerFactory);
+		OpjParameters parameters = new OpjParametersImp();
 		ImageConverter imageConverter = factorImageConverter();
 		FilesWrapper filesWrapper = new FilesWrapperImp();
 
-		return new Jp2ConverterUsingOpj2(command, parameters, imageConverter, filesWrapper);
+		return new Jp2ConverterUsingOpj(command, parameters, imageConverter, filesWrapper);
 	}
 
 }

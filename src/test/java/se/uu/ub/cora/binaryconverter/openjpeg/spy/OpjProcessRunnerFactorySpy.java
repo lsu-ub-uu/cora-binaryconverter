@@ -16,33 +16,27 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.binaryconverter.spy;
+package se.uu.ub.cora.binaryconverter.openjpeg.spy;
 
-import se.uu.ub.cora.binaryconverter.openjpeg.FilesWrapper;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjParameters;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjProcessRunner;
+import se.uu.ub.cora.binaryconverter.openjpeg.adapter.OpjProcessRunnerFactory;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
-public class FilesWrapperSpy implements FilesWrapper {
+public class OpjProcessRunnerFactorySpy implements OpjProcessRunnerFactory {
 
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public FilesWrapperSpy() {
+	public OpjProcessRunnerFactorySpy() {
 		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("factor", OpjProcessRunnerSpy::new);
 	}
 
 	@Override
-	public void createSymbolicLink(String link, String target) {
-		MCR.addCall("link", link, "target", target);
+	public OpjProcessRunner factor(OpjParameters parameters) {
+		return (OpjProcessRunner) MCR.addCallAndReturnFromMRV("parameters", parameters);
 	}
 
-	@Override
-	public void move(String target, String newTarget) {
-		MCR.addCall("target", target, "newTarget", newTarget);
-	}
-
-	@Override
-	public void delete(String target) {
-		MCR.addCall("target", target);
-	}
 }
