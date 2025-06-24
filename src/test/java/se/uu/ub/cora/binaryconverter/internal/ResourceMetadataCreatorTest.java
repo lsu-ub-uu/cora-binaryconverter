@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -50,12 +50,12 @@ public class ResourceMetadataCreatorTest {
 	}
 
 	@Test
-	public void testInit() throws Exception {
+	public void testInit() {
 		assertTrue(resourceMetadataCreator instanceof ResourceMetadataCreator);
 	}
 
 	@Test
-	public void testCallCreateMetadataForRepresentation() throws Exception {
+	public void testCallCreateMetadataForRepresentation() {
 
 		ClientDataGroup representationDataGroup = resourceMetadataCreator
 				.createMetadataForRepresentation("someRepresentation", SOME_RECORD_ID, imageData,
@@ -80,10 +80,9 @@ public class ResourceMetadataCreatorTest {
 				fAtomicCallNr);
 		fAtomicCallNr++;
 
-		clientDataFactory.MCR.assertParameters("factorResourceLinkUsingNameInDataAndMimeType",
-				representationCallNr, representationName, IMAGE_JPEG);
-		var resourceLink = clientDataFactory.MCR.getReturnValue(
-				"factorResourceLinkUsingNameInDataAndMimeType", representationCallNr);
+		var resourceLink = clientDataFactory.MCR.assertCalledParametersReturn(
+				"factorResourceLinkUsingNameInDataAndTypeAndIdAndMimeType", representationName,
+				"binary", SOME_RECORD_ID, IMAGE_JPEG);
 
 		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
 				"fileSize", imageData.size());
@@ -122,7 +121,7 @@ public class ResourceMetadataCreatorTest {
 	}
 
 	@Test
-	public void testCallCreateMasterGroup() throws Exception {
+	public void testCallCreateMasterGroup() {
 
 		resourceMetadataCreator.updateMasterGroup(masterGroup, imageData);
 		assertUpdateRecordAfterAnalyze();

@@ -27,18 +27,18 @@
 		<slf4j.version>2.0.17</slf4j.version>
 		<im4java.version>1.4.0</im4java.version>
 		<initialize.version>1.7.0</initialize.version>
-		<coradata.version>10.2.0</coradata.version>
+		<coradata.version>11.0-SNAPSHOT</coradata.version>
 		<storage.version>9.8.0</storage.version>
 		<storagespies.version>1.14.0</storagespies.version>
 		<fedoraarchive.version>1.15.0</fedoraarchive.version>
 		<fedora.version>4.2.0</fedora.version> 
 		<basicstorage.version>7.17.0</basicstorage.version>
 		<messaging.version>3.1.0</messaging.version>
-		<javaclient.version>4.5.0</javaclient.version>
+		<javaclient.version>5.0-SNAPSHOT</javaclient.version>
 		<rabbitmq.version>3.1.0</rabbitmq.version>
 		<logger.version>2.10.0</logger.version>
 		<testutils.version>1.14.0</testutils.version>
-		<clientdata-spies.version>1.8.0</clientdata-spies.version>
+		<clientdata-spies.version>2.0-SNAPSHOT</clientdata-spies.version>
 		<logger-spies.version>1.5.0</logger-spies.version>
 	</properties>
 

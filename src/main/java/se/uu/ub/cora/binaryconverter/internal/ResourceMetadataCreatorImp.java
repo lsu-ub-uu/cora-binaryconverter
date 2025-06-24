@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2025 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -27,8 +27,7 @@ import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
 	@Override
-	public void updateMasterGroup(ClientDataGroup masterGroup,
-			ImageData imageData) {
+	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
 
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
@@ -51,7 +50,8 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
 				recordId + "-" + representation);
 		ClientDataResourceLink resourceLink = ClientDataProvider
-				.createResourceLinkUsingNameInDataAndMimeType(representation, mimeTypenName);
+				.createResourceLinkUsingNameInDataAndTypeAndIdAndMimeType(representation, "binary",
+						recordId, mimeTypenName);
 		ClientDataAtomic fileSize = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
 		ClientDataAtomic mimeType = ClientDataProvider
