@@ -81,7 +81,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	private LoggerSpy logger;
 
 	@BeforeMethod
-	public void beforeMethod() throws Exception {
+	public void beforeMethod() {
 		logger = new LoggerSpy();
 		loggerFactorySpy = new LoggerFactorySpy();
 		loggerFactorySpy.MRV.setDefaultReturnValuesSupplier("factorForClass", () -> logger);
@@ -139,20 +139,20 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testLoggerStarted() throws Exception {
+	public void testLoggerStarted() {
 		loggerFactorySpy.MCR.assertParameters("factorForClass", 0,
 				AnalyzeAndConvertImageToThumbnails.class);
 	}
 
 	@Test
-	public void testImageAnalyzerFactoryInitialized() throws Exception {
+	public void testImageAnalyzerFactoryInitialized() {
 		assertTrue(converter instanceof MessageReceiver);
 		var factory = converter.onlyForTestGetBinaryOperationFactory();
 		assertNotNull(factory);
 	}
 
 	@Test
-	public void testCallFactoryWithCorrectPath() throws Exception {
+	public void testCallFactoryWithCorrectPath() {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
@@ -162,7 +162,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testCallPathBuilderBuild() throws Exception {
+	public void testCallPathBuilderBuild() {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		archivePathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0,
@@ -170,7 +170,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testCallAnalyze() throws Exception {
+	public void testCallAnalyze() {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
@@ -180,7 +180,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateRecordAfterAnalyzing() throws Exception {
+	public void testUpdateRecordAfterAnalyzing() {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
@@ -208,13 +208,11 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		ClientDataRecordSpy dataRecord = (ClientDataRecordSpy) dataClient.MCR.getReturnValue("read",
 				0);
 		dataRecord.MCR.assertParameters("getDataRecordGroup", 0);
-		ClientDataRecordGroupSpy binaryRecordGroup = (ClientDataRecordGroupSpy) dataRecord.MCR
-				.getReturnValue("getDataRecordGroup", 0);
-		return binaryRecordGroup;
+		return (ClientDataRecordGroupSpy) dataRecord.MCR.getReturnValue("getDataRecordGroup", 0);
 	}
 
 	@Test
-	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
+	public void testConvertAndAnalyzeAndUpdateAllRepresentations() {
 		converter.receiveMessage(some_headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
@@ -277,9 +275,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		streamPathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
 		streamPathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists",
 				pathBuilderCallNr, SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
-		String pathToFileRepresentation = (String) streamPathBuilder.MCR
+		return (String) streamPathBuilder.MCR
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr);
-		return pathToFileRepresentation;
 	}
 
 	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr,
@@ -292,7 +289,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateReturn_Conflict_409() throws Exception {
+	public void testUpdateReturn_Conflict_409() {
 		DataClientException conflictException = DataClientException
 				.withMessageAndResponseCode("someConflictError", 409);
 
@@ -321,7 +318,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() throws Exception {
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
 		DataClientException conflictException = DataClientException
 				.withMessage("someConflictError");
 
@@ -337,7 +334,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateReturn_AnyOtherException() throws Exception {
+	public void testUpdateReturn_AnyOtherException() {
 		DataClientException conflictException = DataClientException
 				.withMessageAndResponseCode("someConflictError", 401);
 
@@ -353,7 +350,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testOnlyForTestGet() throws Exception {
+	public void testOnlyForTestGet() {
 		assertEquals(converter.onlyForTestGetDataClient(), dataClient);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
 		assertEquals(converter.onlyForTestGetBinaryOperationFactory(), binaryOperationFactory);
@@ -363,7 +360,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testTopicClosed() throws Exception {
+	public void testTopicClosed() {
 		converter.topicClosed();
 
 		logger.MCR.assertParameters("logFatalUsingMessage", 0, "Topic is closed!");

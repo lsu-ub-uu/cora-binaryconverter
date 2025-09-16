@@ -107,7 +107,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private ClientDataGroup convertRepresentation(String dataDivider, String type, String recordId,
 			String representation, String inputPath, int size) {
 		String outputPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
-				type, recordId + "-" + representation);
+				type, recordId, representation);
 		return convertImageUsingResourceTypeNameAndWidth(recordId, inputPath, outputPath,
 				representation, size);
 	}
@@ -124,8 +124,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	}
 
 	private String getPathToLargeRepresentation(String dataDivider, String type, String recordId) {
-		return streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-" + LARGE);
+		return streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type, recordId,
+				LARGE);
 	}
 
 	private Map<String, ClientDataGroup> representationGroupstoMap(

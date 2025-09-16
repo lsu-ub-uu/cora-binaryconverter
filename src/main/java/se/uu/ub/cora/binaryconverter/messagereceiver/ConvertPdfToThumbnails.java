@@ -97,14 +97,14 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private ClientDataGroup convertRepresentation(String dataDivider, String type, String recordId,
 			String representation, String inputPath, int size) {
 		String outputPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
-				type, recordId + "-" + representation);
+				type, recordId + "-" + representation, null);
 		return convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, inputPath,
 				outputPath, representation, size);
 	}
 
 	private String getPathToLargeRepresentation(String dataDivider, String type, String recordId) {
 		return streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-" + LARGE);
+				recordId + "-" + LARGE, null);
 	}
 
 	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(

@@ -66,7 +66,7 @@ public class BinaryConverterTest {
 	}
 
 	@Test
-	public void testCallBinaryConverterStarter() throws Exception {
+	public void testCallBinaryConverterStarter() {
 		BinaryConverter.main(args);
 
 		AmqpMessageListenerRoutingInfo routingInfo = (AmqpMessageListenerRoutingInfo) messagingFactory.MCR
@@ -80,7 +80,7 @@ public class BinaryConverterTest {
 	}
 
 	@Test
-	public void testStartListening() throws Exception {
+	public void testStartListening() {
 		BinaryConverter.main(args);
 
 		MessageReceiverFactorySpy messageReceiverFactory = new MessageReceiverFactorySpy();
@@ -107,7 +107,7 @@ public class BinaryConverterTest {
 	}
 
 	@Test
-	public void testLoggerInit() throws Exception {
+	public void testLoggerInit() {
 		BinaryConverter.main(args);
 
 		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, BinaryConverter.class);
@@ -116,7 +116,7 @@ public class BinaryConverterTest {
 	}
 
 	@Test
-	public void testLogs() throws Exception {
+	public void testLogs() {
 		BinaryConverter.main(args);
 
 		LoggerSpy logger = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);

@@ -76,7 +76,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
 			String inputPath, String mimeType) {
 		String largePath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
-				type, recordId + "-jp2");
+				type, recordId + "-jp2", null);
 
 		return convertToJp2AndAnalyze(inputPath, largePath, mimeType);
 	}
