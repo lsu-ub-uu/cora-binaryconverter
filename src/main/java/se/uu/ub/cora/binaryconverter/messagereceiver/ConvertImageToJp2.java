@@ -38,6 +38,7 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
+	private static final String JP2 = "jp2";
 	private static final int HTTP_CONFLICT = 409;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
 	private BinaryOperationFactory binaryOperationFactory;
@@ -67,7 +68,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 		ImageData imageData = convertAndAnalyzeImage(dataDivider, recordType, recordId,
 				originalImagePath, mimeType);
-		ClientDataGroup jp2Group = resourceMetadataCreator.createMetadataForRepresentation("jp2",
+		ClientDataGroup jp2Group = resourceMetadataCreator.createMetadataForRepresentation(JP2,
 				recordId, imageData, "image/jp2");
 
 		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2Group);
@@ -76,7 +77,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	private ImageData convertAndAnalyzeImage(String dataDivider, String type, String recordId,
 			String inputPath, String mimeType) {
 		String largePath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
-				type, recordId + "-jp2", null);
+				type, recordId, JP2);
 
 		return convertToJp2AndAnalyze(inputPath, largePath, mimeType);
 	}
