@@ -81,6 +81,12 @@ public class ConvertPdfToThumbnailsTest {
 		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
 				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileLarge", DATA_DIVIDER,
 				TYPE, ID, "large");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileMedium", DATA_DIVIDER,
+				TYPE, ID, "medium");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileThumbnail", DATA_DIVIDER,
+				TYPE, ID, "thumbnail");
 
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
@@ -129,12 +135,12 @@ public class ConvertPdfToThumbnailsTest {
 		var imageDataMedium = getImageData(1);
 		var imageDataThumbnail = getImageData(2);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				ID, imageDataLarge, JPEG_MIME_TYPE);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				ID, imageDataMedium, JPEG_MIME_TYPE);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
+				"pathToFileLarge", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
+				"pathToFileMedium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", ID, imageDataThumbnail, JPEG_MIME_TYPE);
+				"pathToFileThumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
 
 		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
 				0);

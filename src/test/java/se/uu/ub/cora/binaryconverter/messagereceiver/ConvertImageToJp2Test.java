@@ -116,10 +116,10 @@ public class ConvertImageToJp2Test {
 		messageReceiver.receiveMessage(someHeaders, MESSAGE);
 
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 1);
-		var imageDataLarge = getImageData(0);
+		var image = getImageData(0);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "jp2",
-				ID, imageDataLarge, JP2_MIME_TYPE);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
+				"somePathToAFile", ID, "jp2", JP2_MIME_TYPE, image);
 
 		var jp2G = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation", 0);
 

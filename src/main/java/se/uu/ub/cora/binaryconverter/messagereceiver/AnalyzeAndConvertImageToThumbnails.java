@@ -77,8 +77,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		var representations = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
 				recordId, originalImagePath);
 
-		addRepresentationDataToRecordAndUpdate(recordType, recordId, masterImageData,
-				representations);
+		addRepresentationDataToRecordAndUpdate(originalImagePath, recordType, recordId,
+				masterImageData, representations);
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
@@ -119,8 +119,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 		ImageData imageData = analyzeImage(outputPath);
 
-		return resourceMetadataCreator.createMetadataForRepresentation(representation, recordId,
-				imageData, "image/jpeg");
+		return resourceMetadataCreator.createMetadataForRepresentation(outputPath, recordId,
+				representation, "image/jpeg", imageData);
 	}
 
 	private String getPathToLargeRepresentation(String dataDivider, String type, String recordId) {
@@ -138,22 +138,25 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return representations;
 	}
 
-	private void addRepresentationDataToRecordAndUpdate(String recordType, String recordId,
-			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
-		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(recordType,
-				recordId, masterImageData, representations);
+	private void addRepresentationDataToRecordAndUpdate(String originalImagePath, String recordType,
+			String recordId, ImageData masterImageData,
+			Map<String, ClientDataGroup> representations) {
+		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(originalImagePath,
+				recordType, recordId, masterImageData, representations);
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
 			throwExceptionIfNotConflict(recordId, dataClientException);
-			retryRecordUpdate(recordType, recordId, masterImageData, representations);
+			retryRecordUpdate(originalImagePath, recordType, recordId, masterImageData,
+					representations);
 		}
 	}
 
-	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,
-			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
+	private ClientDataRecordGroup addRepresentationsDataToRecord(String originalImagePath,
+			String recordType, String recordId, ImageData masterImageData,
+			Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		addMasterRepresentationDataToRecord(masterImageData, binaryRecordGroup);
+		addMasterRepresentationDataToRecord(originalImagePath, masterImageData, binaryRecordGroup);
 		addOtherRepresentationDataToRecord(representations, binaryRecordGroup);
 		return binaryRecordGroup;
 	}
@@ -163,10 +166,10 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void addMasterRepresentationDataToRecord(ImageData masterImageData,
-			ClientDataRecordGroup binaryRecordGroup) {
+	private void addMasterRepresentationDataToRecord(String originalImagePath,
+			ImageData masterImageData, ClientDataRecordGroup binaryRecordGroup) {
 		ClientDataGroup masterG = binaryRecordGroup.getFirstGroupWithNameInData("master");
-		resourceMetadataCreator.updateMasterGroup(masterG, masterImageData);
+		resourceMetadataCreator.updateMasterGroup(originalImagePath, masterG, masterImageData);
 	}
 
 	private void addOtherRepresentationDataToRecord(Map<String, ClientDataGroup> representations,
@@ -197,12 +200,12 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 				+ " could not be updated with conversion data.", dataClientException);
 	}
 
-	private void retryRecordUpdate(String recordType, String recordId, ImageData masterImageData,
-			Map<String, ClientDataGroup> representations) {
+	private void retryRecordUpdate(String originalImagePath, String recordType, String recordId,
+			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
 		logger.logInfoUsingMessage("Binary record with id: " + recordId
 				+ " could not be updated due to record conflict. Retrying record update.");
-		addRepresentationDataToRecordAndUpdate(recordType, recordId, masterImageData,
-				representations);
+		addRepresentationDataToRecordAndUpdate(originalImagePath, recordType, recordId,
+				masterImageData, representations);
 	}
 
 	@Override

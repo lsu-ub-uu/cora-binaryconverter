@@ -199,7 +199,8 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				.getReturnValue("factorImageAnalyzer", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
-		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, masterG, imageData);
+		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, "somePathToArchive",
+				masterG, imageData);
 
 		return binaryRecordGroup;
 	}
@@ -228,12 +229,12 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertAnalyzeAndConvertToRepresentation("medium", 300, largePath, 1, 2, 2);
 		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, largePath, 2, 3, 3);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				ID, imageDataLarge, JPEG_MIME_TYPE);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				ID, imageDataMedium, JPEG_MIME_TYPE);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
+				"aPath-large", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
+				"aPath-medium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", ID, imageDataThumbnail, JPEG_MIME_TYPE);
+				"aPath-thumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
 
 		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
 				0);

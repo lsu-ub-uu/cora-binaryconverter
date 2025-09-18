@@ -31,7 +31,8 @@ import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 
 public class ResourceMetadataCreatorTest {
 
-	private static final String SOME_RECORD_ID = "someRecordId";
+	private static final String PATH_TO_STREAM = "/some/file/path";
+	private static final String RECORD_ID = "someRecordId";
 	private static final String IMAGE_JPEG = "image/jpeg";
 
 	private ResourceMetadataCreator resourceMetadataCreator;
@@ -58,8 +59,8 @@ public class ResourceMetadataCreatorTest {
 	public void testCallCreateMetadataForRepresentation() {
 
 		ClientDataGroup representationDataGroup = resourceMetadataCreator
-				.createMetadataForRepresentation("someRepresentation", SOME_RECORD_ID, imageData,
-						IMAGE_JPEG);
+				.createMetadataForRepresentation(PATH_TO_STREAM, RECORD_ID, "someRepresentation",
+						IMAGE_JPEG, imageData);
 
 		assertCreateAndUpdateMetadataForRespresentation("someRepresentation", imageData, 0, 0);
 		clientDataFactory.MCR.assertReturn("factorGroupUsingNameInData", 0,
@@ -75,14 +76,14 @@ public class ResourceMetadataCreatorTest {
 				.getReturnValue("factorGroupUsingNameInData", representationCallNr);
 
 		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
-				"resourceId", SOME_RECORD_ID + "-" + representationName);
+				"resourceId", PATH_TO_STREAM);
 		var resourceId = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
 				fAtomicCallNr);
 		fAtomicCallNr++;
 
 		var resourceLink = clientDataFactory.MCR.assertCalledParametersReturn(
 				"factorResourceLinkUsingNameInDataAndTypeAndIdAndMimeType", representationName,
-				"binary", SOME_RECORD_ID, IMAGE_JPEG);
+				"binary", RECORD_ID, IMAGE_JPEG);
 
 		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", fAtomicCallNr,
 				"fileSize", imageData.size());
@@ -122,28 +123,33 @@ public class ResourceMetadataCreatorTest {
 
 	@Test
 	public void testCallCreateMasterGroup() {
-
-		resourceMetadataCreator.updateMasterGroup(masterGroup, imageData);
+		resourceMetadataCreator.updateMasterGroup(PATH_TO_STREAM, masterGroup, imageData);
 		assertUpdateRecordAfterAnalyze();
 	}
 
 	private void assertUpdateRecordAfterAnalyze() {
 
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "height",
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0,
+				"resourceId", PATH_TO_STREAM);
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "height",
 				imageData.height());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "width",
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "width",
 				imageData.width());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2,
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
 				"resolution", imageData.resolution());
 
-		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
-		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
+		var resourceId = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+				0);
+		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
+		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
 		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				2);
+				3);
 
-		masterGroup.MCR.assertParameters("addChild", 0, height);
-		masterGroup.MCR.assertParameters("addChild", 1, width);
-		masterGroup.MCR.assertParameters("addChild", 2, resolution);
+		masterGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "resourceId");
+		masterGroup.MCR.assertParameters("addChild", 0, resourceId);
+		masterGroup.MCR.assertParameters("addChild", 1, height);
+		masterGroup.MCR.assertParameters("addChild", 2, width);
+		masterGroup.MCR.assertParameters("addChild", 3, resolution);
 
 	}
 }

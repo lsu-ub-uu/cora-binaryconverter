@@ -115,8 +115,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 		ImageData imageData = analyzeImage(outputPath);
 
-		return resourceMetadataCreator.createMetadataForRepresentation(representation, recordId,
-				imageData, "image/jpeg");
+		return resourceMetadataCreator.createMetadataForRepresentation(outputPath, recordId,
+				representation, "image/jpeg", imageData);
 	}
 
 	private ImageData analyzeImage(String pathToImage) {
