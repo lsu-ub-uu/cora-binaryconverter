@@ -199,8 +199,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				.getReturnValue("factorImageAnalyzer", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
-		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, "somePathToArchive",
-				masterG, imageData);
+		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, masterG, imageData);
 
 		return binaryRecordGroup;
 	}
@@ -255,7 +254,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 			int pathBuilderCallNr) {
 		String pathToFileRepresentation = assertConvertToRepresentation(representation, width,
 				inputPath, fImageConverterCallNr, pathBuilderCallNr);
-		assertAnalyzeRepresentation(representation, fAnalyzerCallNr, pathToFileRepresentation);
+		assertAnalyzeRepresentation(fAnalyzerCallNr, pathToFileRepresentation);
 	}
 
 	private String assertConvertToRepresentation(String representation, int width, String inputPath,
@@ -284,8 +283,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", pathBuilderCallNr);
 	}
 
-	private void assertAnalyzeRepresentation(String representation, int fAnalyzerCallNr,
-			String pathToFileRepresentation) {
+	private void assertAnalyzeRepresentation(int fAnalyzerCallNr, String pathToFileRepresentation) {
 		binaryOperationFactory.MCR.assertParameters("factorImageAnalyzer", fAnalyzerCallNr,
 				pathToFileRepresentation);
 		ImageAnalyzerSpy imageAnalyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR

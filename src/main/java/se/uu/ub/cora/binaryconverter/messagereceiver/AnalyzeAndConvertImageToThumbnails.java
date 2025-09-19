@@ -141,8 +141,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	private void addRepresentationDataToRecordAndUpdate(String originalImagePath, String recordType,
 			String recordId, ImageData masterImageData,
 			Map<String, ClientDataGroup> representations) {
-		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(originalImagePath,
-				recordType, recordId, masterImageData, representations);
+		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(recordType,
+				recordId, masterImageData, representations);
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
@@ -152,11 +152,10 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		}
 	}
 
-	private ClientDataRecordGroup addRepresentationsDataToRecord(String originalImagePath,
-			String recordType, String recordId, ImageData masterImageData,
-			Map<String, ClientDataGroup> representations) {
+	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType,
+			String recordId, ImageData masterImageData, Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		addMasterRepresentationDataToRecord(originalImagePath, masterImageData, binaryRecordGroup);
+		addMasterRepresentationDataToRecord(masterImageData, binaryRecordGroup);
 		addOtherRepresentationDataToRecord(representations, binaryRecordGroup);
 		return binaryRecordGroup;
 	}
@@ -166,10 +165,10 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void addMasterRepresentationDataToRecord(String originalImagePath,
-			ImageData masterImageData, ClientDataRecordGroup binaryRecordGroup) {
+	private void addMasterRepresentationDataToRecord(ImageData masterImageData,
+			ClientDataRecordGroup binaryRecordGroup) {
 		ClientDataGroup masterG = binaryRecordGroup.getFirstGroupWithNameInData("master");
-		resourceMetadataCreator.updateMasterGroup(originalImagePath, masterG, masterImageData);
+		resourceMetadataCreator.updateMasterGroup(masterG, masterImageData);
 	}
 
 	private void addOtherRepresentationDataToRecord(Map<String, ClientDataGroup> representations,

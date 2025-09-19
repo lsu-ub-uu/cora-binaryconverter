@@ -107,7 +107,6 @@ public class ResourceMetadataCreatorTest {
 				"width", imageData.width());
 		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
 				fAtomicCallNr);
-		fAtomicCallNr++;
 
 		clientDataFactory.MCR.assertNumberOfCallsToMethod("factorAtomicUsingNameInDataAndValue", 5);
 
@@ -123,33 +122,34 @@ public class ResourceMetadataCreatorTest {
 
 	@Test
 	public void testCallCreateMasterGroup() {
-		resourceMetadataCreator.updateMasterGroup(PATH_TO_STREAM, masterGroup, imageData);
+		resourceMetadataCreator.updateMasterGroup(masterGroup, imageData);
 		assertUpdateRecordAfterAnalyze();
 	}
 
 	private void assertUpdateRecordAfterAnalyze() {
 
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0,
-				"resourceId", PATH_TO_STREAM);
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "height",
+		// clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0,
+		// "resourceId", PATH_TO_STREAM);
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 0, "height",
 				imageData.height());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2, "width",
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 1, "width",
 				imageData.width());
-		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 3,
+		clientDataFactory.MCR.assertParameters("factorAtomicUsingNameInDataAndValue", 2,
 				"resolution", imageData.resolution());
 
-		var resourceId = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				0);
-		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
-		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 2);
+		// var resourceId =
+		// clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
+		// 0);
+		var height = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 0);
+		var width = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue", 1);
 		var resolution = clientDataFactory.MCR.getReturnValue("factorAtomicUsingNameInDataAndValue",
-				3);
+				2);
 
-		masterGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "resourceId");
-		masterGroup.MCR.assertParameters("addChild", 0, resourceId);
-		masterGroup.MCR.assertParameters("addChild", 1, height);
-		masterGroup.MCR.assertParameters("addChild", 2, width);
-		masterGroup.MCR.assertParameters("addChild", 3, resolution);
+		// masterGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0, "resourceId");
+		// masterGroup.MCR.assertParameters("addChild", 0, resourceId);
+		masterGroup.MCR.assertParameters("addChild", 0, height);
+		masterGroup.MCR.assertParameters("addChild", 1, width);
+		masterGroup.MCR.assertParameters("addChild", 2, resolution);
 
 	}
 }

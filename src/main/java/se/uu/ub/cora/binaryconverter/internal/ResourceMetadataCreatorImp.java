@@ -27,11 +27,7 @@ import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
 	@Override
-	public void updateMasterGroup(String pathToStream, ClientDataGroup masterGroup,
-			ImageData imageData) {
-
-		ClientDataAtomic resourceId = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("resourceId", pathToStream);
+	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
@@ -39,8 +35,6 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		ClientDataAtomic resolution = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
 
-		masterGroup.removeFirstChildWithNameInData("resourceId");
-		masterGroup.addChild(resourceId);
 		masterGroup.addChild(height);
 		masterGroup.addChild(width);
 		masterGroup.addChild(resolution);

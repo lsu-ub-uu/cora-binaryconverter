@@ -42,14 +42,11 @@ public interface ResourceMetadataCreator {
 
 	/**
 	 * updateMasterGroup method updates masterGroup using imageData as input.
-	 * 
-	 * @param pathToStream
-	 *            string with the path to the stream
 	 * @param masterGroup
 	 *            is the master representation
 	 * @param imageData
 	 *            image data of the representation
 	 */
-	void updateMasterGroup(String pathToStream, ClientDataGroup masterGroup, ImageData imageData);
+	void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData);
 
 }
