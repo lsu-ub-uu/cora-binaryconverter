@@ -97,14 +97,14 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private ClientDataGroup convertRepresentation(String dataDivider, String type, String recordId,
 			String representation, String inputPath, int size) {
 		String outputPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
-				type, recordId + "-" + representation);
+				type, recordId, representation);
 		return convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(recordId, inputPath,
 				outputPath, representation, size);
 	}
 
 	private String getPathToLargeRepresentation(String dataDivider, String type, String recordId) {
-		return streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type,
-				recordId + "-" + LARGE);
+		return streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider, type, recordId,
+				LARGE);
 	}
 
 	private ClientDataGroup convertToImagesAnalyzeAndCreateMetadataRepresentationGroup(
@@ -115,8 +115,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 		ImageData imageData = analyzeImage(outputPath);
 
-		return resourceMetadataCreator.createMetadataForRepresentation(representation, recordId,
-				imageData, "image/jpeg");
+		return resourceMetadataCreator.createMetadataForRepresentation(outputPath, recordId,
+				representation, "image/jpeg", imageData);
 	}
 
 	private ImageData analyzeImage(String pathToImage) {

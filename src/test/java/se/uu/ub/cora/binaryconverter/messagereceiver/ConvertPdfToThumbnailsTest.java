@@ -48,13 +48,13 @@ import se.uu.ub.cora.storage.spies.path.StreamPathBuilderSpy;
 
 public class ConvertPdfToThumbnailsTest {
 	private static final String JPEG_MIME_TYPE = "image/jpeg";
-	private static final String SOME_DATA_DIVIDER = "someDataDivider";
-	private static final String SOME_TYPE = "someType";
-	private static final String SOME_ID = "someId";
-	private static final String SOME_MESSAGE = "someMessage";
+	private static final String DATA_DIVIDER = "someDataDivider";
+	private static final String TYPE = "someType";
+	private static final String ID = "someId";
+	private static final String MESSAGE = "someMessage";
 	private LoggerFactorySpy loggerFactorySpy;
 
-	private Map<String, String> some_headers = new HashMap<>();
+	private Map<String, String> headers = new HashMap<>();
 	private ClientDataFactorySpy clientDataFactory;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
@@ -78,6 +78,16 @@ public class ConvertPdfToThumbnailsTest {
 		archivePathBuilder = new ArchivePathBuilderSpy();
 		streamPathBuilder = new StreamPathBuilderSpy();
 
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileLarge", DATA_DIVIDER,
+				TYPE, ID, "large");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileMedium", DATA_DIVIDER,
+				TYPE, ID, "medium");
+		streamPathBuilder.MRV.setSpecificReturnValuesSupplier(
+				"buildPathToAFileAndEnsureFolderExists", () -> "pathToFileThumbnail", DATA_DIVIDER,
+				TYPE, ID, "thumbnail");
+
 		resourceMetadataCreator = new ResourceMetadataCreatorSpy();
 
 		clientDataFactory = new ClientDataFactorySpy();
@@ -90,43 +100,47 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	private void setMessageHeaders() {
-		some_headers.put("dataDivider", SOME_DATA_DIVIDER);
-		some_headers.put("type", SOME_TYPE);
-		some_headers.put("id", SOME_ID);
+		headers.put("dataDivider", DATA_DIVIDER);
+		headers.put("type", TYPE);
+		headers.put("id", ID);
 	}
 
 	@Test
-	public void testLoggerStarted() throws Exception {
+	public void testLoggerStarted() {
 		loggerFactorySpy.MCR.assertParameters("factorForClass", 0, ConvertPdfToThumbnails.class);
 	}
 
 	@Test
-	public void testConvertPDfToThumbnailCalled() throws Exception {
-		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+	public void testConvertPDfToThumbnailCalled() {
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
 		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 0);
-		assertAnalyzeAndConvertToRepresentation("medium", 300, "somePathToAFile", 1, 2);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, "somePathToAFile", 2, 3);
+
+		String largePath = (String) streamPathBuilder.MCR.assertCalledParametersReturn(
+				"buildPathToAFileAndEnsureFolderExists", DATA_DIVIDER, TYPE, ID, "large");
+
+		assertAnalyzeAndConvertToRepresentation("medium", 300, largePath, 1, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, largePath, 2, 3);
 	}
 
 	@Test
-	public void testConvertAndAnalyzeAndUpdateAllRepresentations() throws Exception {
-		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+	public void testConvertAndAnalyzeAndUpdateAllRepresentations() {
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 3);
 		var imageDataLarge = getImageData(0);
 		var imageDataMedium = getImageData(1);
 		var imageDataThumbnail = getImageData(2);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0, "large",
-				SOME_ID, imageDataLarge, JPEG_MIME_TYPE);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1, "medium",
-				SOME_ID, imageDataMedium, JPEG_MIME_TYPE);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
+				"pathToFileLarge", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
+		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
+				"pathToFileMedium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"thumbnail", SOME_ID, imageDataThumbnail, JPEG_MIME_TYPE);
+				"pathToFileThumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
 
 		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
 				0);
@@ -168,18 +182,16 @@ public class ConvertPdfToThumbnailsTest {
 		binaryOperationFactory.MCR.assertParameters("factorPdfConverter", callNr);
 		PdfConverterSpy pdfConverter = (PdfConverterSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorPdfConverter", callNr);
-		pdfConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath, "somePathToAFile",
-				width);
+		pdfConverter.MCR.assertParameters("convertUsingWidth", 0, inputPath,
+				pathToFileRepresentation, width);
 	}
 
 	private String assertStreamPathBuilderBuildFileSystemFilePath(String representation,
 			int callNr) {
-		streamPathBuilder.MCR.assertMethodWasCalled("buildPathToAFileAndEnsureFolderExists");
 		streamPathBuilder.MCR.assertParameters("buildPathToAFileAndEnsureFolderExists", callNr,
-				SOME_DATA_DIVIDER, SOME_TYPE, SOME_ID + "-" + representation);
-		String pathToFileRepresentation = (String) streamPathBuilder.MCR
+				DATA_DIVIDER, TYPE, ID, representation);
+		return (String) streamPathBuilder.MCR
 				.getReturnValue("buildPathToAFileAndEnsureFolderExists", callNr);
-		return pathToFileRepresentation;
 	}
 
 	private void assertAnalyzeRepresentation(String representation, int callNr,
@@ -192,14 +204,14 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateRecord() throws Exception {
-		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+	public void testUpdateRecord() {
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
-		dataClient.MCR.assertParameters("read", 0, SOME_TYPE, SOME_ID);
+		dataClient.MCR.assertParameters("read", 0, TYPE, ID);
 
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
-		dataClient.MCR.assertParameters("update", 0, SOME_TYPE, SOME_ID, binaryRecordGroup);
+		dataClient.MCR.assertParameters("update", 0, TYPE, ID, binaryRecordGroup);
 	}
 
 	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
@@ -212,7 +224,7 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateReturn_Conflict_409() throws Exception {
+	public void testUpdateReturn_Conflict_409() {
 		DataClientException conflictException = DataClientException
 				.withMessageAndResponseCode("someConflictError", 409);
 
@@ -222,11 +234,11 @@ public class ConvertPdfToThumbnailsTest {
 		dataClient.MRV.setDefaultReturnValuesSupplier("update",
 				supplierThrowConflictExceptionOnFirstCall);
 
-		messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
 		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
-		logger.MCR.assertParameters("logInfoUsingMessage", 0, "Binary record with id: " + SOME_ID
+		logger.MCR.assertParameters("logInfoUsingMessage", 0, "Binary record with id: " + ID
 				+ " could not be updated due to record conflict. Retrying record update.");
 	}
 
@@ -241,39 +253,39 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() throws Exception {
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
 		DataClientException conflictException = DataClientException
 				.withMessage("someConflictError");
 
 		dataClient.MRV.setAlwaysThrowException("update", conflictException);
 		try {
-			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+			messageReceiver.receiveMessage(headers, MESSAGE);
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
-					+ " could not be updated with conversion data.");
+			assertEquals(e.getMessage(),
+					"Binary record with id: " + ID + " could not be updated with conversion data.");
 			assertEquals(e.getCause(), conflictException);
 		}
 	}
 
 	@Test
-	public void testUpdateReturn_AnyOtherException() throws Exception {
+	public void testUpdateReturn_AnyOtherException() {
 		DataClientException conflictException = DataClientException
 				.withMessageAndResponseCode("someConflictError", 401);
 
 		dataClient.MRV.setAlwaysThrowException("update", conflictException);
 		try {
-			messageReceiver.receiveMessage(some_headers, SOME_MESSAGE);
+			messageReceiver.receiveMessage(headers, MESSAGE);
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(), "Binary record with id: " + SOME_ID
-					+ " could not be updated with conversion data.");
+			assertEquals(e.getMessage(),
+					"Binary record with id: " + ID + " could not be updated with conversion data.");
 			assertEquals(e.getCause(), conflictException);
 		}
 	}
 
 	@Test
-	public void testOnlyForTestGet() throws Exception {
+	public void testOnlyForTestGet() {
 		assertEquals(messageReceiver.onlyForTestGetDataClient(), dataClient);
 		assertEquals(messageReceiver.onlyForTestGetBinaryOperationFactory(),
 				binaryOperationFactory);
@@ -283,7 +295,7 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testTopicClosed() throws Exception {
+	public void testTopicClosed() {
 		messageReceiver.topicClosed();
 		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR.getReturnValue("factorForClass", 0);
 

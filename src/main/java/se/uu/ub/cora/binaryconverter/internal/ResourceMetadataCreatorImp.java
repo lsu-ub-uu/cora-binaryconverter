@@ -28,7 +28,6 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
 	@Override
 	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
-
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
@@ -42,20 +41,20 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 	}
 
 	@Override
-	public ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
-			ImageData imageData, String mimeTypenName) {
+	public ClientDataGroup createMetadataForRepresentation(String pathToStream, String recordId,
+			String representation, String mimeTypenIn, ImageData imageData) {
 		ClientDataGroup thumbnailGroup = ClientDataProvider
 				.createGroupUsingNameInData(representation);
 
 		ClientDataAtomic id = ClientDataProvider.createAtomicUsingNameInDataAndValue("resourceId",
-				recordId + "-" + representation);
+				pathToStream);
 		ClientDataResourceLink resourceLink = ClientDataProvider
 				.createResourceLinkUsingNameInDataAndTypeAndIdAndMimeType(representation, "binary",
-						recordId, mimeTypenName);
+						recordId, mimeTypenIn);
 		ClientDataAtomic fileSize = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
 		ClientDataAtomic mimeType = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("mimeType", mimeTypenName);
+				.createAtomicUsingNameInDataAndValue("mimeType", mimeTypenIn);
 		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
 				imageData.height());
 		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
@@ -70,4 +69,5 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
 		return thumbnailGroup;
 	}
+
 }

@@ -27,20 +27,21 @@ public interface ResourceMetadataCreator {
 	 * createMetadataForRepresentation method creates a new group using representation as nameInData
 	 * and filling all the fields using imageData.
 	 * 
-	 * @param representation
-	 *            name of the representation
+	 * @param pathToStream
+	 *            string with the path to the stream
 	 * @param recordId
 	 *            id of the record
+	 * @param representation
+	 *            name of the representation
 	 * @param imageData
 	 *            an image data {@link ImageData} of the representation
 	 * @return a {@link ClientDataGroup}
 	 */
-	ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
-			ImageData imageData, String mimeType);
+	ClientDataGroup createMetadataForRepresentation(String pathToStream, String recordId,
+			String representation, String mimeType, ImageData imageData);
 
 	/**
 	 * updateMasterGroup method updates masterGroup using imageData as input.
-	 * 
 	 * @param masterGroup
 	 *            is the master representation
 	 * @param imageData

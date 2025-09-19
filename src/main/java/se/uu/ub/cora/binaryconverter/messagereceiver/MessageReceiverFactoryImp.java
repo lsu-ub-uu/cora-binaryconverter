@@ -31,6 +31,7 @@ import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.javaclient.data.DataClient;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
+import se.uu.ub.cora.storage.hash.imp.CoraDigestorImp;
 
 public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 
@@ -60,7 +61,9 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 		dataClient = JavaClientProvider
 				.createDataClientUsingJavaClientAppTokenCredentials(appTokenCredentials);
 		archivepathBuilder = new ArchivePathBuilderImp(archiveBasePath);
-		streamPathBuilder = new StreamPathBuilderImp(fileStorageBasePath);
+		CoraDigestorImp digestor = new CoraDigestorImp();
+		streamPathBuilder = StreamPathBuilderImp
+				.usingBasePathAndCoraDigestor(fileStorageBasePath, digestor);
 	}
 
 	private MessageReceiver factorMessageReceiverUsingQueueName(String queueName) {

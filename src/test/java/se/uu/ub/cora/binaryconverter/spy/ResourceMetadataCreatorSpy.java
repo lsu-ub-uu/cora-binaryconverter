@@ -36,15 +36,15 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 	}
 
 	@Override
-	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
-		MCR.addCall("masterGroup", masterGroup, "imageData", imageData);
-
+	public ClientDataGroup createMetadataForRepresentation(String pathToStream, String recordId,
+			String representation, String mimeType, ImageData imageData) {
+		return (ClientDataGroup) MCR.addCallAndReturnFromMRV("pathToStream", pathToStream,
+				"recordId", recordId, "representation", representation, "mimeType", mimeType,
+				"imageData", imageData);
 	}
 
 	@Override
-	public ClientDataGroup createMetadataForRepresentation(String representation, String recordId,
-			ImageData imageData, String mimeType) {
-		return (ClientDataGroup) MCR.addCallAndReturnFromMRV("representation", representation,
-				"recordId", recordId, "imageData", imageData, "mimeType", mimeType);
+	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
+		MCR.addCall("masterGroup", masterGroup, "imageData", imageData);
 	}
 }

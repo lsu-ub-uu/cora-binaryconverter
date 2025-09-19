@@ -39,6 +39,7 @@ import se.uu.ub.cora.javaclient.JavaClientProvider;
 import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
+import se.uu.ub.cora.storage.hash.CoraDigestor;
 
 public class MessageReceiverFactoryTest {
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
@@ -63,7 +64,7 @@ public class MessageReceiverFactoryTest {
 	}
 
 	@Test
-	public void testFactorAnalayzeAndConvertImatgeToThumbnail() throws Exception {
+	public void testFactorAnalayzeAndConvertImatgeToThumbnail() {
 
 		MessageReceiver messageReceiver = factory.factor("smallImageConverterQueue",
 				appTokenCredentials, SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
@@ -113,11 +114,12 @@ public class MessageReceiverFactoryTest {
 	private void assertStreamPathBuilder(StreamPathBuilderImp streamPathBuilder) {
 		assertEquals(streamPathBuilder.onlyForTestGetFileSystemBasePath(),
 				SOME_FILE_STORAGE_BASE_PATH);
+		assertTrue(streamPathBuilder.onlyForTestGetCoraDigestor() instanceof CoraDigestor);
 		assertTrue(streamPathBuilder instanceof StreamPathBuilder);
 	}
 
 	@Test
-	public void testNotKnownQueueName() throws Exception {
+	public void testNotKnownQueueName() {
 		try {
 			factory.factor("notKnownQueue", appTokenCredentials, SOME_ARCHIVE_BASE_PATH,
 					SOME_FILE_STORAGE_BASE_PATH);
@@ -130,7 +132,7 @@ public class MessageReceiverFactoryTest {
 	}
 
 	@Test
-	public void testFactorPdfConverterToThumbnails() throws Exception {
+	public void testFactorPdfConverterToThumbnails() {
 		ConvertPdfToThumbnails messageReceiver = (ConvertPdfToThumbnails) factory.factor(
 				"pdfConverterQueue", appTokenCredentials, SOME_ARCHIVE_BASE_PATH,
 				SOME_FILE_STORAGE_BASE_PATH);
@@ -161,7 +163,7 @@ public class MessageReceiverFactoryTest {
 	}
 
 	@Test
-	public void testFactorImageConverterToJp2() throws Exception {
+	public void testFactorImageConverterToJp2() {
 		ConvertImageToJp2 messageReceiver = (ConvertImageToJp2) factory.factor("jp2ConverterQueue",
 				appTokenCredentials, SOME_ARCHIVE_BASE_PATH, SOME_FILE_STORAGE_BASE_PATH);
 

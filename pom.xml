@@ -28,11 +28,11 @@
 		<im4java.version>1.4.0</im4java.version>
 		<initialize.version>1.7.0</initialize.version>
 		<coradata.version>11.0.0</coradata.version>
-		<storage.version>9.8.0</storage.version>
-		<storagespies.version>1.14.0</storagespies.version>
+		<storage.version>9.9-SNAPSHOT</storage.version>
+		<storagespies.version>1.15-SNAPSHOT</storagespies.version>
 		<fedoraarchive.version>1.15.0</fedoraarchive.version>
 		<fedora.version>4.2.0</fedora.version> 
-		<basicstorage.version>7.17.0</basicstorage.version>
+		<basicstorage.version>7.18-SNAPSHOT</basicstorage.version>
 		<messaging.version>3.1.0</messaging.version>
 		<javaclient.version>5.0.0</javaclient.version>
 		<rabbitmq.version>3.1.0</rabbitmq.version>
