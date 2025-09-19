@@ -40,6 +40,7 @@ import se.uu.ub.cora.messaging.MessageReceiver;
 import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 import se.uu.ub.cora.storage.hash.CoraDigestor;
+import se.uu.ub.cora.storage.hash.imp.CoraDigestorImp;
 
 public class MessageReceiverFactoryTest {
 	private static final String SOME_FILE_STORAGE_BASE_PATH = "/some/Base/Path/";
@@ -109,6 +110,8 @@ public class MessageReceiverFactoryTest {
 	private void assertArchivePathBuilder(ArchivePathBuilderImp archivePathBuilder) {
 		assertEquals(archivePathBuilder.onlyForTestGetArchiveBasePath(), SOME_ARCHIVE_BASE_PATH);
 		assertTrue(archivePathBuilder instanceof ArchivePathBuilder);
+
+		assertTrue(archivePathBuilder.onlyForTestGetCoraDigestor() instanceof CoraDigestorImp);
 	}
 
 	private void assertStreamPathBuilder(StreamPathBuilderImp streamPathBuilder) {
