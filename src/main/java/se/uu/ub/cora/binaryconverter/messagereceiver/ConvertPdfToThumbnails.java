@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, 2024 Uppsala University Library
+ * Copyright 2023, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -65,14 +65,35 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
-		String recordType = headers.get("type");
-		String recordId = headers.get("id");
-		String dataDivider = headers.get("dataDivider");
+		try {
+			String recordType = headers.get("type");
+			String recordId = headers.get("id");
+			String dataDivider = headers.get("dataDivider");
+			tryToConvertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
+		} catch (Exception e) {
+			logger.logErrorUsingMessageAndException(
+					"Error while converting. Could not read message from queue.", e);
+		}
+	}
+
+	private void tryToConvertUsingTypeAndIdAndDataDivider(String recordType, String recordId,
+			String dataDivider) {
+		try {
+			convertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
+		} catch (Exception e) {
+			String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
+			logger.logErrorUsingMessageAndException(
+					String.format(errorMessage, recordType, recordId, dataDivider), e);
+		}
+	}
+
+	private void convertUsingTypeAndIdAndDataDivider(String recordType, String recordId,
+			String dataDivider) {
 		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
-		var representations = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
-				recordId, originalImagePath);
+		var representations = convertAndCreateMetadataForRepresentations(dataDivider,
+				recordType, recordId, originalImagePath);
 		updateRecordUsingRepresentationGroups(recordType, recordId, representations);
 	}
 

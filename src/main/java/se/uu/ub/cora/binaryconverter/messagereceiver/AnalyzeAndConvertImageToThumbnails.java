@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, 2024 Uppsala University Library
+ * Copyright 2023, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -66,9 +66,30 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 	@Override
 	public void receiveMessage(Map<String, String> headers, String message) {
-		String recordType = headers.get("type");
-		String recordId = headers.get("id");
-		String dataDivider = headers.get("dataDivider");
+		try {
+			String recordType = headers.get("type");
+			String recordId = headers.get("id");
+			String dataDivider = headers.get("dataDivider");
+			tryConvertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
+		} catch (Exception e) {
+			logger.logErrorUsingMessageAndException(
+					"Error while converting. Could not read message from queue.", e);
+		}
+	}
+
+	private void tryConvertUsingTypeAndIdAndDataDivider(String recordType, String recordId,
+			String dataDivider) {
+		try {
+			convertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
+		} catch (Exception e) {
+			String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
+			logger.logErrorUsingMessageAndException(
+					String.format(errorMessage, recordType, recordId, dataDivider), e);
+		}
+	}
+
+	private void convertUsingTypeAndIdAndDataDivider(String recordType, String recordId,
+			String dataDivider) {
 		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
@@ -152,8 +173,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		}
 	}
 
-	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType,
-			String recordId, ImageData masterImageData, Map<String, ClientDataGroup> representations) {
+	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,
+			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		addMasterRepresentationDataToRecord(masterImageData, binaryRecordGroup);
 		addOtherRepresentationDataToRecord(representations, binaryRecordGroup);

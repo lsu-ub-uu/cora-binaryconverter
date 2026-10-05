@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, 2024 Uppsala University Library
+ * Copyright 2023, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -282,6 +282,31 @@ public class ConvertPdfToThumbnailsTest {
 					"Binary record with id: " + ID + " could not be updated with conversion data.");
 			assertEquals(e.getCause(), conflictException);
 		}
+	}
+
+	@Test
+	public void testLoggErrorIfMessageCouldNotBeRead() {
+		messageReceiver.receiveMessage(null, null);
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
+				"Error while converting. Could not read message from queue.");
+
+		var exception = logger.MCR.getParameterForMethodAndCallNumberAndParameter(
+				"logErrorUsingMessageAndException", 0, "exception");
+
+		assertTrue(exception instanceof Exception);
+	}
+
+	@Test
+	public void testLoggErrorsWhenMessageCouldBeRead() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+				"Error while converting with type: someType, id: someId and dataDivider: someDataDivider.",
+				exception);
 	}
 
 	@Test

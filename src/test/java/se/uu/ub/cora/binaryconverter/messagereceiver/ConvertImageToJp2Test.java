@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, 2024 Uppsala University Library
+ * Copyright 2023, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -250,6 +250,31 @@ public class ConvertImageToJp2Test {
 					+ " could not be updated with jp2 conversion data.");
 			assertEquals(e.getCause(), conflictException);
 		}
+	}
+
+	@Test
+	public void testLoggErrorIfMessageCouldNotBeRead() {
+		messageReceiver.receiveMessage(null, null);
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
+				"Error while converting. Could not read message from queue.");
+
+		var exception = logger.MCR.getParameterForMethodAndCallNumberAndParameter(
+				"logErrorUsingMessageAndException", 0, "exception");
+
+		assertTrue(exception instanceof Exception);
+	}
+
+	@Test
+	public void testLoggErrorsWhenMessageCouldBeRead() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
+		messageReceiver.receiveMessage(someHeaders, "someMessage");
+
+		logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+				"Error while converting with type: someType, id: someId, dataDivider: someDataDivider and mimeType: someMimeType.",
+				exception);
 	}
 
 	@Test

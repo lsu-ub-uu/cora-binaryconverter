@@ -1,6 +1,6 @@
 /*
 
- * Copyright 2023, 2024 Uppsala University Library
+ * Copyright 2023, 2024, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -59,7 +59,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private LoggerFactorySpy loggerFactorySpy;
 	private AnalyzeAndConvertImageToThumbnails converter;
-	private Map<String, String> some_headers = new HashMap<>();
+	private Map<String, String> someHeaders = new HashMap<>();
 	private BinaryOperationFactorySpy binaryOperationFactory;
 	private DataClientSpy dataClient;
 	private ClientDataFactorySpy clientDataFactory;
@@ -133,9 +133,9 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	private void setMessageHeaders() {
-		some_headers.put("dataDivider", DATA_DIVIDER);
-		some_headers.put("type", TYPE);
-		some_headers.put("id", ID);
+		someHeaders.put("dataDivider", DATA_DIVIDER);
+		someHeaders.put("type", TYPE);
+		someHeaders.put("id", ID);
 	}
 
 	@Test
@@ -153,7 +153,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallFactoryWithCorrectPath() {
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
@@ -163,7 +163,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallPathBuilderBuild() {
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		archivePathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, DATA_DIVIDER,
 				TYPE, ID);
@@ -171,7 +171,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallAnalyze() {
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageAnalyzer", 0);
@@ -181,7 +181,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testUpdateRecordAfterAnalyzing() {
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, TYPE, ID);
 
@@ -213,7 +213,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() {
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
@@ -302,7 +302,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		dataClient.MRV.setDefaultReturnValuesSupplier("update",
 				supplierThrowConflictExceptionOnFirstCall);
 
-		converter.receiveMessage(some_headers, SOME_MESSAGE);
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
 
 		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
 		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
@@ -327,7 +327,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		dataClient.MRV.setAlwaysThrowException("update", conflictException);
 		try {
-			converter.receiveMessage(some_headers, SOME_MESSAGE);
+			converter.receiveMessage(someHeaders, SOME_MESSAGE);
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
 			assertEquals(e.getMessage(),
@@ -343,13 +343,38 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		dataClient.MRV.setAlwaysThrowException("update", conflictException);
 		try {
-			converter.receiveMessage(some_headers, SOME_MESSAGE);
+			converter.receiveMessage(someHeaders, SOME_MESSAGE);
 		} catch (Exception e) {
 			assertTrue(e instanceof BinaryConverterException);
 			assertEquals(e.getMessage(),
 					"Binary record with id: " + ID + " could not be updated with conversion data.");
 			assertEquals(e.getCause(), conflictException);
 		}
+	}
+
+	@Test
+	public void testLoggErrorIfMessageCouldNotBeRead() {
+		converter.receiveMessage(null, null);
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
+				"Error while converting. Could not read message from queue.");
+
+		var exception = logger.MCR.getParameterForMethodAndCallNumberAndParameter(
+				"logErrorUsingMessageAndException", 0, "exception");
+
+		assertTrue(exception instanceof Exception);
+	}
+
+	@Test
+	public void testLoggErrorsWhenMessageCouldBeRead() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
+		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+
+		logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+				"Error while converting with type: someType, id: someId and dataDivider: someDataDivider.",
+				exception);
 	}
 
 	@Test
