@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -37,22 +37,10 @@ public class ImageConverterImp implements ImageConverter {
 		this.convertCmd = convertCmd;
 	}
 
-	// @Override
-	// public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
-	// IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
-	// imOperation.resize(width);
-	// imOperation.quality(QUALITY);
-	// imOperation.addImage("JPEG:" + outputPath);
-	//
-	// String message = createErrorMessageConvertAndResizeToJpeg(inputPath, width);
-	// tryToRunImageMagickJpeg(imOperation, message);
-	// }
-
 	@Override
 	public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
 		IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
 
-		// imOperation.addRawArgs("-auto-orient");
 		imOperation.addRawArgs("-colorspace", "sRGB");
 		imOperation.addRawArgs("-background", "white", "-alpha", "remove", "-alpha", "off");
 		imOperation.addRawArgs("-filter", "Lanczos");

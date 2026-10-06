@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -45,6 +45,7 @@ public class ImageConverterTest {
 	private ImageConverterImp imageConverter;
 	private ConvertCmdSpy convertCmd;
 	private IMOperationFactorySpy imOperationFactory;
+	private String[] arguments;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -55,12 +56,12 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testInit() throws Exception {
+	public void testInit() {
 		assertTrue(imageConverter instanceof ImageConverter);
 	}
 
 	@Test
-	public void testConvertAndResizeUsingWidth_OK() throws Exception {
+	public void testConvertAndResizeUsingWidth_OK() {
 		int width = 200;
 		imageConverter.convertAndResizeUsingWidth(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH,
 				width);
@@ -70,6 +71,18 @@ public class ImageConverterTest {
 				.getReturnValue("factor", 0);
 
 		assertFirstArgumentAddImage(imOperation, 0, SOME_TEMP_INPUT_PATH);
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 0, "arg0",
+				asArray("-colorspace", "sRGB"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 1, "arg0",
+				asArray("-background", "white", "-alpha", "remove", "-alpha", "off"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 2, "arg0",
+				asArray("-filter", "Lanczos"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 3, "arg0",
+				asArray("-resize", width + ">"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 4, "arg0", asArray("-strip"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 5, "arg0",
+				asArray("-sampling-factor", "2x2"));
+
 		imOperation.MCR.assertParameters("resize", 0, width);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
 		assertFirstArgumentAddImage(imOperation, 1, "JPEG:" + SOME_TEMP_OUTPUT_PATH);
@@ -84,7 +97,7 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testConvertAndResizeUsingWidth_Error() throws Exception {
+	public void testConvertAndResizeUsingWidth_Error() {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
 		int width = 100;
@@ -103,7 +116,7 @@ public class ImageConverterTest {
 	}
 
 	@Test(enabled = false)
-	public void testRealConvert() throws Exception {
+	public void testRealConvert() {
 		IMOperationFactory realImOperationFactory = new IMOperationFactoryImp();
 		ConvertCmd realConvertCmd = new ConvertCmd();
 
@@ -116,19 +129,19 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testOnlyForTestGetImOperationFactory() throws Exception {
+	public void testOnlyForTestGetImOperationFactory() {
 		IMOperationFactory imOperationFactory1 = imageConverter.onlyForTestGetImOperationFactory();
 		assertSame(imOperationFactory1, imOperationFactory);
 	}
 
 	@Test
-	public void testOnlyForTestGetConvertCmd() throws Exception {
+	public void testOnlyForTestGetConvertCmd() {
 		ConvertCmd convertCmd1 = imageConverter.onlyForTestGetConvertCmd();
 		assertSame(convertCmd1, convertCmd);
 	}
 
 	@Test
-	public void testInterrumpedException() throws Exception {
+	public void testInterrumpedException() {
 		convertCmd.throwInterruptException = Optional
 				.of(new InterruptedException("someInterruptException"));
 
@@ -150,7 +163,7 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testConvertToTiff() throws Exception {
+	public void testConvertToTiff() {
 
 		imageConverter.convertToTiff(SOME_TEMP_INPUT_PATH, SOME_TEMP_OUTPUT_PATH);
 
@@ -167,7 +180,7 @@ public class ImageConverterTest {
 	}
 
 	@Test
-	public void testConvertToTiff_Error() throws Exception {
+	public void testConvertToTiff_Error() {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
 		try {
@@ -177,5 +190,9 @@ public class ImageConverterTest {
 			assertTrue(e instanceof BinaryConverterException);
 			assertException(e, "someSpyException");
 		}
+	}
+
+	private String[] asArray(String... arguments) {
+		return arguments;
 	}
 }

@@ -60,12 +60,12 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testImplementsPdfConverter() throws Exception {
+	public void testImplementsPdfConverter() {
 		assertTrue(pdfConverter instanceof PdfConverter);
 	}
 
 	@Test
-	public void testConvertPdf() throws Exception {
+	public void testConvertPdf() {
 
 		pdfConverter.convertUsingWidth(SOME_INPUT_PATH, SOME_OUTPUT_PATH, SOME_WIDTH);
 
@@ -73,9 +73,17 @@ public class PdfConverterTest {
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
 				.getReturnValue("factor", 0);
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
+
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 0, "arg0", asArray("-density", "200"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 1, "arg0",
+				asArray("-background", "white", "-alpha", "remove", "-alpha", "off"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 2, "arg0",
+				asArray("-filter", "Lanczos"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 3, "arg0",
+				asArray("-sampling-factor", "1x1"));
+
 		imOperation.MCR.assertParameters("resize", 0, SOME_WIDTH);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
-		// imOperation.MCR.assertParameters("alpha", 0, "remove");
 		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
@@ -89,7 +97,7 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testInterrumpedException() throws Exception {
+	public void testInterrumpedException() {
 		convertCmd.throwInterruptException = Optional
 				.of(new InterruptedException("someInterruptException"));
 
@@ -111,7 +119,7 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testAnyExceptionInconvertUsingWidth() throws Exception {
+	public void testAnyExceptionInconvertUsingWidth() {
 		convertCmd.MRV.setAlwaysThrowException("run", new RuntimeException("someSpyException"));
 
 		try {
@@ -124,19 +132,19 @@ public class PdfConverterTest {
 	}
 
 	@Test
-	public void testOnlyForTestGetImOperationFactory() throws Exception {
+	public void testOnlyForTestGetImOperationFactory() {
 		IMOperationFactory imOperationFactory1 = pdfConverter.onlyForTestGetImOperationFactory();
 		assertSame(imOperationFactory1, imOperationFactory);
 	}
 
 	@Test
-	public void testOnlyForTestGetConvertCmd() throws Exception {
+	public void testOnlyForTestGetConvertCmd() {
 		ConvertCmd convertCmd1 = pdfConverter.onlyForTestGetConvertCmd();
 		assertSame(convertCmd1, convertCmd);
 	}
 
 	@Test(enabled = false)
-	public void testRealPere() throws Exception {
+	public void testRealPere() {
 		String input = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
 		String output = "/home/pere/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputSmall.jpg";
 
@@ -145,7 +153,7 @@ public class PdfConverterTest {
 	}
 
 	@Test(enabled = false)
-	public void testRealOlov() throws Exception {
+	public void testRealOlov() {
 
 		String input = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdf.pdf";
 		String output = "/home/olov/workspace/cora-fitnesse/FitNesseRoot/files/testResources/aPdfOutputOlov_100.jpg";
@@ -160,4 +168,7 @@ public class PdfConverterTest {
 		converter.convertUsingWidth(input, output, 600);
 	}
 
+	private String[] asArray(String... arguments) {
+		return arguments;
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -36,12 +36,13 @@ public class IMOperationSpy extends IMOperation {
 	public IMOperationSpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("addImage", OperationSpy::new);
-		MRV.setDefaultReturnValuesSupplier("format", IMOpsSpy::new);
-		MRV.setDefaultReturnValuesSupplier("resize", IMOpsSpy::new);
-		MRV.setDefaultReturnValuesSupplier("quality", IMOpsSpy::new);
-		MRV.setDefaultReturnValuesSupplier("thumbnail", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("addRawArgs", OperationSpy::new);
 		MRV.setDefaultReturnValuesSupplier("alpha", IMOpsSpy::new);
 		MRV.setDefaultReturnValuesSupplier("define", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("format", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("quality", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("resize", IMOpsSpy::new);
+		MRV.setDefaultReturnValuesSupplier("thumbnail", IMOpsSpy::new);
 	}
 
 	@Override
@@ -51,24 +52,8 @@ public class IMOperationSpy extends IMOperation {
 	}
 
 	@Override
-	public IMOps format(String arg0) {
-		callsInOrder.add(arg0);
-		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
-	}
-
-	@Override
-	public IMOps resize(Integer var1) {
-		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
-	}
-
-	@Override
-	public IMOps quality(Double var1) {
-		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
-	}
-
-	@Override
-	public IMOps thumbnail(Integer arg0) {
-		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
+	public Operation addRawArgs(String... arg0) {
+		return (Operation) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
 
 	@Override
@@ -80,4 +65,26 @@ public class IMOperationSpy extends IMOperation {
 	public IMOps define(String arg0) {
 		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
+
+	@Override
+	public IMOps format(String arg0) {
+		callsInOrder.add(arg0);
+		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
+	}
+
+	@Override
+	public IMOps quality(Double var1) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
+	}
+
+	@Override
+	public IMOps resize(Integer var1) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("var1", var1);
+	}
+
+	@Override
+	public IMOps thumbnail(Integer arg0) {
+		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
+	}
+
 }
