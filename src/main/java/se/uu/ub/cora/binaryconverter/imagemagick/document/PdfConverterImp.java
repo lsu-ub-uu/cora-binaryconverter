@@ -59,14 +59,35 @@ public class PdfConverterImp implements PdfConverter {
 		return BinaryConverterException.withMessageAndException(formattedMessage, e);
 	}
 
+	// private IMOperation createImOperationForPdfConverter(String inputPath, String outputPath,
+	// int width) {
+	// IMOperation imOperation = imOperationFactory.factor();
+	// imOperation.addImage(inputPath + "[0]");
+	// imOperation.resize(width);
+	// imOperation.quality(QUALITY);
+	// imOperation.alpha("remove");
+	// imOperation.addImage(OUTPUT_FORMAT + outputPath);
+	// return imOperation;
+	// }
+
+	private static final int PDF_RENDER_DENSITY_DPI = 200;
+
 	private IMOperation createImOperationForPdfConverter(String inputPath, String outputPath,
 			int width) {
 		IMOperation imOperation = imOperationFactory.factor();
+
+		imOperation.addRawArgs("-density", Integer.toString(PDF_RENDER_DENSITY_DPI));
 		imOperation.addImage(inputPath + "[0]");
+
+		imOperation.addRawArgs("-background", "white", "-alpha", "remove", "-alpha", "off");
+
+		imOperation.addRawArgs("-filter", "Lanczos");
 		imOperation.resize(width);
+
+		imOperation.addRawArgs("-sampling-factor", "1x1");
 		imOperation.quality(QUALITY);
-		imOperation.alpha("remove");
 		imOperation.addImage(OUTPUT_FORMAT + outputPath);
+
 		return imOperation;
 	}
 

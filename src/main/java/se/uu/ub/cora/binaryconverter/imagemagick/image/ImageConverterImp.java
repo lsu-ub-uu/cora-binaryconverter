@@ -37,9 +37,28 @@ public class ImageConverterImp implements ImageConverter {
 		this.convertCmd = convertCmd;
 	}
 
+	// @Override
+	// public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
+	// IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
+	// imOperation.resize(width);
+	// imOperation.quality(QUALITY);
+	// imOperation.addImage("JPEG:" + outputPath);
+	//
+	// String message = createErrorMessageConvertAndResizeToJpeg(inputPath, width);
+	// tryToRunImageMagickJpeg(imOperation, message);
+	// }
+
 	@Override
 	public void convertAndResizeUsingWidth(String inputPath, String outputPath, int width) {
 		IMOperation imOperation = createIMOperationUsingInputPath(inputPath);
+
+		// imOperation.addRawArgs("-auto-orient");
+		imOperation.addRawArgs("-colorspace", "sRGB");
+		imOperation.addRawArgs("-background", "white", "-alpha", "remove", "-alpha", "off");
+		imOperation.addRawArgs("-filter", "Lanczos");
+		imOperation.addRawArgs("-resize", width + ">");
+		imOperation.addRawArgs("-strip");
+		imOperation.addRawArgs("-sampling-factor", "2x2");
 		imOperation.resize(width);
 		imOperation.quality(QUALITY);
 		imOperation.addImage("JPEG:" + outputPath);

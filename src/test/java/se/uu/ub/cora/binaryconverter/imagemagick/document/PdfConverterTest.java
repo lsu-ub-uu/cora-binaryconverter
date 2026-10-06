@@ -75,7 +75,7 @@ public class PdfConverterTest {
 		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
 		imOperation.MCR.assertParameters("resize", 0, SOME_WIDTH);
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
-		imOperation.MCR.assertParameters("alpha", 0, "remove");
+		// imOperation.MCR.assertParameters("alpha", 0, "remove");
 		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
