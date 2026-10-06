@@ -220,13 +220,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 4);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 1, 0);
+		assertAnalyzeAndConvertToRepresentation("large", 1200, resourceMasterPath, 0, 1, 0);
 
 		String largePath = (String) streamPathBuilder.MCR.assertCalledParametersReturn(
 				"buildPathToAFileAndEnsureFolderExists", DATA_DIVIDER, TYPE, ID, "large");
 
-		assertAnalyzeAndConvertToRepresentation("medium", 300, largePath, 1, 2, 2);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, largePath, 2, 3, 3);
+		assertAnalyzeAndConvertToRepresentation("medium", 600, largePath, 1, 2, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 200, largePath, 2, 3, 3);
 
 		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
 				"aPath-large", ID, "large", JPEG_MIME_TYPE, imageDataLarge);

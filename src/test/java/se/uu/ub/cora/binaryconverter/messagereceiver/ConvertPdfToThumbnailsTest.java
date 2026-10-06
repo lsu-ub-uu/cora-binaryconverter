@@ -117,13 +117,13 @@ public class ConvertPdfToThumbnailsTest {
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
 
-		assertAnalyzeAndConvertToRepresentation("large", 600, resourceMasterPath, 0, 0);
+		assertAnalyzeAndConvertToRepresentation("large", 1200, resourceMasterPath, 0, 0);
 
 		String largePath = (String) streamPathBuilder.MCR.assertCalledParametersReturn(
 				"buildPathToAFileAndEnsureFolderExists", DATA_DIVIDER, TYPE, ID, "large");
 
-		assertAnalyzeAndConvertToRepresentation("medium", 300, largePath, 1, 2);
-		assertAnalyzeAndConvertToRepresentation("thumbnail", 100, largePath, 2, 3);
+		assertAnalyzeAndConvertToRepresentation("medium", 600, largePath, 1, 2);
+		assertAnalyzeAndConvertToRepresentation("thumbnail", 200, largePath, 2, 3);
 	}
 
 	@Test

@@ -43,9 +43,9 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
 	private static final String LARGE = "large";
-	private static final int THUMBNAIL_SIZE = 100;
-	private static final int MEDIUM_SIZE = 300;
-	private static final int LARGE_SIZE = 600;
+	private static final int THUMBNAIL_SIZE = 200;
+	private static final int MEDIUM_SIZE = 600;
+	private static final int LARGE_SIZE = 1200;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertPdfToThumbnails.class);
 	private DataClient dataClient;
 	private BinaryOperationFactory binaryOperationFactory;
@@ -92,8 +92,8 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		String originalImagePath = archivePathBuilder.buildPathToAResourceInArchive(dataDivider,
 				recordType, recordId);
 
-		var representations = convertAndCreateMetadataForRepresentations(dataDivider,
-				recordType, recordId, originalImagePath);
+		var representations = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
+				recordId, originalImagePath);
 		updateRecordUsingRepresentationGroups(recordType, recordId, representations);
 	}
 
