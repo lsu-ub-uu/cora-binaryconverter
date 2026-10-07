@@ -86,5 +86,4 @@ public class IMOperationSpy extends IMOperation {
 	public IMOps thumbnail(Integer arg0) {
 		return (IMOps) MCR.addCallAndReturnFromMRV("arg0", arg0);
 	}
-
 }

@@ -72,28 +72,35 @@ public class PdfConverterTest {
 		imOperationFactory.MCR.assertParameters("factor", 0);
 		IMOperationSpy imOperation = (IMOperationSpy) imOperationFactory.MCR
 				.getReturnValue("factor", 0);
-		assertFirstArgumentAddImage(imOperation, 0, SOME_INPUT_PATH + "[0]");
 
-		imOperation.MCR.assertParameterAsEqual("addRawArgs", 0, "arg0", asArray("-density", "200"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 0, "arg0",
+				asStringArray("-density", "200"));
 		imOperation.MCR.assertParameterAsEqual("addRawArgs", 1, "arg0",
-				asArray("-background", "white", "-alpha", "remove", "-alpha", "off"));
-		imOperation.MCR.assertParameterAsEqual("addRawArgs", 2, "arg0",
-				asArray("-filter", "Lanczos"));
-		imOperation.MCR.assertParameterAsEqual("addRawArgs", 3, "arg0",
-				asArray("-sampling-factor", "1x1"));
+				asStringArray("-colorspace", "sRGB"));
+		imOperation.MCR.assertParameterAsEqual("define", 0, "arg0", "pdf:use-cropbox=true");
+		imOperation.MCR.assertParameterAsEqual("addImage", 0, "arg0",
+				asStringArray(SOME_INPUT_PATH + "[0]"));
 
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 2, "arg0",
+				asStringArray("-colorspace", "sRGB"));
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 3, "arg0",
+				asStringArray("-background", "white", "-alpha", "remove", "-alpha", "off"));
+
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 4, "arg0", asStringArray("+repage"));
+
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 5, "arg0",
+				asStringArray("-filter", "Lanczos"));
 		imOperation.MCR.assertParameters("resize", 0, SOME_WIDTH);
+
+		imOperation.MCR.assertParameterAsEqual("addRawArgs", 6, "arg0",
+				asStringArray("-sampling-factor", "1x1"));
+
 		imOperation.MCR.assertParameterAsEqual("quality", 0, "var1", 90.0);
-		assertFirstArgumentAddImage(imOperation, 1, OUTPUT_FORMAT + SOME_OUTPUT_PATH);
+		imOperation.MCR.assertParameterAsEqual("addImage", 1, "arg0",
+				asStringArray(OUTPUT_FORMAT + SOME_OUTPUT_PATH));
 
 		convertCmd.MCR.assertParameters("run", 0, imOperation);
 
-	}
-
-	private void assertFirstArgumentAddImage(IMOperationSpy imOperation, int callNr, String value) {
-		String[] arg = (String[]) imOperation.MCR
-				.getParameterForMethodAndCallNumberAndParameter("addImage", callNr, "arg0");
-		assertEquals(arg[0], value);
 	}
 
 	@Test
@@ -168,7 +175,7 @@ public class PdfConverterTest {
 		converter.convertUsingWidth(input, output, 600);
 	}
 
-	private String[] asArray(String... arguments) {
+	private String[] asStringArray(String... arguments) {
 		return arguments;
 	}
 }

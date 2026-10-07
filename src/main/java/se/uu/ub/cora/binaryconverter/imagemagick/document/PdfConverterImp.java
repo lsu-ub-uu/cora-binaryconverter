@@ -33,7 +33,7 @@ public class PdfConverterImp implements PdfConverter {
 	private IMOperationFactory imOperationFactory;
 	private static final double QUALITY = 90.0;
 	private static final String OUTPUT_FORMAT = "JPG:";
-	private static final int PDF_RENDER_DENSITY_DPI = 200;
+	private static final String PDF_RENDER_DENSITY_DPI = "200";
 
 	public PdfConverterImp(IMOperationFactory imOperationFactory, ConvertCmd convertCmd) {
 		this.imOperationFactory = imOperationFactory;
@@ -64,12 +64,23 @@ public class PdfConverterImp implements PdfConverter {
 			int width) {
 		IMOperation imOperation = imOperationFactory.factor();
 
-		imOperation.addRawArgs("-density", Integer.toString(PDF_RENDER_DENSITY_DPI));
+		// Input settings: apply before Ghostscript renders the PDF.
+		imOperation.addRawArgs("-density", PDF_RENDER_DENSITY_DPI);
+		imOperation.addRawArgs("-colorspace", "sRGB");
+		imOperation.define("pdf:use-cropbox=true");
 		imOperation.addImage(inputPath + "[0]");
+
+		// Ensure the resulting raster is suitable for screen display.
+		imOperation.addRawArgs("-colorspace", "sRGB");
 		imOperation.addRawArgs("-background", "white", "-alpha", "remove", "-alpha", "off");
+
+		// Crop using cropbox from PDF
+		imOperation.addRawArgs("+repage");
+
 		imOperation.addRawArgs("-filter", "Lanczos");
-		imOperation.addRawArgs("-sampling-factor", "1x1");
 		imOperation.resize(width);
+
+		imOperation.addRawArgs("-sampling-factor", "1x1");
 		imOperation.quality(QUALITY);
 		imOperation.addImage(OUTPUT_FORMAT + outputPath);
 
