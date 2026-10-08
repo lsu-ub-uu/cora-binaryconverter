@@ -27,7 +27,9 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -164,6 +166,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(recordType,
 				recordId, masterImageData, representations);
+
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
@@ -171,6 +174,15 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			retryRecordUpdate(originalImagePath, recordType, recordId, masterImageData,
 					representations);
 		}
+	}
+
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("status", status);
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,

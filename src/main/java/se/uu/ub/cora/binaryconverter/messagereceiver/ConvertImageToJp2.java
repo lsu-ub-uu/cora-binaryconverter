@@ -26,7 +26,9 @@ import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -92,8 +94,8 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String outputPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
 				recordType, recordId, JP2);
 		ImageData imageData = convertToJp2AndAnalyze(originalImagePath, outputPath, mimeType);
-		ClientDataGroup jp2Group = resourceMetadataCreator.createMetadataForRepresentation(
-				outputPath, recordId, JP2, "image/jp2", imageData);
+		ClientDataGroup jp2Group = resourceMetadataCreator
+				.createMetadataForRepresentation(outputPath, recordId, JP2, "image/jp2", imageData);
 
 		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2Group);
 	}
@@ -115,7 +117,17 @@ public class ConvertImageToJp2 implements MessageReceiver {
 			ClientDataGroup jp2Group) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		binaryRecordGroup.addChild(jp2Group);
+
 		tryToUpdateRecord(recordType, recordId, jp2Group, binaryRecordGroup);
+	}
+
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("status", status);
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {

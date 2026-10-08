@@ -27,7 +27,9 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -161,8 +163,20 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		binaryRecordGroup.addChild(representations.get(LARGE));
 		binaryRecordGroup.addChild(representations.get(MEDIUM));
 		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
+		// SPIKE
+		setStatus(binaryRecordGroup, "done");
+		// SPIKE
 
 		tryToUpdateRecord(recordType, recordId, representations, binaryRecordGroup);
+	}
+
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("status", status);
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private void tryToUpdateRecord(String recordType, String recordId,
