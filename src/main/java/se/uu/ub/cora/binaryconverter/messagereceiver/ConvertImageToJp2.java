@@ -118,6 +118,18 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		binaryRecordGroup.addChild(jp2Group);
 
+		// SPIKE starts
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		String status = recordInfo.getFirstAtomicValueWithNameInData("status");
+
+		if (status.equals("uploaded")) {
+			setStatus(binaryRecordGroup, "processing");
+		} else {
+			setStatus(binaryRecordGroup, "done");
+		}
+		// SPIKE ends
+
 		tryToUpdateRecord(recordType, recordId, jp2Group, binaryRecordGroup);
 	}
 

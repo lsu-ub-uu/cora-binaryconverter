@@ -73,8 +73,9 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 			String dataDivider = headers.get("dataDivider");
 			tryToConvertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
 		} catch (Exception e) {
-			logger.logErrorUsingMessageAndException(
-					"Error while converting. Could not read message from queue.", e);
+			// Catch to ensure no Exception throws outsides recieveMessage and avoid republish
+			// message in rabbitmq
+			logger.logErrorUsingMessageAndException("Error while converting.", e);
 		}
 	}
 
@@ -83,9 +84,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		try {
 			convertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
 		} catch (Exception e) {
-			String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
-			logger.logErrorUsingMessageAndException(
-					String.format(errorMessage, recordType, recordId, dataDivider), e);
+			handleError(recordType, recordId, dataDivider, e);
 		}
 	}
 
@@ -163,11 +162,9 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		binaryRecordGroup.addChild(representations.get(LARGE));
 		binaryRecordGroup.addChild(representations.get(MEDIUM));
 		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
-		// SPIKE
 		setStatus(binaryRecordGroup, "done");
-		// SPIKE
-
-		tryToUpdateRecord(recordType, recordId, representations, binaryRecordGroup);
+		tryToUpdateRecordWithRepresentations(recordType, recordId, representations,
+				binaryRecordGroup);
 	}
 
 	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
@@ -180,12 +177,22 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	}
 
 	private void tryToUpdateRecord(String recordType, String recordId,
+			ClientDataRecordGroup binaryRecordGroup) {
+		try {
+			dataClient.update(recordType, recordId, binaryRecordGroup);
+		} catch (DataClientException dataClientException) {
+			throwExceptionIfNotConflict(recordId, dataClientException);
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+		}
+	}
+
+	private void tryToUpdateRecordWithRepresentations(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations, ClientDataRecordGroup binaryRecordGroup) {
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
 			throwExceptionIfNotConflict(recordId, dataClientException);
-			retryRecordUpdate(recordType, recordId, representations);
+			retryRecordUpdateWithRepresentations(recordType, recordId, representations);
 		}
 	}
 
@@ -215,11 +222,22 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 				+ " could not be updated with conversion data.", dataClientException);
 	}
 
-	private void retryRecordUpdate(String recordType, String recordId,
+	private void retryRecordUpdateWithRepresentations(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations) {
 		logger.logInfoUsingMessage("Binary record with id: " + recordId
 				+ " could not be updated due to record conflict. Retrying record update.");
 		updateRecordUsingRepresentationGroups(recordType, recordId, representations);
+	}
+
+	private void handleError(String recordType, String recordId, String dataDivider, Exception e) {
+		String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
+		logger.logErrorUsingMessageAndException(
+				String.format(errorMessage, recordType, recordId, dataDivider), e);
+
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+		setStatus(binaryRecordGroup, "failed");
+		// TODO: setProcessingMessage
+		tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 	}
 
 	@Override
