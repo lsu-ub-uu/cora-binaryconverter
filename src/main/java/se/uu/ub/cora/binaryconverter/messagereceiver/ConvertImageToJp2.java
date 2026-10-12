@@ -40,6 +40,7 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
+	private static final String STATUS = "status";
 	private static final String JP2 = "jp2";
 	private static final int HTTP_CONFLICT = 409;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
@@ -118,17 +119,16 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		binaryRecordGroup.addChild(jp2Group);
 
-		// SPIKE starts
 		ClientDataGroup recordInfo = binaryRecordGroup
 				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		String status = recordInfo.getFirstAtomicValueWithNameInData("status");
+		String status = recordInfo.getFirstAtomicValueWithNameInData(STATUS);
 
 		if (status.equals("uploaded")) {
 			setStatus(binaryRecordGroup, "processing");
-		} else {
+		}
+		if (status.equals("processing")) {
 			setStatus(binaryRecordGroup, "done");
 		}
-		// SPIKE ends
 
 		tryToUpdateRecord(recordType, recordId, jp2Group, binaryRecordGroup);
 	}
@@ -136,9 +136,9 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
 		ClientDataGroup recordInfo = dataRecordGroup
 				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, STATUS);
 		ClientDataAtomic statusUploaded = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("status", status);
+				.createAtomicUsingNameInDataAndValue(STATUS, status);
 		recordInfo.addChild(statusUploaded);
 	}
 

@@ -35,8 +35,12 @@ import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
+import se.uu.ub.cora.clientdata.spies.ClientDataAtomicSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
+import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.javaclient.data.DataClientException;
@@ -62,6 +66,9 @@ public class ConvertImageToJp2Test {
 	private ArchivePathBuilderSpy archivePathBuilder;
 	private StreamPathBuilderSpy streamPathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
+	private ClientDataRecordSpy dataRecord;
+	private ClientDataRecordGroupSpy binaryRecordGroup;
+	private ClientDataGroupSpy recordInfo;
 
 	private ConvertImageToJp2 messageReceiver;
 	private LoggerSpy logger;
@@ -87,6 +94,21 @@ public class ConvertImageToJp2Test {
 				resourceMetadataCreator, archivePathBuilder, streamPathBuilder);
 
 		setMessageHeaders();
+
+		setReadRecordOnStorage();
+	}
+
+	private void setReadRecordOnStorage() {
+		dataRecord = new ClientDataRecordSpy();
+		binaryRecordGroup = new ClientDataRecordGroupSpy();
+		recordInfo = new ClientDataGroupSpy();
+
+		dataRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> binaryRecordGroup);
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, ClientDataGroup.class, "recordInfo");
+
+		dataClient.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecord);
 	}
 
 	private void setMessageHeaders() {
@@ -122,8 +144,6 @@ public class ConvertImageToJp2Test {
 				"somePathToAFile", ID, "jp2", JP2_MIME_TYPE, image);
 
 		var jp2G = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation", 0);
-
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
 		binaryRecordGroup.MCR.assertParameters("addChild", 0, jp2G);
 	}
@@ -173,21 +193,47 @@ public class ConvertImageToJp2Test {
 	}
 
 	@Test
+	public void testSetStatusToProcessing() {
+		setUpStatusOnReadRecordFromStorage("uploaded");
+
+		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
+		assertSetStatus("processing");
+	}
+
+	private void assertSetStatus(String status) {
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
+		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
+				ClientDataAtomic.class, "status");
+		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
+						status);
+		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+	}
+
+	private void setUpStatusOnReadRecordFromStorage(String status) {
+		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> status, "status");
+	}
+
+	@Test
+	public void testSetStatusToDone() {
+		setUpStatusOnReadRecordFromStorage("processing");
+
+		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
+		assertSetStatus("done");
+	}
+
+	@Test
 	public void testUpdateRecord() {
 		messageReceiver.receiveMessage(someHeaders, MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, TYPE, ID);
 
-		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-
 		dataClient.MCR.assertParameters("update", 0, TYPE, ID, binaryRecordGroup);
-	}
-
-	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
-		ClientDataRecordSpy dataRecord = (ClientDataRecordSpy) dataClient.MCR.getReturnValue("read",
-				0);
-		dataRecord.MCR.assertParameters("getDataRecordGroup", 0);
-		return (ClientDataRecordGroupSpy) dataRecord.MCR.getReturnValue("getDataRecordGroup", 0);
 	}
 
 	@Test
@@ -217,7 +263,6 @@ public class ConvertImageToJp2Test {
 			throw conflictException;
 		}
 		return new ClientDataRecordSpy();
-
 	}
 
 	@Test
@@ -226,14 +271,38 @@ public class ConvertImageToJp2Test {
 				.withMessageAndResponseCode("someConflictError", 401);
 
 		dataClient.MRV.setAlwaysThrowException("update", conflictException);
-		try {
-			messageReceiver.receiveMessage(someHeaders, MESSAGE);
-		} catch (Exception e) {
-			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(), "Binary record with id: " + ID
-					+ " could not be updated with jp2 conversion data.");
-			assertEquals(e.getCause(), conflictException);
-		}
+		// try {
+		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+
+		logger.MCR.assertNumberOfCallsToMethod("logErrorUsingMessageAndException", 1);
+		assertLoggedError(0,
+				"Binary record with id: " + ID + " could not be updated with jp2 conversion data.",
+				RuntimeException.class);
+		assertLoggedError(1, "Error while converting.", BinaryConverterException.class);
+
+	}
+	// catch(
+	//
+	// Exception e)
+	// {
+	// assertTrue(e instanceof BinaryConverterException);
+	// assertEquals(e.getMessage(),
+	// "Binary record with id: " + ID + " could not be updated with jp2 conversion data.");
+	// assertEquals(e.getCause(), conflictException);
+	// }
+
+	private void assertLoggedError(int callNumber, String expectedMessage,
+			Class<? extends Throwable> expectedExceptionType) {
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", callNumber, "message",
+				expectedMessage);
+
+		var loggedException = logger.MCR.getParameterForMethodAndCallNumberAndParameter(
+				"logErrorUsingMessageAndException", callNumber, "exception");
+
+		assertTrue(expectedExceptionType.isInstance(loggedException),
+				"Expected logged exception to be an instance of "
+						+ expectedExceptionType.getSimpleName());
 	}
 
 	@Test
