@@ -19,12 +19,14 @@
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -59,7 +61,7 @@ public class ConvertImageToJp2Test {
 	private static final String MESSAGE = "someMessage";
 
 	private LoggerFactorySpy loggerFactorySpy;
-	private Map<String, String> someHeaders = new HashMap<>();
+	private Map<String, String> headers = new HashMap<>();
 	private ClientDataFactorySpy clientDataFactory;
 	private DataClientSpy dataClient;
 	private BinaryOperationFactorySpy binaryOperationFactory;
@@ -98,6 +100,11 @@ public class ConvertImageToJp2Test {
 		setReadRecordOnStorage();
 	}
 
+	@AfterMethod
+	private void afterMethod() {
+		supplierCount = 0;
+	}
+
 	private void setReadRecordOnStorage() {
 		dataRecord = new ClientDataRecordSpy();
 		binaryRecordGroup = new ClientDataRecordGroupSpy();
@@ -112,10 +119,10 @@ public class ConvertImageToJp2Test {
 	}
 
 	private void setMessageHeaders() {
-		someHeaders.put("dataDivider", DATA_DIVIDER);
-		someHeaders.put("type", TYPE);
-		someHeaders.put("id", ID);
-		someHeaders.put("mimeType", MIME_TYPE);
+		headers.put("dataDivider", DATA_DIVIDER);
+		headers.put("type", TYPE);
+		headers.put("id", ID);
+		headers.put("mimeType", MIME_TYPE);
 	}
 
 	@Test
@@ -125,7 +132,7 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testConvertImageToJp2Called() {
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
@@ -135,7 +142,7 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() {
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 1);
 		var image = getImageData(0);
@@ -196,14 +203,13 @@ public class ConvertImageToJp2Test {
 	public void testSetStatusToProcessing() {
 		setUpStatusOnReadRecordFromStorage("uploaded");
 
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("processing");
 	}
 
 	private void assertSetStatus(String status) {
-		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
 				ClientDataAtomic.class, "status");
 		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
@@ -221,7 +227,7 @@ public class ConvertImageToJp2Test {
 	public void testSetStatusToDone() {
 		setUpStatusOnReadRecordFromStorage("processing");
 
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("done");
@@ -229,7 +235,7 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testUpdateRecord() {
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, TYPE, ID);
 
@@ -247,7 +253,7 @@ public class ConvertImageToJp2Test {
 		dataClient.MRV.setDefaultReturnValuesSupplier("update",
 				supplierThrowConflictExceptionOnFirstCall);
 
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		messageReceiver.receiveMessage(headers, MESSAGE);
 
 		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
 		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
@@ -267,29 +273,84 @@ public class ConvertImageToJp2Test {
 
 	@Test
 	public void testUpdateReturn_AnyOtherExceptionWithResponseCode() {
+		DataClientException someException = DataClientException
+				.withMessageAndResponseCode("someError2", 666);
+
+		dataClient.MRV.setAlwaysThrowException("update", someException);
+
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		assertLogWhenException(someException);
+		assertSetStatus("failed");
+	}
+
+	private void assertLogWhenException(DataClientException conflictException) {
+		logger.MCR.assertNumberOfCallsToMethod("logErrorUsingMessageAndException", 2);
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
+				"Error while converting with type: someType, id: someId, "
+						+ "dataDivider: someDataDivider and mimeType: someMimeType.");
+
+		RuntimeException loggedException = (RuntimeException) logger.MCR
+				.getParameterForMethodAndCallNumberAndParameter("logErrorUsingMessageAndException",
+						0, "exception");
+
+		assertTrue(loggedException instanceof BinaryConverterException);
+		assertEquals(loggedException.getMessage(),
+				"Binary record with id: someId could not be updated with jp2 conversion data.");
+
+		assertSame(loggedException.getCause(), conflictException);
+	}
+
+	@Test
+	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
+		DataClientException someException = DataClientException.withMessage("someError");
+
+		dataClient.MRV.setAlwaysThrowException("update", someException);
+
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		assertLogWhenException(someException);
+		assertSetStatus("failed");
+	}
+
+	@Test
+	public void testLoggErrorsWhenErrorOccursOnConvertionRetryUpdateIfConflict() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
 		DataClientException conflictException = DataClientException
-				.withMessageAndResponseCode("someConflictError", 401);
+				.withMessageAndResponseCode("someConflictError", 409);
 
-		dataClient.MRV.setAlwaysThrowException("update", conflictException);
-		// try {
-		messageReceiver.receiveMessage(someHeaders, MESSAGE);
+		Supplier<?> supplierThrowConflictExceptionOnFirstCall = () -> {
+			return throwConflictExceptionOnFirstCall(conflictException);
+		};
+		dataClient.MRV.setDefaultReturnValuesSupplier("update",
+				supplierThrowConflictExceptionOnFirstCall);
 
-		logger.MCR.assertNumberOfCallsToMethod("logErrorUsingMessageAndException", 1);
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
+	}
+
+	@Test
+	public void testLoggErrorsWhenErrorOccursOnConvertionRetryUpdateIfConflictAndThenAnotherException() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
+		DataClientException someException = DataClientException.withMessage("someError");
+		dataClient.MRV.setAlwaysThrowException("update", someException);
+
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		logger.MCR.assertNumberOfCallsToMethod("logErrorUsingMessageAndException", 2);
 		assertLoggedError(0,
-				"Binary record with id: " + ID + " could not be updated with jp2 conversion data.",
+				"Error while converting with type: someType, id: someId, dataDivider: someDataDivider "
+						+ "and mimeType: someMimeType.",
 				RuntimeException.class);
 		assertLoggedError(1, "Error while converting.", BinaryConverterException.class);
 
 	}
-	// catch(
-	//
-	// Exception e)
-	// {
-	// assertTrue(e instanceof BinaryConverterException);
-	// assertEquals(e.getMessage(),
-	// "Binary record with id: " + ID + " could not be updated with jp2 conversion data.");
-	// assertEquals(e.getCause(), conflictException);
-	// }
 
 	private void assertLoggedError(int callNumber, String expectedMessage,
 			Class<? extends Throwable> expectedExceptionType) {
@@ -306,27 +367,11 @@ public class ConvertImageToJp2Test {
 	}
 
 	@Test
-	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
-		DataClientException conflictException = DataClientException
-				.withMessage("someConflictError");
-
-		dataClient.MRV.setAlwaysThrowException("update", conflictException);
-		try {
-			messageReceiver.receiveMessage(someHeaders, MESSAGE);
-		} catch (Exception e) {
-			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(), "Binary record with id: " + ID
-					+ " could not be updated with jp2 conversion data.");
-			assertEquals(e.getCause(), conflictException);
-		}
-	}
-
-	@Test
-	public void testLoggErrorIfMessageCouldNotBeRead() {
+	public void testProtectionToAvoidRepublishMessagesIntoRabbit() {
 		messageReceiver.receiveMessage(null, null);
 
 		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
-				"Error while converting. Could not read message from queue.");
+				"Error while converting.");
 
 		var exception = logger.MCR.getParameterForMethodAndCallNumberAndParameter(
 				"logErrorUsingMessageAndException", 0, "exception");
@@ -339,7 +384,7 @@ public class ConvertImageToJp2Test {
 		RuntimeException exception = new RuntimeException();
 		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
 
-		messageReceiver.receiveMessage(someHeaders, "someMessage");
+		messageReceiver.receiveMessage(headers, "someMessage");
 
 		logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
 				"Error while converting with type: someType, id: someId, dataDivider: someDataDivider and mimeType: someMimeType.",

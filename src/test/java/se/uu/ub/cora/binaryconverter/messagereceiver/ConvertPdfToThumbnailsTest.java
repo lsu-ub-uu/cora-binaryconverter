@@ -363,7 +363,7 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	@Test
-	public void testLoggErrorsWhenErrorOccursOnConvertionRetryUpdateIfConflict2() {
+	public void testLoggErrorsWhenErrorOccursOnConvertionRetryUpdateIfConflictAndThenAnotherException() {
 		RuntimeException exception = new RuntimeException();
 		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
 

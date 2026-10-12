@@ -21,12 +21,14 @@ package se.uu.ub.cora.binaryconverter.messagereceiver;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -37,8 +39,12 @@ import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
+import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
+import se.uu.ub.cora.clientdata.spies.ClientDataAtomicSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
+import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordSpy;
 import se.uu.ub.cora.javaclient.data.DataClientException;
@@ -59,7 +65,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private LoggerFactorySpy loggerFactorySpy;
 	private AnalyzeAndConvertImageToThumbnails converter;
-	private Map<String, String> someHeaders = new HashMap<>();
+	private Map<String, String> headers = new HashMap<>();
 	private BinaryOperationFactorySpy binaryOperationFactory;
 	private DataClientSpy dataClient;
 	private ClientDataFactorySpy clientDataFactory;
@@ -79,6 +85,9 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	private StreamPathBuilderSpy streamPathBuilder;
 	private ResourceMetadataCreatorSpy resourceMetadataCreator;
 	private LoggerSpy logger;
+	private ClientDataRecordSpy dataRecord;
+	private ClientDataRecordGroupSpy binaryRecordGroup;
+	private ClientDataGroupSpy recordInfo;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -99,6 +108,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		setMessageHeaders();
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
+
+		setReadRecordOnStorage();
+	}
+
+	@AfterMethod
+	private void afterMethod() {
+		supplierCount = 0;
 	}
 
 	private void setUpImageAnalyzerFactory() {
@@ -132,10 +148,23 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				ID, "large");
 	}
 
+	private void setReadRecordOnStorage() {
+		dataRecord = new ClientDataRecordSpy();
+		binaryRecordGroup = new ClientDataRecordGroupSpy();
+		recordInfo = new ClientDataGroupSpy();
+
+		dataRecord.MRV.setDefaultReturnValuesSupplier("getDataRecordGroup",
+				() -> binaryRecordGroup);
+		binaryRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstChildOfTypeAndName",
+				() -> recordInfo, ClientDataGroup.class, "recordInfo");
+
+		dataClient.MRV.setDefaultReturnValuesSupplier("read", () -> dataRecord);
+	}
+
 	private void setMessageHeaders() {
-		someHeaders.put("dataDivider", DATA_DIVIDER);
-		someHeaders.put("type", TYPE);
-		someHeaders.put("id", ID);
+		headers.put("dataDivider", DATA_DIVIDER);
+		headers.put("type", TYPE);
+		headers.put("id", ID);
 	}
 
 	@Test
@@ -153,7 +182,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallFactoryWithCorrectPath() {
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
@@ -163,7 +192,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallPathBuilderBuild() {
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		archivePathBuilder.MCR.assertParameters("buildPathToAResourceInArchive", 0, DATA_DIVIDER,
 				TYPE, ID);
@@ -171,7 +200,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testCallAnalyze() {
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageAnalyzer", 0);
@@ -181,7 +210,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testUpdateRecordAfterAnalyzing() {
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertParameters("read", 0, TYPE, ID);
 
@@ -213,7 +242,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testConvertAndAnalyzeAndUpdateAllRepresentations() {
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		String resourceMasterPath = (String) archivePathBuilder.MCR
 				.getReturnValue("buildPathToAResourceInArchive", 0);
@@ -302,7 +331,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		dataClient.MRV.setDefaultReturnValuesSupplier("update",
 				supplierThrowConflictExceptionOnFirstCall);
 
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		dataClient.MCR.assertNumberOfCallsToMethod("read", 2);
 		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
@@ -322,34 +351,61 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	@Test
 	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
-		DataClientException conflictException = DataClientException
-				.withMessage("someConflictError");
+		DataClientException someException = DataClientException.withMessage("someError");
 
-		dataClient.MRV.setAlwaysThrowException("update", conflictException);
-		try {
-			converter.receiveMessage(someHeaders, SOME_MESSAGE);
-		} catch (Exception e) {
-			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(),
-					"Binary record with id: " + ID + " could not be updated with conversion data.");
-			assertEquals(e.getCause(), conflictException);
-		}
+		dataClient.MRV.setAlwaysThrowException("update", someException);
+		converter.receiveMessage(headers, SOME_MESSAGE);
+		assertLogWhenException(someException);
+		assertSetStatus("failed");
+	}
+
+	private void assertLogWhenException(DataClientException conflictException) {
+		logger.MCR.assertNumberOfCallsToMethod("logErrorUsingMessageAndException", 2);
+
+		logger.MCR.assertParameter("logErrorUsingMessageAndException", 0, "message",
+				"Error while converting with type: someType, id: someId "
+						+ "and dataDivider: someDataDivider.");
+
+		RuntimeException loggedException = (RuntimeException) logger.MCR
+				.getParameterForMethodAndCallNumberAndParameter("logErrorUsingMessageAndException",
+						0, "exception");
+
+		assertTrue(loggedException instanceof BinaryConverterException);
+		assertEquals(loggedException.getMessage(),
+				"Binary record with id: someId could not be updated with conversion data.");
+
+		assertSame(loggedException.getCause(), conflictException);
 	}
 
 	@Test
 	public void testUpdateReturn_AnyOtherException() {
-		DataClientException conflictException = DataClientException
-				.withMessageAndResponseCode("someConflictError", 401);
+		DataClientException someException = DataClientException
+				.withMessageAndResponseCode("someError", 666);
+		dataClient.MRV.setAlwaysThrowException("update", someException);
 
-		dataClient.MRV.setAlwaysThrowException("update", conflictException);
-		try {
-			converter.receiveMessage(someHeaders, SOME_MESSAGE);
-		} catch (Exception e) {
-			assertTrue(e instanceof BinaryConverterException);
-			assertEquals(e.getMessage(),
-					"Binary record with id: " + ID + " could not be updated with conversion data.");
-			assertEquals(e.getCause(), conflictException);
-		}
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		assertLogWhenException(someException);
+		assertSetStatus("failed");
+	}
+
+	@Test
+	public void testLoggErrorsWhenErrorOccursOnConvertionRetryUpdateIfConflict() {
+		RuntimeException exception = new RuntimeException();
+		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
+
+		DataClientException conflictException = DataClientException
+				.withMessageAndResponseCode("someConflictError", 409);
+
+		Supplier<?> supplierThrowConflictExceptionOnFirstCall = () -> {
+			return throwConflictExceptionOnFirstCall(conflictException);
+		};
+		dataClient.MRV.setDefaultReturnValuesSupplier("update",
+				supplierThrowConflictExceptionOnFirstCall);
+
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		dataClient.MCR.assertNumberOfCallsToMethod("update", 2);
 	}
 
 	@Test
@@ -370,11 +426,45 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		RuntimeException exception = new RuntimeException();
 		archivePathBuilder.MRV.setAlwaysThrowException("buildPathToAResourceInArchive", exception);
 
-		converter.receiveMessage(someHeaders, SOME_MESSAGE);
+		converter.receiveMessage(headers, SOME_MESSAGE);
 
 		logger.MCR.assertParameters("logErrorUsingMessageAndException", 0,
 				"Error while converting with type: someType, id: someId and dataDivider: someDataDivider.",
 				exception);
+	}
+
+	@Test
+	public void testSetStatusToProcessing() {
+		setUpStatusOnReadRecordFromStorage("uploaded");
+
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
+		assertSetStatus("processing");
+	}
+
+	private void assertSetStatus(String status) {
+		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
+				ClientDataAtomic.class, "status");
+		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
+						status);
+		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+	}
+
+	private void setUpStatusOnReadRecordFromStorage(String status) {
+		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> status, "status");
+	}
+
+	@Test
+	public void testSetStatusToDone() {
+		setUpStatusOnReadRecordFromStorage("processing");
+
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
+		assertSetStatus("done");
 	}
 
 	@Test

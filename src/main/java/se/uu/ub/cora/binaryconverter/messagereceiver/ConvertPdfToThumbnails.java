@@ -163,7 +163,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		binaryRecordGroup.addChild(representations.get(MEDIUM));
 		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
 		setStatus(binaryRecordGroup, "done");
-		tryToUpdateRecordWithRepresentations(recordType, recordId, representations,
+		tryToUpdateRecordRepresentationsForRetry(recordType, recordId, representations,
 				binaryRecordGroup);
 	}
 
@@ -186,13 +186,13 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		}
 	}
 
-	private void tryToUpdateRecordWithRepresentations(String recordType, String recordId,
+	private void tryToUpdateRecordRepresentationsForRetry(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations, ClientDataRecordGroup binaryRecordGroup) {
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
 			throwExceptionIfNotConflict(recordId, dataClientException);
-			retryRecordUpdateWithRepresentations(recordType, recordId, representations);
+			retryRecordUpdate(recordType, recordId, representations);
 		}
 	}
 
@@ -222,7 +222,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 				+ " could not be updated with conversion data.", dataClientException);
 	}
 
-	private void retryRecordUpdateWithRepresentations(String recordType, String recordId,
+	private void retryRecordUpdate(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations) {
 		logger.logInfoUsingMessage("Binary record with id: " + recordId
 				+ " could not be updated due to record conflict. Retrying record update.");
