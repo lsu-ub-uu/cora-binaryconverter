@@ -282,6 +282,8 @@ public class ConvertImageToJp2Test {
 
 		assertLogWhenException(someException);
 		assertSetStatus("failed");
+		assertAddProccessingMessage("Failed to convert image to JP2.");
+
 	}
 
 	private void assertLogWhenException(DataClientException conflictException) {
@@ -302,6 +304,18 @@ public class ConvertImageToJp2Test {
 		assertSame(loggedException.getCause(), conflictException);
 	}
 
+	private void assertAddProccessingMessage(String message) {
+		String repeatId = (String) clientDataFactory.MCR
+				.getParameterForMethodAndCallNumberAndParameter(
+						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
+		assertEquals(repeatId.length(), 13);
+
+		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
+						"processingMessage", message);
+		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
+	}
+
 	@Test
 	public void testUpdateReturn_AnyOtherExceptionWithoutResponseCode() {
 		DataClientException someException = DataClientException.withMessage("someError");
@@ -312,6 +326,7 @@ public class ConvertImageToJp2Test {
 
 		assertLogWhenException(someException);
 		assertSetStatus("failed");
+		assertAddProccessingMessage("Failed to convert image to JP2.");
 	}
 
 	@Test

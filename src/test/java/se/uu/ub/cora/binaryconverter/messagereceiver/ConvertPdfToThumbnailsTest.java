@@ -341,6 +341,19 @@ public class ConvertPdfToThumbnailsTest {
 				exception);
 
 		assertSetStatus("failed");
+		assertAddProccessingMessage("Failed to convert PDF to thumbnails.");
+	}
+
+	private void assertAddProccessingMessage(String message) {
+		String repeatId = (String) clientDataFactory.MCR
+				.getParameterForMethodAndCallNumberAndParameter(
+						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
+		assertEquals(repeatId.length(), 13);
+
+		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
+						"processingMessage", message);
+		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
 	}
 
 	@Test

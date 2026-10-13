@@ -236,8 +236,17 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		setStatus(binaryRecordGroup, "failed");
-		// TODO: setProcessingMessage
+		addProcessingMessage(binaryRecordGroup, "Failed to convert PDF to thumbnails.");
 		tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	@Override

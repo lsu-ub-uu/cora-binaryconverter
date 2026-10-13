@@ -357,6 +357,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		converter.receiveMessage(headers, SOME_MESSAGE);
 		assertLogWhenException(someException);
 		assertSetStatus("failed");
+		assertAddProccessingMessage("Failed to convert image to thumbnails.");
 	}
 
 	private void assertLogWhenException(DataClientException conflictException) {
@@ -434,7 +435,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testSetStatusToProcessing() {
+	public void testSetStatusTocessing() {
 		setUpStatusOnReadRecordFromStorage("uploaded");
 
 		converter.receiveMessage(headers, SOME_MESSAGE);
@@ -465,6 +466,18 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("done");
+	}
+
+	private void assertAddProccessingMessage(String message) {
+		String repeatId = (String) clientDataFactory.MCR
+				.getParameterForMethodAndCallNumberAndParameter(
+						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
+		assertEquals(repeatId.length(), 13);
+
+		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
+				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
+						"processingMessage", message);
+		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
 	}
 
 	@Test

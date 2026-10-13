@@ -89,7 +89,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 			setStatus(binaryRecordGroup, "failed");
-			// TODO: setProcessingMessage
+			addProcessingMessage(binaryRecordGroup, "Failed to convert image to JP2.");
 			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 		}
 	}
@@ -174,6 +174,15 @@ public class ConvertImageToJp2 implements MessageReceiver {
 			throwExceptionIfNotConflict(recordId, dataClientException);
 			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 		}
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	private void throwExceptionIfNotConflict(String recordId,

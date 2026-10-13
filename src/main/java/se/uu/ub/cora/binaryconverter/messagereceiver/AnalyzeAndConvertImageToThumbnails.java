@@ -93,7 +93,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 			setStatus(binaryRecordGroup, "failed");
-			// TODO: setProcessingMessage
+			addProcessingMessage(binaryRecordGroup, "Failed to convert image to thumbnails.");
 			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 		}
 	}
@@ -210,6 +210,15 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		ClientDataAtomic statusUploaded = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("status", status);
 		recordInfo.addChild(statusUploaded);
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,
