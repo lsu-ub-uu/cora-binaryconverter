@@ -26,7 +26,9 @@ import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -38,6 +40,7 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
+	private static final String STATUS = "status";
 	private static final String JP2 = "jp2";
 	private static final int HTTP_CONFLICT = 409;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
@@ -67,8 +70,9 @@ public class ConvertImageToJp2 implements MessageReceiver {
 			tryToConvertUsingTypeAndIdAndDataDividerAndMimeType(recordType, recordId, dataDivider,
 					mimeType);
 		} catch (Exception e) {
-			logger.logErrorUsingMessageAndException(
-					"Error while converting. Could not read message from queue.", e);
+			// Catch to ensure no Exception throws outsides recieveMessage and avoid republish
+			// message in rabbitmq
+			logger.logErrorUsingMessageAndException("Error while converting.", e);
 		}
 	}
 
@@ -78,9 +82,15 @@ public class ConvertImageToJp2 implements MessageReceiver {
 			convertUsingTypeAndIdAndDataDividerAndMimeType(recordType, recordId, dataDivider,
 					mimeType);
 		} catch (Exception e) {
-			String errorMessage = "Error while converting with type: %s, id: %s, dataDivider: %s and mimeType: %s.";
+			String errorMessage = "Error while converting with type: %s, id: %s, "
+					+ "dataDivider: %s and mimeType: %s.";
 			logger.logErrorUsingMessageAndException(
 					String.format(errorMessage, recordType, recordId, dataDivider, mimeType), e);
+
+			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+			setStatus(binaryRecordGroup, "failed");
+			addProcessingMessage(binaryRecordGroup, "Failed to convert image to JP2.");
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 		}
 	}
 
@@ -92,8 +102,8 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		String outputPath = streamPathBuilder.buildPathToAFileAndEnsureFolderExists(dataDivider,
 				recordType, recordId, JP2);
 		ImageData imageData = convertToJp2AndAnalyze(originalImagePath, outputPath, mimeType);
-		ClientDataGroup jp2Group = resourceMetadataCreator.createMetadataForRepresentation(
-				outputPath, recordId, JP2, "image/jp2", imageData);
+		ClientDataGroup jp2Group = resourceMetadataCreator
+				.createMetadataForRepresentation(outputPath, recordId, JP2, "image/jp2", imageData);
 
 		updateRecordUsingRepresentationDataGroup(recordType, recordId, jp2Group);
 	}
@@ -115,7 +125,30 @@ public class ConvertImageToJp2 implements MessageReceiver {
 			ClientDataGroup jp2Group) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
 		binaryRecordGroup.addChild(jp2Group);
-		tryToUpdateRecord(recordType, recordId, jp2Group, binaryRecordGroup);
+
+		determineStatus(binaryRecordGroup);
+		tryToUpdateRecordRepresentationsForRetry(recordType, recordId, jp2Group, binaryRecordGroup);
+	}
+
+	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		String status = recordInfo.getFirstAtomicValueWithNameInData(STATUS);
+		if (status.equals("uploaded")) {
+			setStatus(binaryRecordGroup, "processing");
+		}
+		if (status.equals("processing")) {
+			setStatus(binaryRecordGroup, "done");
+		}
+	}
+
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, STATUS);
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue(STATUS, status);
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
@@ -123,14 +156,33 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		return binaryRecord.getDataRecordGroup();
 	}
 
-	private void tryToUpdateRecord(String recordType, String recordId, ClientDataGroup jp2Group,
-			ClientDataRecordGroup binaryRecordGroup) {
+	private void tryToUpdateRecordRepresentationsForRetry(String recordType, String recordId,
+			ClientDataGroup jp2Group, ClientDataRecordGroup binaryRecordGroup) {
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
 			throwExceptionIfNotConflict(recordId, dataClientException);
 			retryRecordUpdate(recordType, recordId, jp2Group);
 		}
+	}
+
+	private void tryToUpdateRecord(String recordType, String recordId,
+			ClientDataRecordGroup binaryRecordGroup) {
+		try {
+			dataClient.update(recordType, recordId, binaryRecordGroup);
+		} catch (DataClientException dataClientException) {
+			throwExceptionIfNotConflict(recordId, dataClientException);
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+		}
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	private void throwExceptionIfNotConflict(String recordId,

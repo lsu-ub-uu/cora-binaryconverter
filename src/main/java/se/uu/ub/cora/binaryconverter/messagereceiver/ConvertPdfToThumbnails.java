@@ -27,7 +27,9 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -71,8 +73,9 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 			String dataDivider = headers.get("dataDivider");
 			tryToConvertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
 		} catch (Exception e) {
-			logger.logErrorUsingMessageAndException(
-					"Error while converting. Could not read message from queue.", e);
+			// Catch to ensure no Exception throws outsides recieveMessage and avoid republish
+			// message in rabbitmq
+			logger.logErrorUsingMessageAndException("Error while converting.", e);
 		}
 	}
 
@@ -81,9 +84,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		try {
 			convertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
 		} catch (Exception e) {
-			String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
-			logger.logErrorUsingMessageAndException(
-					String.format(errorMessage, recordType, recordId, dataDivider), e);
+			handleError(recordType, recordId, dataDivider, e);
 		}
 	}
 
@@ -161,11 +162,31 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		binaryRecordGroup.addChild(representations.get(LARGE));
 		binaryRecordGroup.addChild(representations.get(MEDIUM));
 		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
+		setStatus(binaryRecordGroup, "done");
+		tryToUpdateRecordRepresentationsForRetry(recordType, recordId, representations,
+				binaryRecordGroup);
+	}
 
-		tryToUpdateRecord(recordType, recordId, representations, binaryRecordGroup);
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("status", status);
+		recordInfo.addChild(statusUploaded);
 	}
 
 	private void tryToUpdateRecord(String recordType, String recordId,
+			ClientDataRecordGroup binaryRecordGroup) {
+		try {
+			dataClient.update(recordType, recordId, binaryRecordGroup);
+		} catch (DataClientException dataClientException) {
+			throwExceptionIfNotConflict(recordId, dataClientException);
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+		}
+	}
+
+	private void tryToUpdateRecordRepresentationsForRetry(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations, ClientDataRecordGroup binaryRecordGroup) {
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
@@ -206,6 +227,26 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 		logger.logInfoUsingMessage("Binary record with id: " + recordId
 				+ " could not be updated due to record conflict. Retrying record update.");
 		updateRecordUsingRepresentationGroups(recordType, recordId, representations);
+	}
+
+	private void handleError(String recordType, String recordId, String dataDivider, Exception e) {
+		String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
+		logger.logErrorUsingMessageAndException(
+				String.format(errorMessage, recordType, recordId, dataDivider), e);
+
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+		setStatus(binaryRecordGroup, "failed");
+		addProcessingMessage(binaryRecordGroup, "Failed to convert PDF to thumbnails.");
+		tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	@Override

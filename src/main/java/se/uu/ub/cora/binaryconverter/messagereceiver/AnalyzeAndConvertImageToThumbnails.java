@@ -27,7 +27,9 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
+import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -39,6 +41,7 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
+	private static final String STATUS = "status";
 	private static final int HTTP_CONFLICT = 409;
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
@@ -72,6 +75,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			String dataDivider = headers.get("dataDivider");
 			tryConvertUsingTypeAndIdAndDataDivider(recordType, recordId, dataDivider);
 		} catch (Exception e) {
+			// Catch to ensure no Exception throws outsides recieveMessage and avoid republish
+			// message in rabbitmq
 			logger.logErrorUsingMessageAndException(
 					"Error while converting. Could not read message from queue.", e);
 		}
@@ -85,6 +90,11 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			String errorMessage = "Error while converting with type: %s, id: %s and dataDivider: %s.";
 			logger.logErrorUsingMessageAndException(
 					String.format(errorMessage, recordType, recordId, dataDivider), e);
+
+			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+			setStatus(binaryRecordGroup, "failed");
+			addProcessingMessage(binaryRecordGroup, "Failed to convert image to thumbnails.");
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
 		}
 	}
 
@@ -98,7 +108,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		var representations = convertAndCreateMetadataForRepresentations(dataDivider, recordType,
 				recordId, originalImagePath);
 
-		addRepresentationDataToRecordAndUpdate(originalImagePath, recordType, recordId,
+		updateRecordUsingRepresentationDataGroup(originalImagePath, recordType, recordId,
 				masterImageData, representations);
 	}
 
@@ -159,11 +169,19 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return representations;
 	}
 
-	private void addRepresentationDataToRecordAndUpdate(String originalImagePath, String recordType,
-			String recordId, ImageData masterImageData,
+	private void updateRecordUsingRepresentationDataGroup(String originalImagePath,
+			String recordType, String recordId, ImageData masterImageData,
 			Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = addRepresentationsDataToRecord(recordType,
 				recordId, masterImageData, representations);
+		determineStatus(binaryRecordGroup);
+		tryToUpdateRecordRepresentationsForRetry(originalImagePath, recordType, recordId,
+				masterImageData, representations, binaryRecordGroup);
+	}
+
+	private void tryToUpdateRecordRepresentationsForRetry(String originalImagePath,
+			String recordType, String recordId, ImageData masterImageData,
+			Map<String, ClientDataGroup> representations, ClientDataRecordGroup binaryRecordGroup) {
 		try {
 			dataClient.update(recordType, recordId, binaryRecordGroup);
 		} catch (DataClientException dataClientException) {
@@ -171,6 +189,36 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			retryRecordUpdate(originalImagePath, recordType, recordId, masterImageData,
 					representations);
 		}
+	}
+
+	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		String status = recordInfo.getFirstAtomicValueWithNameInData(STATUS);
+		if (status.equals("uploaded")) {
+			setStatus(binaryRecordGroup, "processing");
+		}
+		if (status.equals("processing")) {
+			setStatus(binaryRecordGroup, "done");
+		}
+	}
+
+	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
+		ClientDataGroup recordInfo = dataRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue("status", status);
+		recordInfo.addChild(statusUploaded);
+	}
+
+	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
+		ClientDataGroup recordInfo = binaryRecordGroup
+				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,
@@ -214,6 +262,16 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 		return optionalResponseCode.get() != HTTP_CONFLICT;
 	}
 
+	private void tryToUpdateRecord(String recordType, String recordId,
+			ClientDataRecordGroup binaryRecordGroup) {
+		try {
+			dataClient.update(recordType, recordId, binaryRecordGroup);
+		} catch (DataClientException dataClientException) {
+			throwExceptionIfNotConflict(recordId, dataClientException);
+			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
+		}
+	}
+
 	private BinaryConverterException createBinaryConverterExecption(String recordId,
 			DataClientException dataClientException) {
 		return BinaryConverterException.withMessageAndException("Binary record with id: " + recordId
@@ -224,7 +282,7 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
 		logger.logInfoUsingMessage("Binary record with id: " + recordId
 				+ " could not be updated due to record conflict. Retrying record update.");
-		addRepresentationDataToRecordAndUpdate(originalImagePath, recordType, recordId,
+		updateRecordUsingRepresentationDataGroup(originalImagePath, recordType, recordId,
 				masterImageData, representations);
 	}
 
