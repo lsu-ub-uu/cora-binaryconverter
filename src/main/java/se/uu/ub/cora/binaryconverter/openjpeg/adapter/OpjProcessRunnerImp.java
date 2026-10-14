@@ -44,11 +44,52 @@ public class OpjProcessRunnerImp implements OpjProcessRunner {
 		return System.currentTimeMillis() + timeoutInSeconds * TO_SECOND;
 	}
 
+	// SPIKE STARTS
 	private void waitForConvertingToFinish(Process process) {
-		int exitCode = -1;
-		exitCode = pollProcess(process, exitCode);
-		throwExceptionWhenProcessNotSuccessful(process, exitCode);
+		final boolean finished;
+		try {
+			finished = process.waitFor(timeoutInSeconds, java.util.concurrent.TimeUnit.SECONDS);
+		} catch (InterruptedException e) {
+			process.destroyForcibly();
+			Thread.currentThread().interrupt();
+			throw OpenJpegException.withMessageAndException(
+					"Interrupted while waiting for openjpeg2 conversion", e);
+		}
+
+		if (!finished) {
+			destroyProcess(process);
+			throw OpenJpegException.withMessage(
+					"Openjpeg2 conversion timed out after " + timeoutInSeconds + " seconds");
+		}
+
+		int exitCode = process.exitValue();
+		if (exitCode != 0) {
+			// String errorOutput = readErrorOutput(process);
+			throw OpenJpegException
+					.withMessage("Openjpeg2 conversion failed with exit code " + exitCode);
+			// + exitCode + " and error : " + errorOutput);
+		}
 	}
+
+	// private String readErrorOutput(Process process) {
+	// try (InputStream errorStream = process.getErrorStream();
+	// InputStreamReader inputStreamReader = new InputStreamReader(errorStream,
+	// StandardCharsets.UTF_8);
+	// BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
+	// return bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
+	// } catch (IOException e) {
+	// throw OpenJpegException.withMessageAndException("Failed to read openjpeg2 error output",
+	// e);
+	// }
+	// }
+
+	// SPIKE ENDS
+
+	// private void waitForConvertingToFinish(Process process) {
+	// int exitCode = -1;
+	// exitCode = pollProcess(process, exitCode);
+	// throwExceptionWhenProcessNotSuccessful(process, exitCode);
+	// }
 
 	private int pollProcess(Process process, int exitCode) {
 		while (waitingForProcessToFinish(exitCode)) {
