@@ -27,6 +27,7 @@ import static org.testng.Assert.fail;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.basicstorage.path.PathFileSystem;
 import se.uu.ub.cora.basicstorage.path.StreamPathBuilderImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
@@ -118,6 +119,7 @@ public class MessageReceiverFactoryTest {
 		assertEquals(streamPathBuilder.onlyForTestGetFileSystemBasePath(),
 				SOME_FILE_STORAGE_BASE_PATH);
 		assertTrue(streamPathBuilder.onlyForTestGetCoraDigestor() instanceof CoraDigestor);
+		assertTrue(streamPathBuilder.onlyForTestGetPathFileSystem() instanceof PathFileSystem);
 		assertTrue(streamPathBuilder instanceof StreamPathBuilder);
 	}
 

@@ -19,6 +19,7 @@
  */
 package se.uu.ub.cora.binaryconverter.messagereceiver;
 
+import se.uu.ub.cora.basicstorage.path.PathFileSystemImp;
 import se.uu.ub.cora.basicstorage.path.StreamPathBuilderImp;
 import se.uu.ub.cora.binaryconverter.imagemagick.BinaryOperationFactoryImp;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
@@ -65,8 +66,8 @@ public class MessageReceiverFactoryImp implements MessageReceiverFactory {
 		archivepathBuilder = ArchivePathBuilderImp.usingBasePathAndCoraDigestUtils(archiveBasePath,
 				coraDigestor);
 		CoraDigestorImp digestor = new CoraDigestorImp();
-		streamPathBuilder = StreamPathBuilderImp.usingBasePathAndCoraDigestor(fileStorageBasePath,
-				digestor);
+		streamPathBuilder = StreamPathBuilderImp.usingBasePathAndCoraDigestorAndPathFileSystem(
+				fileStorageBasePath, digestor, PathFileSystemImp.usingRealFileSystem());
 	}
 
 	private MessageReceiver factorMessageReceiverUsingQueueName(String queueName) {
