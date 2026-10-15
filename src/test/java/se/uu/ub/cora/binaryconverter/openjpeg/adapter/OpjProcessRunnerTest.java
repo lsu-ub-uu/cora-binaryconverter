@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -18,223 +18,160 @@
  */
 package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
-
-import java.util.function.Supplier;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.binaryconverter.openjpeg.spy.OpjProcessBuilderSpy;
 import se.uu.ub.cora.binaryconverter.openjpeg.spy.ProcessSpy;
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 
 public class OpjProcessRunnerTest {
 
-	private static final int TIMEOUT_IN_SECONDS = 1;
-	private static final int POLL_SLEEP_TIME_MILLISECONDS = 100;
+	private static final int RETURN_CODE_OK = 0;
+	private static final long TIMEOUT_IN_SECONDS = 1;
 	private OpjProcessBuilderSpy processBuilder;
 	private OpjProcessRunnerImp processRunner;
 
 	@BeforeMethod
 	private void beforeMethod() {
 		processBuilder = new OpjProcessBuilderSpy();
-		processRunner = new OpjProcessRunnerImp(processBuilder, POLL_SLEEP_TIME_MILLISECONDS,
-				TIMEOUT_IN_SECONDS);
+		processRunner = new OpjProcessRunnerImp(processBuilder, TIMEOUT_IN_SECONDS);
 	}
 
 	@Test
-	public void testRunOpjProcessOK() throws Exception {
+	public void testRunOpjProcessOK() {
+		ProcessSpy processSpy = setUpProcessSpyWithExitValue(RETURN_CODE_OK);
+
 		processRunner.runOpjProcess();
 
 		processBuilder.MCR.assertMethodWasCalled("start");
-		ProcessSpy process = (ProcessSpy) processBuilder.MCR.getReturnValue("start", 0);
-
-		process.MCR.assertMethodWasCalled("exitValue");
+		processSpy.MCR.assertCalledParameters("waitFor", TIMEOUT_IN_SECONDS, SECONDS);
 	}
 
-	@Test
-	public void testRunOpjProcessWaitSeveralLoops_OK() throws Exception {
-		int callsToExitValue = 2;
-		ProcessSpy processSpy = createProcessSpyWithExitValueSupplier(callsToExitValue);
-		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
-
-		long timeBeforeTest = System.currentTimeMillis();
-
-		processRunner.runOpjProcess();
-
-		assertLoopsWaitingForSuccesfulCall(callsToExitValue, processSpy, timeBeforeTest);
-	}
-
-	private void assertWaitingTimeForExitValueSuccessfulCall(long timeBeforeTest,
-			long timeAfterTest, int callsToExitValue) {
-		int callsBeforeSuccesful = callsToExitValue - 1;
-		int minimalExpectedWaitTime = POLL_SLEEP_TIME_MILLISECONDS * callsBeforeSuccesful;
-		long diferenceAfterAndBeforeTest = timeAfterTest - timeBeforeTest;
-		assertTrue(diferenceAfterAndBeforeTest >= minimalExpectedWaitTime);
-	}
-
-	private ProcessSpy createProcessSpyWithExitValueSupplier(int callsToExitValue) {
+	private ProcessSpy setUpProcessSpyWithExitValue(int exitValue) {
 		ProcessSpy processSpy = new ProcessSpy();
-		Supplier<?> supplier = createExitValueSupplier(callsToExitValue);
-		processSpy.MRV.setDefaultReturnValuesSupplier("exitValue", supplier);
+		processSpy.MRV.setDefaultReturnValuesSupplier("exitValue", () -> exitValue);
+		processSpy.MRV.setDefaultReturnValuesSupplier("waitFor", () -> true);
+		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
 		return processSpy;
 	}
 
-	private Supplier<?> createExitValueSupplier(int callsToExitValueUntilSuccess) {
-		Supplier<?> supplier = new Supplier<Integer>() {
-			int counter = 1;
+	@Test
+	public void testRunOpjProcessNotOkReturnCode() {
+		setUpProcessSpyWithExitValue(666);
 
-			@Override
-			public Integer get() {
-				if (callsToExitValueUntilSuccess > counter) {
-					counter++;
-					throw new IllegalThreadStateException();
-				}
-				return 0;
-			}
-		};
-		return supplier;
+		try {
+			processRunner.runOpjProcess();
+			fail("Openjpeg2 should have been thrown");
+		} catch (Exception e) {
+			assertTrue(e instanceof OpenJpegException);
+			assertEquals(e.getMessage(), "Openjpeg2 conversion failed with exit code 666.");
+		}
+
 	}
 
 	@Test
-	public void testRunOpjProcessWaitSeveralLoops_Timeout_ProcessIsAliveS() throws Exception {
-		int callsToExitValue = 10;
-		ProcessSpy processSpy = new ProcessSpy();
-		processSpy.MRV.setAlwaysThrowException("exitValue", new IllegalThreadStateException());
-		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
+	public void testRunOpjProcessWasInterrupted() {
+		InterruptedException interruptedException = new InterruptedException("some error");
+		ProcessSpy processSpy = setUpProcessSpyWithExitValue(0);
+		setUpProcessToThrowInterruptedExceptionForTimeOut(interruptedException, processSpy,
+				TIMEOUT_IN_SECONDS);
 
-		long timeBeforeTest = 0L;
 		try {
-			timeBeforeTest = System.currentTimeMillis();
-
 			processRunner.runOpjProcess();
-			fail();
+			fail("InterruptedException should have been thrown");
 		} catch (Exception e) {
-			assertLoopsWaitingForSuccesfulCall(callsToExitValue, processSpy, timeBeforeTest);
+			assertTrue(e instanceof OpenJpegException);
+			assertEquals(e.getMessage(),
+					"Openjpeg2 conversion was interupted while waiting for conversion to finish.");
+			assertSame(e.getCause(), interruptedException);
 
-			assertException(e);
-
-			processSpy.MCR.assertMethodWasCalled("destroy");
-			processSpy.MCR.assertMethodWasCalled("isAlive");
 			processSpy.MCR.assertMethodWasCalled("destroyForcibly");
 		}
 	}
 
-	private void assertException(Exception e) {
-		assertTrue(e instanceof OpenJpegException);
-		assertEquals(e.getMessage(), "Converting image using openjpeg2 failed or timed out");
+	private void setUpProcessToThrowInterruptedExceptionForTimeOut(
+			InterruptedException interruptedException, ProcessSpy processSpy,
+			long timeoutInSeconds) {
+		processSpy.MRV.setSpecificReturnValuesSupplier("waitFor", () -> {
+			sneakyThrow(interruptedException);
+			return null;
+		}, timeoutInSeconds, SECONDS);
 	}
 
-	private void assertLoopsWaitingForSuccesfulCall(int callsToExitValue, ProcessSpy processSpy,
-			long timeBeforeTest) {
-		long timeAfterTest = System.currentTimeMillis();
-		processSpy.MCR.assertNumberOfCallsToMethod("exitValue", callsToExitValue);
-		assertWaitingTimeForExitValueSuccessfulCall(timeBeforeTest, timeAfterTest,
-				callsToExitValue);
+	public static <T extends Throwable> void sneakyThrow(Throwable t) throws T {
+		throw (T) t;
 	}
 
 	@Test
-	public void testRunOpjProcessWaitSeveralLoops_Timeout_ProcessNotAlive() throws Exception {
-		int callsToExitValue = 10;
-		ProcessSpy processSpy = new ProcessSpy();
-		processSpy.MRV.setAlwaysThrowException("exitValue", new IllegalThreadStateException());
+	public void testRunOpjProcessTimeoutThrowsExceptionAndDestroys() {
+		ProcessSpy processSpy = setUpProcessSpyWithExitValue(RETURN_CODE_OK);
+		processSpy.MRV.setDefaultReturnValuesSupplier("waitFor", () -> false);
 		processSpy.MRV.setDefaultReturnValuesSupplier("isAlive", () -> false);
-		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
-		OpjProcessRunnerImpDestroyOnlyForTest processRunner = new OpjProcessRunnerImpDestroyOnlyForTest(
-				processBuilder, POLL_SLEEP_TIME_MILLISECONDS, TIMEOUT_IN_SECONDS);
-		long timeBeforeTest = 0L;
-		try {
-			timeBeforeTest = System.currentTimeMillis();
 
+		try {
 			processRunner.runOpjProcess();
-			fail();
+			fail("OpenJpegException should have been thrown");
 		} catch (Exception e) {
-
-			assertLoopsWaitingForUnsuccesfulCall(callsToExitValue, processSpy, timeBeforeTest);
-
-			assertException(e);
-
 			processSpy.MCR.assertMethodWasCalled("destroy");
-			processRunner.MCR.assertNumberOfCallsToMethod("sleep", 11);
-			processSpy.MCR.assertMethodWasCalled("isAlive");
 			processSpy.MCR.assertMethodNotCalled("destroyForcibly");
+
+			assertTrue(e instanceof OpenJpegException);
+			assertEquals(e.getMessage(),
+					"Openjpeg2 conversion timed out after " + TIMEOUT_IN_SECONDS + " seconds.");
 		}
-	}
-
-	class OpjProcessRunnerImpDestroyOnlyForTest extends OpjProcessRunnerImp {
-		public MethodCallRecorder MCR = new MethodCallRecorder();
-		public MethodReturnValues MRV = new MethodReturnValues();
-
-		public OpjProcessRunnerImpDestroyOnlyForTest(OpjProcessBuilder builder,
-				int pollSleepTimeInMillisecond, int timeoutInSeconds) {
-			super(builder, pollSleepTimeInMillisecond, timeoutInSeconds);
-			MCR.useMRV(MRV);
-		}
-
-		@Override
-		void sleep() {
-			MCR.addCall();
-			super.sleep();
-		}
-	}
-
-	private void assertLoopsWaitingForUnsuccesfulCall(int callsToExitValue, ProcessSpy processSpy,
-			long timeBeforeTest) {
-		long timeAfterTest = System.currentTimeMillis();
-		processSpy.MCR.assertNumberOfCallsToMethod("exitValue", callsToExitValue);
-		int noSleepsBeforeDestroy = 1;
-		assertWaitingTimeForExitValueSuccessfulCall(timeBeforeTest, timeAfterTest,
-				callsToExitValue + noSleepsBeforeDestroy);
 	}
 
 	@Test
-	public void testCheckTimeOut() throws Exception {
-		assertTrue(processRunner.checkTimeout(0, 1));
-		assertTrue(processRunner.checkTimeout(1, 1));
-		assertFalse(processRunner.checkTimeout(2, 1));
-	}
+	public void testRunOpjProcessTimeoutDestroysForciblyIfAlive() {
+		ProcessSpy processSpy = setUpProcessSpyWithExitValue(RETURN_CODE_OK);
+		processSpy.MRV.setDefaultReturnValuesSupplier("waitFor", () -> false);
+		processSpy.MRV.setSpecificReturnValuesSupplier("waitFor", () -> true, 15L, SECONDS);
+		processSpy.MRV.setDefaultReturnValuesSupplier("isAlive", () -> true);
 
-	@Test
-	public void testRunOpjProcess_InterrumpedException() throws Exception {
-		int callsToExitValue = 2;
-		ProcessSpy processSpy = createProcessSpyWithExitValueSupplier(callsToExitValue);
-		processBuilder.MRV.setDefaultReturnValuesSupplier("start", () -> processSpy);
-
-		OpjProcessRunner runOpjProcess = new OpjProcessRunnerImpOnlyForTest(processBuilder,
-				POLL_SLEEP_TIME_MILLISECONDS, TIMEOUT_IN_SECONDS);
 		try {
-			runOpjProcess.runOpjProcess();
-			fail("It should throw exception");
+			processRunner.runOpjProcess();
+			fail("OpenJpegException should have been thrown");
 		} catch (Exception e) {
-			assertTrue(Thread.currentThread().isInterrupted());
+			processSpy.MCR.assertMethodWasCalled("destroy");
+			processSpy.MCR.assertMethodWasCalled("destroyForcibly");
 
-			assertException(e);
-			assertEquals(e.getCause().getMessage(), "someInterruptedException");
-		}
-	}
-
-	class OpjProcessRunnerImpOnlyForTest extends OpjProcessRunnerImp {
-		public OpjProcessRunnerImpOnlyForTest(OpjProcessBuilder builder,
-				int pollSleepTimeInMillisecond, int timeoutInSeconds) {
-			super(builder, pollSleepTimeInMillisecond, timeoutInSeconds);
-		}
-
-		@Override
-		protected void threadSleep() throws InterruptedException {
-			throw new InterruptedException("someInterruptedException");
+			assertTrue(e instanceof OpenJpegException);
+			assertEquals(e.getMessage(),
+					"Openjpeg2 conversion timed out after " + TIMEOUT_IN_SECONDS + " seconds.");
 		}
 	}
 
 	@Test
-	public void testOnlyForTestMethods() throws Exception {
+	public void testRunOpjProcessTimeoutDestroysForciblyIfInteruptedWhileDestroy() {
+		InterruptedException interruptedException = new InterruptedException("some error2n");
+		ProcessSpy processSpy = setUpProcessSpyWithExitValue(RETURN_CODE_OK);
+		processSpy.MRV.setDefaultReturnValuesSupplier("waitFor", () -> false);
+		processSpy.MRV.setDefaultReturnValuesSupplier("isAlive", () -> true);
+		setUpProcessToThrowInterruptedExceptionForTimeOut(interruptedException, processSpy, 15L);
+
+		try {
+			processRunner.runOpjProcess();
+			fail("OpenJpegException should have been thrown");
+		} catch (Exception e) {
+			processSpy.MCR.assertMethodWasCalled("destroy");
+			processSpy.MCR.assertMethodWasCalled("destroyForcibly");
+			processSpy.MCR.assertNumberOfCallsToMethod("destroyForcibly", 1);
+
+			assertTrue(e instanceof OpenJpegException);
+			assertEquals(e.getMessage(),
+					"Openjpeg2 conversion timed out after " + TIMEOUT_IN_SECONDS + " seconds.");
+		}
+	}
+
+	@Test
+	public void testOnlyForTestMethods() {
 		assertEquals(processRunner.onlyForTestGetProcessBuilder(), processBuilder);
-		assertEquals(processRunner.onlyForTestGetPollSleepTimeInMilliseconds(),
-				POLL_SLEEP_TIME_MILLISECONDS);
 		assertEquals(processRunner.onlyForTestGetTimeoutInSeconds(), TIMEOUT_IN_SECONDS);
 	}
 }

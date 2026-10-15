@@ -44,7 +44,7 @@ public class OpjProcessRunnerFactoryTest {
 	}
 
 	@Test
-	public void testFactor() throws Exception {
+	public void testFactor() {
 
 		processRunner = (OpjProcessRunnerImp) factory.factor(parameters);
 
@@ -59,8 +59,7 @@ public class OpjProcessRunnerFactoryTest {
 				.onlyForTestGetProcessBuilder();
 		assertBuilder(processbuilder);
 
-		assertEquals(processRunner.onlyForTestGetPollSleepTimeInMilliseconds(), 5000);
-		assertEquals(processRunner.onlyForTestGetTimeoutInSeconds(), 900);
+		assertEquals(processRunner.onlyForTestGetTimeoutInSeconds(), 900L);
 	}
 
 	private void assertBuilder(OpjProcessBuilderImp processbuilder) {
@@ -70,7 +69,7 @@ public class OpjProcessRunnerFactoryTest {
 	}
 
 	@Test
-	public void testProcessBuilderCallsInheritIO() throws Exception {
+	public void testProcessBuilderCallsInheritIO() {
 		OpjProcessRunnerFactoryOnlyForTest factoryTest = new OpjProcessRunnerFactoryOnlyForTest();
 		processRunner = (OpjProcessRunnerImp) factoryTest.factor(parameters);
 

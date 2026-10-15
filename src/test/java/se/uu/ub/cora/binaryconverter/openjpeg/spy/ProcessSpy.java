@@ -20,6 +20,7 @@ package se.uu.ub.cora.binaryconverter.openjpeg.spy;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.concurrent.TimeUnit;
 
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -31,7 +32,8 @@ public class ProcessSpy extends Process {
 
 	public ProcessSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("waitFor", () -> 0);
+		// MRV.setDefaultReturnValuesSupplier("waitFor", () -> 0);
+		MRV.setDefaultReturnValuesSupplier("waitFor", () -> true);
 		MRV.setDefaultReturnValuesSupplier("exitValue", () -> 0);
 		MRV.setDefaultReturnValuesSupplier("isAlive", () -> true);
 		MRV.setDefaultReturnValuesSupplier("destroyForcibly", ProcessSpy::new);
@@ -54,7 +56,13 @@ public class ProcessSpy extends Process {
 
 	@Override
 	public int waitFor() throws InterruptedException {
-		return (int) MCR.addCallAndReturnFromMRV();
+		// return (int) MCR.addCallAndReturnFromMRV();
+		return 1;
+	}
+
+	@Override
+	public boolean waitFor(long timeout, TimeUnit unit) throws InterruptedException {
+		return (boolean) MCR.addCallAndReturnFromMRV("timeout", timeout, "unit", unit);
 	}
 
 	@Override

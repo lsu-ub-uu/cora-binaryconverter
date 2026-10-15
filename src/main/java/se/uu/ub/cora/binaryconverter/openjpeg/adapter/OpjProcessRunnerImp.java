@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,92 +19,72 @@
 package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
 public class OpjProcessRunnerImp implements OpjProcessRunner {
-
-	private static final int TO_SECOND = 1000;
 	private final OpjProcessBuilder builder;
-	private int pollSleepTime;
-	private long timeout;
-	private int timeoutInSeconds;
+	private long timeoutInSeconds;
 
-	public OpjProcessRunnerImp(OpjProcessBuilder builder, int pollSleepTimeInMillisecond,
-			int timeoutInSeconds) {
+	public OpjProcessRunnerImp(OpjProcessBuilder builder, long timeoutInSeconds) {
 		this.builder = builder;
-		this.pollSleepTime = pollSleepTimeInMillisecond;
 		this.timeoutInSeconds = timeoutInSeconds;
 	}
 
 	@Override
 	public void runOpjProcess() {
 		Process process = builder.start();
-		timeout = calculateTimeout(timeoutInSeconds);
-		waitForConvertingToFinish(process);
+		tryToWaitForConvertingToFinish(process);
 	}
 
-	private long calculateTimeout(int timeoutInSeconds) {
-		return System.currentTimeMillis() + timeoutInSeconds * TO_SECOND;
-	}
-
-	private void waitForConvertingToFinish(Process process) {
-		int exitCode = -1;
-		exitCode = pollProcess(process, exitCode);
-		throwExceptionWhenProcessNotSuccessful(process, exitCode);
-	}
-
-	private int pollProcess(Process process, int exitCode) {
-		while (waitingForProcessToFinish(exitCode)) {
-			try {
-				exitCode = process.exitValue();
-			} catch (IllegalThreadStateException e) {
-				sleep();
-			}
-		}
-		return exitCode;
-	}
-
-	private boolean waitingForProcessToFinish(int exitCode) {
-		return checkTimeout(System.currentTimeMillis(), timeout) && exitCode != 0;
-	}
-
-	boolean checkTimeout(long currentTimeMillis, long timeout) {
-		return currentTimeMillis <= timeout;
-	}
-
-	void sleep() {
+	private void tryToWaitForConvertingToFinish(Process process) {
 		try {
-			threadSleep();
+			waitForConvertingToFinish(process);
 		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
+			process.destroyForcibly();
+			// Not needed here: Thread.currentThread().interrupt();
 			throw OpenJpegException.withMessageAndException(
-					"Converting image using openjpeg2 failed or timed out", e);
+					"Openjpeg2 conversion was interupted while waiting for conversion to finish.",
+					e);
+		}
+
+	}
+
+	private void waitForConvertingToFinish(Process process) throws InterruptedException {
+		final boolean finished;
+		finished = process.waitFor(timeoutInSeconds, java.util.concurrent.TimeUnit.SECONDS);
+		throwErrorIfNotFinished(process, finished);
+
+		int exitCode = process.exitValue();
+		throwErrorIfFailed(exitCode);
+	}
+
+	private void throwErrorIfNotFinished(Process process, final boolean finished) {
+		if (!finished) {
+			destroyProcess(process);
+			throw OpenJpegException.withMessage(
+					"Openjpeg2 conversion timed out after " + timeoutInSeconds + " seconds.");
 		}
 	}
 
-	void threadSleep() throws InterruptedException {
-		Thread.sleep(pollSleepTime);
-	}
-
-	private void throwExceptionWhenProcessNotSuccessful(Process process, int exitCode) {
+	private void throwErrorIfFailed(int exitCode) {
 		if (exitCode != 0) {
-			destroyProcess(process);
 			throw OpenJpegException
-					.withMessage("Converting image using openjpeg2 failed or timed out");
+					.withMessage("Openjpeg2 conversion failed with exit code " + exitCode + ".");
 		}
 	}
 
 	private void destroyProcess(Process process) {
-		process.destroy();
-		sleep();
-		if (process.isAlive()) {
+		try {
+			process.destroy();
+			process.waitFor(15L, java.util.concurrent.TimeUnit.SECONDS);
+			if (process.isAlive()) {
+				process.destroyForcibly();
+			}
+		} catch (InterruptedException e) {
 			process.destroyForcibly();
+			// Not needed here: Thread.currentThread().interrupt();
 		}
 	}
 
 	public OpjProcessBuilder onlyForTestGetProcessBuilder() {
 		return builder;
-	}
-
-	public Object onlyForTestGetPollSleepTimeInMilliseconds() {
-		return pollSleepTime;
 	}
 
 	public Object onlyForTestGetTimeoutInSeconds() {
