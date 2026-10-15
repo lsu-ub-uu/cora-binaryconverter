@@ -19,16 +19,13 @@
 package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
 public class OpjProcessRunnerFactoryImp implements OpjProcessRunnerFactory {
-
 	private static final int TIMEOUT_IN_SECONDS = 900;
-	private static final int POLL_SLEEP_IN_MILLISECONDS = 5000;
 
 	@Override
 	public OpjProcessRunner factor(OpjParameters parameters) {
 		OpjProcessBuilder processBuilder = createNewProcessBuilder(parameters);
 		processBuilder.inheritIO();
-		return new OpjProcessRunnerImp(processBuilder, POLL_SLEEP_IN_MILLISECONDS,
-				TIMEOUT_IN_SECONDS);
+		return new OpjProcessRunnerImp(processBuilder, TIMEOUT_IN_SECONDS);
 	}
 
 	// Needed for test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Uppsala University Library
+ * Copyright 2023, 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,133 +19,72 @@
 package se.uu.ub.cora.binaryconverter.openjpeg.adapter;
 
 public class OpjProcessRunnerImp implements OpjProcessRunner {
-
-	private static final int TO_SECOND = 1000;
 	private final OpjProcessBuilder builder;
-	private int pollSleepTime;
-	private long timeout;
-	private int timeoutInSeconds;
+	private long timeoutInSeconds;
 
-	public OpjProcessRunnerImp(OpjProcessBuilder builder, int pollSleepTimeInMillisecond,
-			int timeoutInSeconds) {
+	public OpjProcessRunnerImp(OpjProcessBuilder builder, long timeoutInSeconds) {
 		this.builder = builder;
-		this.pollSleepTime = pollSleepTimeInMillisecond;
 		this.timeoutInSeconds = timeoutInSeconds;
 	}
 
 	@Override
 	public void runOpjProcess() {
 		Process process = builder.start();
-		timeout = calculateTimeout(timeoutInSeconds);
-		waitForConvertingToFinish(process);
+		tryToWaitForConvertingToFinish(process);
 	}
 
-	private long calculateTimeout(int timeoutInSeconds) {
-		return System.currentTimeMillis() + timeoutInSeconds * TO_SECOND;
-	}
-
-	// SPIKE STARTS
-	private void waitForConvertingToFinish(Process process) {
-		final boolean finished;
+	private void tryToWaitForConvertingToFinish(Process process) {
 		try {
-			finished = process.waitFor(timeoutInSeconds, java.util.concurrent.TimeUnit.SECONDS);
+			waitForConvertingToFinish(process);
 		} catch (InterruptedException e) {
 			process.destroyForcibly();
-			Thread.currentThread().interrupt();
+			// Not needed here: Thread.currentThread().interrupt();
 			throw OpenJpegException.withMessageAndException(
-					"Interrupted while waiting for openjpeg2 conversion", e);
+					"Openjpeg2 conversion was interupted while waiting for conversion to finish.",
+					e);
 		}
 
+	}
+
+	private void waitForConvertingToFinish(Process process) throws InterruptedException {
+		final boolean finished;
+		finished = process.waitFor(timeoutInSeconds, java.util.concurrent.TimeUnit.SECONDS);
+		throwErrorIfNotFinished(process, finished);
+
+		int exitCode = process.exitValue();
+		throwErrorIfFailed(exitCode);
+	}
+
+	private void throwErrorIfNotFinished(Process process, final boolean finished) {
 		if (!finished) {
 			destroyProcess(process);
 			throw OpenJpegException.withMessage(
-					"Openjpeg2 conversion timed out after " + timeoutInSeconds + " seconds");
+					"Openjpeg2 conversion timed out after " + timeoutInSeconds + " seconds.");
 		}
+	}
 
-		int exitCode = process.exitValue();
+	private void throwErrorIfFailed(int exitCode) {
 		if (exitCode != 0) {
-			// String errorOutput = readErrorOutput(process);
 			throw OpenJpegException
-					.withMessage("Openjpeg2 conversion failed with exit code " + exitCode);
-			// + exitCode + " and error : " + errorOutput);
-		}
-	}
-
-	// private String readErrorOutput(Process process) {
-	// try (InputStream errorStream = process.getErrorStream();
-	// InputStreamReader inputStreamReader = new InputStreamReader(errorStream,
-	// StandardCharsets.UTF_8);
-	// BufferedReader bufferedReader = new BufferedReader(inputStreamReader)) {
-	// return bufferedReader.lines().collect(Collectors.joining(System.lineSeparator()));
-	// } catch (IOException e) {
-	// throw OpenJpegException.withMessageAndException("Failed to read openjpeg2 error output",
-	// e);
-	// }
-	// }
-
-	// SPIKE ENDS
-
-	// private void waitForConvertingToFinish(Process process) {
-	// int exitCode = -1;
-	// exitCode = pollProcess(process, exitCode);
-	// throwExceptionWhenProcessNotSuccessful(process, exitCode);
-	// }
-
-	private int pollProcess(Process process, int exitCode) {
-		while (waitingForProcessToFinish(exitCode)) {
-			try {
-				exitCode = process.exitValue();
-			} catch (IllegalThreadStateException e) {
-				sleep();
-			}
-		}
-		return exitCode;
-	}
-
-	private boolean waitingForProcessToFinish(int exitCode) {
-		return checkTimeout(System.currentTimeMillis(), timeout) && exitCode != 0;
-	}
-
-	boolean checkTimeout(long currentTimeMillis, long timeout) {
-		return currentTimeMillis <= timeout;
-	}
-
-	void sleep() {
-		try {
-			threadSleep();
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			throw OpenJpegException.withMessageAndException(
-					"Converting image using openjpeg2 failed or timed out", e);
-		}
-	}
-
-	void threadSleep() throws InterruptedException {
-		Thread.sleep(pollSleepTime);
-	}
-
-	private void throwExceptionWhenProcessNotSuccessful(Process process, int exitCode) {
-		if (exitCode != 0) {
-			destroyProcess(process);
-			throw OpenJpegException
-					.withMessage("Converting image using openjpeg2 failed or timed out");
+					.withMessage("Openjpeg2 conversion failed with exit code " + exitCode + ".");
 		}
 	}
 
 	private void destroyProcess(Process process) {
-		process.destroy();
-		sleep();
-		if (process.isAlive()) {
+		try {
+			process.destroy();
+			process.waitFor(15L, java.util.concurrent.TimeUnit.SECONDS);
+			if (process.isAlive()) {
+				process.destroyForcibly();
+			}
+		} catch (InterruptedException e) {
 			process.destroyForcibly();
+			// Not needed here: Thread.currentThread().interrupt();
 		}
 	}
 
 	public OpjProcessBuilder onlyForTestGetProcessBuilder() {
 		return builder;
-	}
-
-	public Object onlyForTestGetPollSleepTimeInMilliseconds() {
-		return pollSleepTime;
 	}
 
 	public Object onlyForTestGetTimeoutInSeconds() {
