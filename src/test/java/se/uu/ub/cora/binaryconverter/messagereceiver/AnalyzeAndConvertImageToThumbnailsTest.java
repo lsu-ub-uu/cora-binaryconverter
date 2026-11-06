@@ -257,22 +257,24 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertAnalyzeAndConvertToRepresentation("medium", 600, largePath, 1, 2, 2);
 		assertAnalyzeAndConvertToRepresentation("thumbnail", 200, largePath, 2, 3, 3);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
-				"aPath-large", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
-				"aPath-medium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"aPath-thumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
-
-		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				0);
-		var mediumG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				1);
-		var thumbnailG = resourceMetadataCreator.MCR
-				.getReturnValue("createMetadataForRepresentation", 2);
+		ClientDataGroup largeG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-large", ID,
+						"large", JPEG_MIME_TYPE, imageDataLarge);
+		ClientDataGroup mediumG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-medium", ID,
+						"medium", JPEG_MIME_TYPE, imageDataMedium);
+		ClientDataGroup thumbnailG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-thumbnail",
+						ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
 
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
+		binaryRecordGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
+				largeG.getNameInData());
+		binaryRecordGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
+				mediumG.getNameInData());
+		binaryRecordGroup.MCR.assertParameters("removeFirstChildWithNameInData", 0,
+				thumbnailG.getNameInData());
 		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
 		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);

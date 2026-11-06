@@ -238,13 +238,22 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			ClientDataRecordGroup binaryRecordGroup) {
 		ClientDataGroup masterG = binaryRecordGroup.getFirstGroupWithNameInData("master");
 		resourceMetadataCreator.updateMasterGroup(masterG, masterImageData);
+		/*
+		 * TODO 1- Fix remove child, similar than addChild() on
+		 * resourceMetadataCreator.updateMasterGroup 2- Do same thing for pdf and jp2
+		 */
 	}
 
 	private void addOtherRepresentationDataToRecord(Map<String, ClientDataGroup> representations,
 			ClientDataRecordGroup binaryRecordGroup) {
-		binaryRecordGroup.addChild(representations.get(LARGE));
-		binaryRecordGroup.addChild(representations.get(MEDIUM));
-		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
+		addChild(binaryRecordGroup, representations.get(LARGE));
+		addChild(binaryRecordGroup, representations.get(MEDIUM));
+		addChild(binaryRecordGroup, representations.get(THUMBNAIL));
+	}
+
+	private void addChild(ClientDataRecordGroup binaryRecordGroup, ClientDataGroup child) {
+		binaryRecordGroup.removeFirstChildWithNameInData(child.getNameInData());
+		binaryRecordGroup.addChild(child);
 	}
 
 	private void throwExceptionIfNotConflict(String recordId,
