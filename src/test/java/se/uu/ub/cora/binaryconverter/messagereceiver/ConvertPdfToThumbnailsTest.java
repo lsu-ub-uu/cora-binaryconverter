@@ -36,10 +36,8 @@ import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.PdfConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
-import se.uu.ub.cora.clientdata.spies.ClientDataAtomicSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
@@ -164,34 +162,38 @@ public class ConvertPdfToThumbnailsTest {
 		var imageDataMedium = getImageData(1);
 		var imageDataThumbnail = getImageData(2);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
-				"pathToFileLarge", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
-				"pathToFileMedium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"pathToFileThumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
+		var largeG = resourceMetadataCreator.MCR.assertCalledParametersReturn(
+				"createMetadataForRepresentation", "pathToFileLarge", ID, "large", JPEG_MIME_TYPE,
+				imageDataLarge);
+		var mediumG = resourceMetadataCreator.MCR.assertCalledParametersReturn(
+				"createMetadataForRepresentation", "pathToFileMedium", ID, "medium", JPEG_MIME_TYPE,
+				imageDataMedium);
+		var thumbnailG = resourceMetadataCreator.MCR.assertCalledParametersReturn(
+				"createMetadataForRepresentation", "pathToFileThumbnail", ID, "thumbnail",
+				JPEG_MIME_TYPE, imageDataThumbnail);
 
-		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				0);
-		var mediumG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				1);
-		var thumbnailG = resourceMetadataCreator.MCR
-				.getReturnValue("createMetadataForRepresentation", 2);
-
-		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
-		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
-		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", largeG,
+				binaryRecordGroup);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", mediumG,
+				binaryRecordGroup);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", thumbnailG,
+				binaryRecordGroup);
 
 		assertSetStatus("done");
 	}
 
 	private void assertSetStatus(String status) {
-		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
-				ClientDataAtomic.class, "status");
-		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
-						status);
-		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+		var recordGroup = getBinaryRecordGroup();
+		resourceMetadataCreator.MCR.assertCalledParameters("setStatusInRecordGroup", status,
+				recordGroup);
+	}
+
+	private ClientDataRecordGroupSpy getBinaryRecordGroup() {
+		ClientDataRecordSpy dataRecord = (ClientDataRecordSpy) dataClient.MCR.getReturnValue("read",
+				0);
+		dataRecord.MCR.assertParameters("getDataRecordGroup", 0);
+		return (ClientDataRecordGroupSpy) dataRecord.MCR.getReturnValue("getDataRecordGroup", 0);
+
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -345,15 +347,8 @@ public class ConvertPdfToThumbnailsTest {
 	}
 
 	private void assertAddProccessingMessage(String message) {
-		String repeatId = (String) clientDataFactory.MCR
-				.getParameterForMethodAndCallNumberAndParameter(
-						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
-		assertEquals(repeatId.length(), 13);
-
-		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
-						"processingMessage", message);
-		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
+		resourceMetadataCreator.MCR.assertCalledParameters("addProcessingMessageInRecordGroup",
+				message, binaryRecordGroup);
 	}
 
 	@Test

@@ -21,6 +21,7 @@ package se.uu.ub.cora.binaryconverter.spy;
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -33,6 +34,7 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("createMetadataForRepresentation",
 				ClientDataGroupSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getStatusFromRecordGroup", () -> "");
 	}
 
 	@Override
@@ -44,7 +46,28 @@ public class ResourceMetadataCreatorSpy implements ResourceMetadataCreator {
 	}
 
 	@Override
-	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
-		MCR.addCall("masterGroup", masterGroup, "imageData", imageData);
+	public void updateMasterGroup(ClientDataRecordGroup recordGroup, ImageData imageData) {
+		MCR.addCall("recordGroup", recordGroup, "imageData", imageData);
+	}
+
+	@Override
+	public void setChildInRecordGroup(ClientDataGroup child, ClientDataRecordGroup recordGroup) {
+		MCR.addCall("child", child, "recordGroup", recordGroup);
+	}
+
+	@Override
+	public void setStatusInRecordGroup(String status, ClientDataRecordGroup recordGroup) {
+		MCR.addCall("status", status, "recordGroup", recordGroup);
+	}
+
+	@Override
+	public String getStatusFromRecordGroup(ClientDataRecordGroup recordGroup) {
+		return (String) MCR.addCallAndReturnFromMRV("recordGroup", recordGroup);
+	}
+
+	@Override
+	public void addProcessingMessageInRecordGroup(String message,
+			ClientDataRecordGroup recordGroup) {
+		MCR.addCall("message", message, "recordGroup", recordGroup);
 	}
 }

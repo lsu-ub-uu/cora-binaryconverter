@@ -22,22 +22,33 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
+import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.clientdata.ClientDataResourceLink;
 
 public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 
+	private static final String RECORD_INFO = "recordInfo";
+	private static final String STATUS = "status";
+	private static final String RESOLUTION = "resolution";
+	private static final String WIDTH = "width";
+	private static final String HEIGHT = "height";
+
 	@Override
-	public void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData) {
-		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
+	public void updateMasterGroup(ClientDataRecordGroup recordGroup, ImageData imageData) {
+		ClientDataGroup masterG = recordGroup.getFirstGroupWithNameInData("master");
+		masterG.removeAllChildrenWithNameInData(HEIGHT);
+		masterG.removeAllChildrenWithNameInData(WIDTH);
+		masterG.removeAllChildrenWithNameInData(RESOLUTION);
+		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue(HEIGHT,
 				imageData.height());
-		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
+		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue(WIDTH,
 				imageData.width());
 		ClientDataAtomic resolution = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("resolution", imageData.resolution());
+				.createAtomicUsingNameInDataAndValue(RESOLUTION, imageData.resolution());
 
-		masterGroup.addChild(height);
-		masterGroup.addChild(width);
-		masterGroup.addChild(resolution);
+		masterG.addChild(height);
+		masterG.addChild(width);
+		masterG.addChild(resolution);
 	}
 
 	@Override
@@ -55,9 +66,9 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 				.createAtomicUsingNameInDataAndValue("fileSize", imageData.size());
 		ClientDataAtomic mimeType = ClientDataProvider
 				.createAtomicUsingNameInDataAndValue("mimeType", mimeTypenIn);
-		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue("height",
+		ClientDataAtomic height = ClientDataProvider.createAtomicUsingNameInDataAndValue(HEIGHT,
 				imageData.height());
-		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue("width",
+		ClientDataAtomic width = ClientDataProvider.createAtomicUsingNameInDataAndValue(WIDTH,
 				imageData.width());
 
 		thumbnailGroup.addChild(id);
@@ -68,6 +79,40 @@ public class ResourceMetadataCreatorImp implements ResourceMetadataCreator {
 		thumbnailGroup.addChild(width);
 
 		return thumbnailGroup;
+	}
+
+	@Override
+	public void setChildInRecordGroup(ClientDataGroup child, ClientDataRecordGroup recordGroup) {
+		recordGroup.removeAllChildrenWithNameInData(child.getNameInData());
+		recordGroup.addChild(child);
+	}
+
+	@Override
+	public void setStatusInRecordGroup(String status, ClientDataRecordGroup recordGroup) {
+		ClientDataGroup recordInfo = recordGroup.getFirstChildOfTypeAndName(ClientDataGroup.class,
+				RECORD_INFO);
+		recordInfo.removeAllChildrenWithNameInData(STATUS);
+		ClientDataAtomic statusUploaded = ClientDataProvider
+				.createAtomicUsingNameInDataAndValue(STATUS, status);
+		recordInfo.addChild(statusUploaded);
+	}
+
+	@Override
+	public String getStatusFromRecordGroup(ClientDataRecordGroup recordGroup) {
+		ClientDataGroup recordInfo = recordGroup.getFirstChildOfTypeAndName(ClientDataGroup.class,
+				RECORD_INFO);
+		return recordInfo.getFirstAtomicValueWithNameInData(STATUS);
+	}
+
+	@Override
+	public void addProcessingMessageInRecordGroup(String message,
+			ClientDataRecordGroup recordGroup) {
+		ClientDataGroup recordInfo = recordGroup.getFirstChildOfTypeAndName(ClientDataGroup.class,
+				RECORD_INFO);
+		ClientDataAtomic processingMessage = ClientDataProvider
+				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
+						String.valueOf(System.currentTimeMillis()));
+		recordInfo.addChild(processingMessage);
 	}
 
 }

@@ -37,10 +37,8 @@ import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.Jp2ConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
-import se.uu.ub.cora.clientdata.spies.ClientDataAtomicSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
@@ -147,12 +145,12 @@ public class ConvertImageToJp2Test {
 		binaryOperationFactory.MCR.assertNumberOfCallsToMethod("factorImageAnalyzer", 1);
 		var image = getImageData(0);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
-				"somePathToAFile", ID, "jp2", JP2_MIME_TYPE, image);
+		var jp2G = resourceMetadataCreator.MCR.assertCalledParametersReturn(
+				"createMetadataForRepresentation", "somePathToAFile", ID, "jp2", JP2_MIME_TYPE,
+				image);
 
-		var jp2G = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation", 0);
-
-		binaryRecordGroup.MCR.assertParameters("addChild", 0, jp2G);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", jp2G,
+				binaryRecordGroup);
 	}
 
 	private ImageData getImageData(int callNr) {
@@ -205,22 +203,17 @@ public class ConvertImageToJp2Test {
 
 		messageReceiver.receiveMessage(headers, MESSAGE);
 
-		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("processing");
 	}
 
 	private void assertSetStatus(String status) {
-		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
-				ClientDataAtomic.class, "status");
-		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
-						status);
-		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+		resourceMetadataCreator.MCR.assertCalledParameters("setStatusInRecordGroup", status,
+				binaryRecordGroup);
 	}
 
 	private void setUpStatusOnReadRecordFromStorage(String status) {
-		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> status, "status");
+		resourceMetadataCreator.MRV.setSpecificReturnValuesSupplier("getStatusFromRecordGroup",
+				() -> status, binaryRecordGroup);
 	}
 
 	@Test
@@ -229,7 +222,6 @@ public class ConvertImageToJp2Test {
 
 		messageReceiver.receiveMessage(headers, MESSAGE);
 
-		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("done");
 	}
 
@@ -305,15 +297,8 @@ public class ConvertImageToJp2Test {
 	}
 
 	private void assertAddProccessingMessage(String message) {
-		String repeatId = (String) clientDataFactory.MCR
-				.getParameterForMethodAndCallNumberAndParameter(
-						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
-		assertEquals(repeatId.length(), 13);
-
-		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
-						"processingMessage", message);
-		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
+		resourceMetadataCreator.MCR.assertCalledParameters("addProcessingMessageInRecordGroup",
+				message, binaryRecordGroup);
 	}
 
 	@Test

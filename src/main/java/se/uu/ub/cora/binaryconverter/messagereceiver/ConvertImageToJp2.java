@@ -26,9 +26,7 @@ import se.uu.ub.cora.binaryconverter.image.Jp2Converter;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
-import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -124,16 +122,14 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	private void updateRecordUsingRepresentationDataGroup(String recordType, String recordId,
 			ClientDataGroup jp2Group) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		binaryRecordGroup.addChild(jp2Group);
+		resourceMetadataCreator.setChildInRecordGroup(jp2Group, binaryRecordGroup);
 
 		determineStatus(binaryRecordGroup);
 		tryToUpdateRecordRepresentationsForRetry(recordType, recordId, jp2Group, binaryRecordGroup);
 	}
 
 	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
-		ClientDataGroup recordInfo = binaryRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		String status = recordInfo.getFirstAtomicValueWithNameInData(STATUS);
+		String status = resourceMetadataCreator.getStatusFromRecordGroup(binaryRecordGroup);
 		if (status.equals("uploaded")) {
 			setStatus(binaryRecordGroup, "processing");
 		}
@@ -142,13 +138,8 @@ public class ConvertImageToJp2 implements MessageReceiver {
 		}
 	}
 
-	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
-		ClientDataGroup recordInfo = dataRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, STATUS);
-		ClientDataAtomic statusUploaded = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue(STATUS, status);
-		recordInfo.addChild(statusUploaded);
+	private void setStatus(ClientDataRecordGroup recordGroup, String status) {
+		resourceMetadataCreator.setStatusInRecordGroup(status, recordGroup);
 	}
 
 	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
@@ -177,12 +168,7 @@ public class ConvertImageToJp2 implements MessageReceiver {
 	}
 
 	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
-		ClientDataGroup recordInfo = binaryRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		ClientDataAtomic processingMessage = ClientDataProvider
-				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
-						String.valueOf(System.currentTimeMillis()));
-		recordInfo.addChild(processingMessage);
+		resourceMetadataCreator.addProcessingMessageInRecordGroup(message, binaryRecordGroup);
 	}
 
 	private void throwExceptionIfNotConflict(String recordId,
