@@ -39,7 +39,6 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
-	private static final String STATUS = "status";
 	private static final int HTTP_CONFLICT = 409;
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
