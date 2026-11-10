@@ -432,7 +432,16 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testSetStatusToProcessing() {
+	public void testSetStatusToProcessingIfReconverted() {
+		setUpStatusOnReadRecordFromStorage("reconvert");
+
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		assertSetStatus("processing");
+	}
+
+	@Test
+	public void testSetStatusToProcessingIfUploaded() {
 		setUpStatusOnReadRecordFromStorage("uploaded");
 
 		converter.receiveMessage(headers, SOME_MESSAGE);

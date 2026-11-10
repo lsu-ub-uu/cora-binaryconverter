@@ -38,7 +38,6 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class ConvertImageToJp2 implements MessageReceiver {
-	private static final String STATUS = "status";
 	private static final String JP2 = "jp2";
 	private static final int HTTP_CONFLICT = 409;
 	private Logger logger = LoggerProvider.getLoggerForClass(ConvertImageToJp2.class);
@@ -130,12 +129,16 @@ public class ConvertImageToJp2 implements MessageReceiver {
 
 	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
 		String status = resourceMetadataCreator.getStatusFromRecordGroup(binaryRecordGroup);
-		if (status.equals("uploaded")) {
+		if (isUploadedOrReconverted(status)) {
 			setStatus(binaryRecordGroup, "processing");
 		}
 		if (status.equals("processing")) {
 			setStatus(binaryRecordGroup, "done");
 		}
+	}
+
+	private boolean isUploadedOrReconverted(String status) {
+		return "uploaded".equals(status) || "reconvert".equals(status);
 	}
 
 	private void setStatus(ClientDataRecordGroup recordGroup, String status) {

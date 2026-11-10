@@ -39,7 +39,6 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
-	private static final String STATUS = "status";
 	private static final int HTTP_CONFLICT = 409;
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
@@ -192,12 +191,16 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 
 	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
 		String status = resourceMetadataCreator.getStatusFromRecordGroup(binaryRecordGroup);
-		if (status.equals("uploaded")) {
+		if (isUploadedOrReconverted(status)) {
 			setStatus(binaryRecordGroup, "processing");
 		}
-		if (status.equals("processing")) {
+		if ("processing".equals(status)) {
 			setStatus(binaryRecordGroup, "done");
 		}
+	}
+
+	private boolean isUploadedOrReconverted(String status) {
+		return "uploaded".equals(status) || "reconvert".equals(status);
 	}
 
 	private void setStatus(ClientDataRecordGroup recordGroup, String status) {

@@ -198,7 +198,16 @@ public class ConvertImageToJp2Test {
 	}
 
 	@Test
-	public void testSetStatusToProcessing() {
+	public void testSetStatusToProcessingIfReconverted() {
+		setUpStatusOnReadRecordFromStorage("reconvert");
+
+		messageReceiver.receiveMessage(headers, MESSAGE);
+
+		assertSetStatus("processing");
+	}
+
+	@Test
+	public void testSetStatusToProcessingIfUploaded() {
 		setUpStatusOnReadRecordFromStorage("uploaded");
 
 		messageReceiver.receiveMessage(headers, MESSAGE);
