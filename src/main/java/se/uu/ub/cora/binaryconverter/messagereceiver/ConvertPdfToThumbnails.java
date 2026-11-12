@@ -27,9 +27,7 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
-import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -159,21 +157,19 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	private void updateRecordUsingRepresentationGroups(String recordType, String recordId,
 			Map<String, ClientDataGroup> representations) {
 		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
-		binaryRecordGroup.addChild(representations.get(LARGE));
-		binaryRecordGroup.addChild(representations.get(MEDIUM));
-		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(LARGE),
+				binaryRecordGroup);
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(MEDIUM),
+				binaryRecordGroup);
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(THUMBNAIL),
+				binaryRecordGroup);
 		setStatus(binaryRecordGroup, "done");
 		tryToUpdateRecordRepresentationsForRetry(recordType, recordId, representations,
 				binaryRecordGroup);
 	}
 
-	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
-		ClientDataGroup recordInfo = dataRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
-		ClientDataAtomic statusUploaded = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("status", status);
-		recordInfo.addChild(statusUploaded);
+	private void setStatus(ClientDataRecordGroup recordGroup, String status) {
+		resourceMetadataCreator.setStatusInRecordGroup(status, recordGroup);
 	}
 
 	private void tryToUpdateRecord(String recordType, String recordId,
@@ -241,12 +237,7 @@ public class ConvertPdfToThumbnails implements MessageReceiver {
 	}
 
 	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
-		ClientDataGroup recordInfo = binaryRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		ClientDataAtomic processingMessage = ClientDataProvider
-				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
-						String.valueOf(System.currentTimeMillis()));
-		recordInfo.addChild(processingMessage);
+		resourceMetadataCreator.addProcessingMessageInRecordGroup(message, binaryRecordGroup);
 	}
 
 	@Override

@@ -20,8 +20,21 @@ package se.uu.ub.cora.binaryconverter.internal;
 
 import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
+import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 
 public interface ResourceMetadataCreator {
+
+	/**
+	 * updateMasterGroup method updates masterGroup in the provided recordGroup using imageData as
+	 * input for height, width and resolution. If any of the these exist since before are they
+	 * removed before the new data is added.
+	 * 
+	 * @param recordGroup
+	 *            To update the master representation in
+	 * @param imageData
+	 *            image data of the representation
+	 */
+	void updateMasterGroup(ClientDataRecordGroup recordGroup, ImageData imageData);
 
 	/**
 	 * createMetadataForRepresentation method creates a new group using representation as nameInData
@@ -32,7 +45,7 @@ public interface ResourceMetadataCreator {
 	 * @param recordId
 	 *            id of the record
 	 * @param representation
-	 *            name of the representation
+	 *            name of the representation, possible values are thumbnail, medium, large, jp2
 	 * @param imageData
 	 *            an image data {@link ImageData} of the representation
 	 * @return a {@link ClientDataGroup}
@@ -41,12 +54,47 @@ public interface ResourceMetadataCreator {
 			String representation, String mimeType, ImageData imageData);
 
 	/**
-	 * updateMasterGroup method updates masterGroup using imageData as input.
-	 * @param masterGroup
-	 *            is the master representation
-	 * @param imageData
-	 *            image data of the representation
+	 * setChildInRecordGroup adds a child to the provided recordGroup, using the childs nameInData.
+	 * If the nameInData exists as a child in the recordGroup since before are all children with
+	 * that name first removed, then is the provided child added.
+	 * 
+	 * @param child
+	 *            The child to set
+	 * @param recordGroup
+	 *            To set the child in
 	 */
-	void updateMasterGroup(ClientDataGroup masterGroup, ImageData imageData);
+	void setChildInRecordGroup(ClientDataGroup child, ClientDataRecordGroup recordGroup);
+
+	/**
+	 * setStatusInRecordGroup sets the status in recordInfo in the provided recordGroup, using
+	 * nameInData status. If status existed since before is the child first removed from recordInfo
+	 * 
+	 * @param status
+	 *            A String with the status to set
+	 * @param recordGroup
+	 *            To set the child in status in its recordInfo
+	 */
+	void setStatusInRecordGroup(String status, ClientDataRecordGroup recordGroup);
+
+	/**
+	 * getStatus returns the value of the atomic with nameInData status from inside the recordInfo
+	 * group.
+	 * 
+	 * @param recordGroup
+	 *            To get the child status from its recordInfo
+	 * @return A String with the value of the status
+	 */
+	String getStatusFromRecordGroup(ClientDataRecordGroup recordGroup);
+
+	/**
+	 * addProcessingMessageInRecordGroup adds the message to recordInfo in the provided recordGroup,
+	 * using nameInData processingMessage.
+	 * 
+	 * @param message
+	 *            A String with the message to set
+	 * @param recordGroup
+	 *            To set the message in processingMessage in its recordInfo
+	 */
+	void addProcessingMessageInRecordGroup(String message, ClientDataRecordGroup recordGroup);
 
 }

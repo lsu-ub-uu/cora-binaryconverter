@@ -27,9 +27,7 @@ import se.uu.ub.cora.binaryconverter.image.ImageData;
 import se.uu.ub.cora.binaryconverter.internal.BinaryConverterException;
 import se.uu.ub.cora.binaryconverter.internal.BinaryOperationFactory;
 import se.uu.ub.cora.binaryconverter.internal.ResourceMetadataCreator;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
-import se.uu.ub.cora.clientdata.ClientDataProvider;
 import se.uu.ub.cora.clientdata.ClientDataRecord;
 import se.uu.ub.cora.clientdata.ClientDataRecordGroup;
 import se.uu.ub.cora.javaclient.data.DataClient;
@@ -41,7 +39,6 @@ import se.uu.ub.cora.storage.StreamPathBuilder;
 import se.uu.ub.cora.storage.archive.ArchivePathBuilder;
 
 public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
-	private static final String STATUS = "status";
 	private static final int HTTP_CONFLICT = 409;
 	private static final String THUMBNAIL = "thumbnail";
 	private static final String MEDIUM = "medium";
@@ -91,7 +88,8 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 			logger.logErrorUsingMessageAndException(
 					String.format(errorMessage, recordType, recordId, dataDivider), e);
 
-			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+			ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroupFromStorage(recordType,
+					recordId);
 			setStatus(binaryRecordGroup, "failed");
 			addProcessingMessage(binaryRecordGroup, "Failed to convert image to thumbnails.");
 			tryToUpdateRecord(recordType, recordId, binaryRecordGroup);
@@ -192,59 +190,55 @@ public class AnalyzeAndConvertImageToThumbnails implements MessageReceiver {
 	}
 
 	private void determineStatus(ClientDataRecordGroup binaryRecordGroup) {
-		ClientDataGroup recordInfo = binaryRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		String status = recordInfo.getFirstAtomicValueWithNameInData(STATUS);
-		if (status.equals("uploaded")) {
+		String status = resourceMetadataCreator.getStatusFromRecordGroup(binaryRecordGroup);
+		if (isUploadedOrReconverted(status)) {
 			setStatus(binaryRecordGroup, "processing");
 		}
-		if (status.equals("processing")) {
+		if ("processing".equals(status)) {
 			setStatus(binaryRecordGroup, "done");
 		}
 	}
 
-	private void setStatus(ClientDataRecordGroup dataRecordGroup, String status) {
-		ClientDataGroup recordInfo = dataRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		recordInfo.removeFirstChildWithTypeAndName(ClientDataAtomic.class, "status");
-		ClientDataAtomic statusUploaded = ClientDataProvider
-				.createAtomicUsingNameInDataAndValue("status", status);
-		recordInfo.addChild(statusUploaded);
+	private boolean isUploadedOrReconverted(String status) {
+		return "uploaded".equals(status) || "reconvert".equals(status);
+	}
+
+	private void setStatus(ClientDataRecordGroup recordGroup, String status) {
+		resourceMetadataCreator.setStatusInRecordGroup(status, recordGroup);
 	}
 
 	private void addProcessingMessage(ClientDataRecordGroup binaryRecordGroup, String message) {
-		ClientDataGroup recordInfo = binaryRecordGroup
-				.getFirstChildOfTypeAndName(ClientDataGroup.class, "recordInfo");
-		ClientDataAtomic processingMessage = ClientDataProvider
-				.createAtomicUsingNameInDataAndValueAndRepeatId("processingMessage", message,
-						String.valueOf(System.currentTimeMillis()));
-		recordInfo.addChild(processingMessage);
+		resourceMetadataCreator.addProcessingMessageInRecordGroup(message, binaryRecordGroup);
 	}
 
 	private ClientDataRecordGroup addRepresentationsDataToRecord(String recordType, String recordId,
 			ImageData masterImageData, Map<String, ClientDataGroup> representations) {
-		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroup(recordType, recordId);
+		ClientDataRecordGroup binaryRecordGroup = getBinaryRecordGroupFromStorage(recordType,
+				recordId);
 		addMasterRepresentationDataToRecord(masterImageData, binaryRecordGroup);
 		addOtherRepresentationDataToRecord(representations, binaryRecordGroup);
 		return binaryRecordGroup;
 	}
 
-	private ClientDataRecordGroup getBinaryRecordGroup(String recordType, String recordId) {
+	private ClientDataRecordGroup getBinaryRecordGroupFromStorage(String recordType,
+			String recordId) {
 		ClientDataRecord binaryRecord = dataClient.read(recordType, recordId);
 		return binaryRecord.getDataRecordGroup();
 	}
 
 	private void addMasterRepresentationDataToRecord(ImageData masterImageData,
 			ClientDataRecordGroup binaryRecordGroup) {
-		ClientDataGroup masterG = binaryRecordGroup.getFirstGroupWithNameInData("master");
-		resourceMetadataCreator.updateMasterGroup(masterG, masterImageData);
+		resourceMetadataCreator.updateMasterGroup(binaryRecordGroup, masterImageData);
 	}
 
 	private void addOtherRepresentationDataToRecord(Map<String, ClientDataGroup> representations,
 			ClientDataRecordGroup binaryRecordGroup) {
-		binaryRecordGroup.addChild(representations.get(LARGE));
-		binaryRecordGroup.addChild(representations.get(MEDIUM));
-		binaryRecordGroup.addChild(representations.get(THUMBNAIL));
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(LARGE),
+				binaryRecordGroup);
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(MEDIUM),
+				binaryRecordGroup);
+		resourceMetadataCreator.setChildInRecordGroup(representations.get(THUMBNAIL),
+				binaryRecordGroup);
 	}
 
 	private void throwExceptionIfNotConflict(String recordId,

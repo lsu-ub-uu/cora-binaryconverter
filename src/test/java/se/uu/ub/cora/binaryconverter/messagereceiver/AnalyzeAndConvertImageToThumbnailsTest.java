@@ -39,10 +39,8 @@ import se.uu.ub.cora.binaryconverter.spy.DataClientSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageAnalyzerSpy;
 import se.uu.ub.cora.binaryconverter.spy.ImageConverterSpy;
 import se.uu.ub.cora.binaryconverter.spy.ResourceMetadataCreatorSpy;
-import se.uu.ub.cora.clientdata.ClientDataAtomic;
 import se.uu.ub.cora.clientdata.ClientDataGroup;
 import se.uu.ub.cora.clientdata.ClientDataProvider;
-import se.uu.ub.cora.clientdata.spies.ClientDataAtomicSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataFactorySpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataGroupSpy;
 import se.uu.ub.cora.clientdata.spies.ClientDataRecordGroupSpy;
@@ -109,7 +107,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		clientDataFactory = new ClientDataFactorySpy();
 		ClientDataProvider.onlyForTestSetDataFactory(clientDataFactory);
 
-		setReadRecordOnStorage();
+		setUpReadRecordOnStorage();
 	}
 
 	@AfterMethod
@@ -148,7 +146,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				ID, "large");
 	}
 
-	private void setReadRecordOnStorage() {
+	private void setUpReadRecordOnStorage() {
 		dataRecord = new ClientDataRecordSpy();
 		binaryRecordGroup = new ClientDataRecordGroupSpy();
 		recordInfo = new ClientDataGroupSpy();
@@ -221,14 +219,13 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 	private ClientDataRecordGroupSpy assertUpdateRecordAfterAnalyze() {
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
-		binaryRecordGroup.MCR.assertParameters("getFirstGroupWithNameInData", 0, "master");
-		var masterG = binaryRecordGroup.MCR.getReturnValue("getFirstGroupWithNameInData", 0);
 
 		ImageAnalyzerSpy analyzer = (ImageAnalyzerSpy) binaryOperationFactory.MCR
 				.getReturnValue("factorImageAnalyzer", 0);
 		ImageData imageData = (ImageData) analyzer.MCR.getReturnValue("analyze", 0);
 
-		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, masterG, imageData);
+		resourceMetadataCreator.MCR.assertParameters("updateMasterGroup", 0, binaryRecordGroup,
+				imageData);
 
 		return binaryRecordGroup;
 	}
@@ -238,6 +235,7 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 				0);
 		dataRecord.MCR.assertParameters("getDataRecordGroup", 0);
 		return (ClientDataRecordGroupSpy) dataRecord.MCR.getReturnValue("getDataRecordGroup", 0);
+
 	}
 
 	@Test
@@ -257,25 +255,24 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 		assertAnalyzeAndConvertToRepresentation("medium", 600, largePath, 1, 2, 2);
 		assertAnalyzeAndConvertToRepresentation("thumbnail", 200, largePath, 2, 3, 3);
 
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 0,
-				"aPath-large", ID, "large", JPEG_MIME_TYPE, imageDataLarge);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 1,
-				"aPath-medium", ID, "medium", JPEG_MIME_TYPE, imageDataMedium);
-		resourceMetadataCreator.MCR.assertParameters("createMetadataForRepresentation", 2,
-				"aPath-thumbnail", ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
-
-		var largeG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				0);
-		var mediumG = resourceMetadataCreator.MCR.getReturnValue("createMetadataForRepresentation",
-				1);
-		var thumbnailG = resourceMetadataCreator.MCR
-				.getReturnValue("createMetadataForRepresentation", 2);
+		ClientDataGroup largeG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-large", ID,
+						"large", JPEG_MIME_TYPE, imageDataLarge);
+		ClientDataGroup mediumG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-medium", ID,
+						"medium", JPEG_MIME_TYPE, imageDataMedium);
+		ClientDataGroup thumbnailG = (ClientDataGroup) resourceMetadataCreator.MCR
+				.assertCalledParametersReturn("createMetadataForRepresentation", "aPath-thumbnail",
+						ID, "thumbnail", JPEG_MIME_TYPE, imageDataThumbnail);
 
 		ClientDataRecordGroupSpy binaryRecordGroup = getBinaryRecordGroup();
 
-		binaryRecordGroup.MCR.assertParameters("addChild", 0, largeG);
-		binaryRecordGroup.MCR.assertParameters("addChild", 1, mediumG);
-		binaryRecordGroup.MCR.assertParameters("addChild", 2, thumbnailG);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", largeG,
+				binaryRecordGroup);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", mediumG,
+				binaryRecordGroup);
+		resourceMetadataCreator.MCR.assertCalledParameters("setChildInRecordGroup", thumbnailG,
+				binaryRecordGroup);
 	}
 
 	private void assertAnalyzeAndConvertToRepresentation(String representation, int width,
@@ -435,27 +432,31 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 	}
 
 	@Test
-	public void testSetStatusTocessing() {
+	public void testSetStatusToProcessingIfReconverted() {
+		setUpStatusOnReadRecordFromStorage("reconvert");
+
+		converter.receiveMessage(headers, SOME_MESSAGE);
+
+		assertSetStatus("processing");
+	}
+
+	@Test
+	public void testSetStatusToProcessingIfUploaded() {
 		setUpStatusOnReadRecordFromStorage("uploaded");
 
 		converter.receiveMessage(headers, SOME_MESSAGE);
 
-		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("processing");
 	}
 
 	private void assertSetStatus(String status) {
-		recordInfo.MCR.assertCalledParameters("removeFirstChildWithTypeAndName",
-				ClientDataAtomic.class, "status");
-		ClientDataAtomicSpy statusAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValue", "status",
-						status);
-		recordInfo.MCR.assertCalledParameters("addChild", statusAtomic);
+		resourceMetadataCreator.MCR.assertCalledParameters("setStatusInRecordGroup", status,
+				binaryRecordGroup);
 	}
 
 	private void setUpStatusOnReadRecordFromStorage(String status) {
-		recordInfo.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> status, "status");
+		resourceMetadataCreator.MRV.setSpecificReturnValuesSupplier("getStatusFromRecordGroup",
+				() -> status, binaryRecordGroup);
 	}
 
 	@Test
@@ -464,20 +465,12 @@ public class AnalyzeAndConvertImageToThumbnailsTest {
 
 		converter.receiveMessage(headers, SOME_MESSAGE);
 
-		recordInfo.MCR.assertParameters("getFirstAtomicValueWithNameInData", 0, "status");
 		assertSetStatus("done");
 	}
 
 	private void assertAddProccessingMessage(String message) {
-		String repeatId = (String) clientDataFactory.MCR
-				.getParameterForMethodAndCallNumberAndParameter(
-						"factorAtomicUsingNameInDataAndValueAndRepeatId", 0, "repeatId");
-		assertEquals(repeatId.length(), 13);
-
-		ClientDataAtomicSpy messageAtomic = (ClientDataAtomicSpy) clientDataFactory.MCR
-				.assertCalledParametersReturn("factorAtomicUsingNameInDataAndValueAndRepeatId",
-						"processingMessage", message);
-		recordInfo.MCR.assertCalledParameters("addChild", messageAtomic);
+		resourceMetadataCreator.MCR.assertCalledParameters("addProcessingMessageInRecordGroup",
+				message, binaryRecordGroup);
 	}
 
 	@Test
